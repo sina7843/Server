@@ -1,0 +1,27 @@
+{
+  "name": "@dragon/config",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shared base tooling configuration for Dragon Ecosystem.",
+  "exports": {
+    "./tsconfig/base": "./tsconfig/base.json",
+    "./tsconfig/node": "./tsconfig/node.json",
+    "./tsconfig/vue": "./tsconfig/vue.json",
+    "./eslint/base": "./eslint/base.js",
+    "./prettier": "./prettier/index.cjs",
+    "./tailwind/preset": "./tailwind/preset.ts"
+  },
+  "files": [
+    "tsconfig",
+    "eslint",
+    "prettier",
+    "tailwind",
+    "README.md"
+  ],
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "node -e \"console.log(\\\"test: no tests for shared config package yet\\\")\"",
+    "build": "tsc --noEmit -p tsconfig.json"
+  }
+}

@@ -1,0 +1,52 @@
+name: dragon-local-infra
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: dragon-local-mongodb
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+    volumes:
+      - dragon_mongodb_data:/data/db
+    networks:
+      - dragon_local
+
+  redis:
+    image: redis:7-alpine
+    container_name: dragon-local-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - dragon_redis_data:/data
+    networks:
+      - dragon_local
+
+  minio:
+    image: minio/minio:latest
+    container_name: dragon-local-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - dragon_minio_data:/data
+    networks:
+      - dragon_local
+
+volumes:
+  dragon_mongodb_data:
+  dragon_redis_data:
+  dragon_minio_data:
+
+networks:
+  dragon_local:

@@ -5,15 +5,8 @@
     "typecheck": {},
     "test": {},
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "dist/**",
-        ".output/**",
-        ".nuxt/**",
-        "build/**"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".output/**", ".nuxt/**", "build/**"]
     }
   }
 }

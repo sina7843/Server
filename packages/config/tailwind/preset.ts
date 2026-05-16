@@ -4,11 +4,11 @@ const preset = {
     extend: {
       textAlign: {
         start: 'start',
-        end: 'end'
-      }
-    }
+        end: 'end',
+      },
+    },
   },
-  plugins: []
+  plugins: [],
 };
 
 export default preset;

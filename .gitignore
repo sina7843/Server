@@ -1,12 +1,13 @@
 node_modules/
+.pnpm-store/
 
 # Build outputs
 dist/
 build/
+coverage/
 .output/
 .nuxt/
 .turbo/
-coverage/
 
 # Environment files
 .env
@@ -21,8 +22,5 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Package manager and cache artifacts
-.pnpm-store/
-.npm/
-.yarn/
-*.tsbuildinfo
+# OS/editor noise
+.DS_Store

@@ -1,0 +1,22 @@
+{
+  "name": "@dragon/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Minimal Dragon public web app shell.",
+  "scripts": {
+    "lint": "eslint \"nuxt.config.ts\" \"eslint.config.js\" --no-error-on-unmatched-pattern",
+    "typecheck": "nuxt typecheck",
+    "test": "node -e \"console.log('No tests configured for @dragon/web shell yet.')\"",
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "start": "node .output/server/index.mjs"
+  },
+  "dependencies": {
+    "nuxt": "3.17.5",
+    "vue": "3.5.16",
+    "vue-router": "4.5.1"
+  },
+  "devDependencies": {
+    "vue-tsc": "2.2.10"
+  }
+}

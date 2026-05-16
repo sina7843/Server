@@ -1,0 +1,10 @@
+.dragon-ui-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-block: 0.5rem;
+  padding-inline: 0.75rem;
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+  font: inherit;
+}

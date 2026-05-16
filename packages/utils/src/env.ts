@@ -1,6 +1,12 @@
-export type KnownEnvironment = 'development' | 'test' | 'production';
+export type KnownEnvironment = 'local' | 'development' | 'test' | 'staging' | 'production';
 
-const KNOWN_ENVIRONMENTS: readonly KnownEnvironment[] = ['development', 'test', 'production'];
+const KNOWN_ENVIRONMENTS: readonly KnownEnvironment[] = [
+  'local',
+  'development',
+  'test',
+  'staging',
+  'production',
+];
 
 export function isKnownEnvironment(value: string): value is KnownEnvironment {
   return KNOWN_ENVIRONMENTS.includes(value as KnownEnvironment);

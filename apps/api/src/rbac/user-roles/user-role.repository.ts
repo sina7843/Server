@@ -24,10 +24,7 @@ export class UserRoleRepository {
     return this.userRoleModel.find({ userId }).exec();
   }
 
-  findActiveByUserId(
-    userId: string,
-    now = new Date(),
-  ): Promise<UserRoleDocument[]> {
+  findActiveByUserId(userId: string, now = new Date()): Promise<UserRoleDocument[]> {
     return this.userRoleModel
       .find({
         userId,
@@ -36,18 +33,11 @@ export class UserRoleRepository {
       .exec();
   }
 
-  findByUserAndScope(
-    userId: string,
-    scope: UserRoleScopeInput = {},
-  ): Promise<UserRoleDocument[]> {
-    return this.userRoleModel
-      .find({ userId, ...this.buildScopeFilter(scope) })
-      .exec();
+  findByUserAndScope(userId: string, scope: UserRoleScopeInput = {}): Promise<UserRoleDocument[]> {
+    return this.userRoleModel.find({ userId, ...this.buildScopeFilter(scope) }).exec();
   }
 
-  findByUserRoleAndScope(
-    input: FindUserRoleInput,
-  ): Promise<UserRoleDocument | null> {
+  findByUserRoleAndScope(input: FindUserRoleInput): Promise<UserRoleDocument | null> {
     return this.userRoleModel
       .findOne({
         userId: input.userId,
@@ -89,13 +79,8 @@ export class UserRoleRepository {
     return this.userRoleModel.findByIdAndDelete(userRoleId).exec();
   }
 
-  removeUserRoleForUser(
-    userId: string,
-    userRoleId: UserRoleId,
-  ): Promise<UserRoleDocument | null> {
-    return this.userRoleModel
-      .findOneAndDelete({ _id: userRoleId, userId })
-      .exec();
+  removeUserRoleForUser(userId: string, userRoleId: UserRoleId): Promise<UserRoleDocument | null> {
+    return this.userRoleModel.findOneAndDelete({ _id: userRoleId, userId }).exec();
   }
 
   async assignRoleForSeed(input: AssignRoleInput): Promise<{
@@ -124,9 +109,7 @@ export class UserRoleRepository {
     };
   }
 
-  private buildScopeFilter(
-    scope: UserRoleScopeInput,
-  ): Record<string, string | { $exists: false }> {
+  private buildScopeFilter(scope: UserRoleScopeInput): Record<string, string | { $exists: false }> {
     return {
       scopeType: scope.scopeType ?? { $exists: false },
       scopeId: scope.scopeId ?? { $exists: false },

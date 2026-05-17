@@ -10,9 +10,9 @@ describe('UserRoleService', () => {
       assignRole,
     } as never);
 
-    await expect(
-      service.assignRole({ userId: 'user-1', roleId: 'role-1' }),
-    ).resolves.toBe(existing);
+    await expect(service.assignRole({ userId: 'user-1', roleId: 'role-1' })).resolves.toBe(
+      existing,
+    );
 
     expect(assignRole).not.toHaveBeenCalled();
   });
@@ -42,9 +42,6 @@ describe('UserRoleService', () => {
 
     await service.removeUserRoleForUser('user-1', 'assignment-1');
 
-    expect(removeUserRoleForUser).toHaveBeenCalledWith(
-      'user-1',
-      'assignment-1',
-    );
+    expect(removeUserRoleForUser).toHaveBeenCalledWith('user-1', 'assignment-1');
   });
 });

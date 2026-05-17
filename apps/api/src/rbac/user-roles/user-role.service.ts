@@ -31,10 +31,7 @@ export class UserRoleService {
     return this.userRoleRepository.removeUserRole(userRoleId);
   }
 
-  removeUserRoleForUser(
-    userId: string,
-    userRoleId: UserRoleId,
-  ): Promise<UserRoleDocument | null> {
+  removeUserRoleForUser(userId: string, userRoleId: UserRoleId): Promise<UserRoleDocument | null> {
     return this.userRoleRepository.removeUserRoleForUser(userId, userRoleId);
   }
 
@@ -42,23 +39,15 @@ export class UserRoleService {
     return this.userRoleRepository.findByUserId(userId);
   }
 
-  findActiveByUserId(
-    userId: string,
-    now = new Date(),
-  ): Promise<UserRoleDocument[]> {
+  findActiveByUserId(userId: string, now = new Date()): Promise<UserRoleDocument[]> {
     return this.userRoleRepository.findActiveByUserId(userId, now);
   }
 
-  findByUserAndScope(
-    userId: string,
-    scope?: UserRoleScopeInput,
-  ): Promise<UserRoleDocument[]> {
+  findByUserAndScope(userId: string, scope?: UserRoleScopeInput): Promise<UserRoleDocument[]> {
     return this.userRoleRepository.findByUserAndScope(userId, scope);
   }
 
-  findByUserRoleAndScope(
-    input: FindUserRoleInput,
-  ): Promise<UserRoleDocument | null> {
+  findByUserRoleAndScope(input: FindUserRoleInput): Promise<UserRoleDocument | null> {
     return this.userRoleRepository.findByUserRoleAndScope(input);
   }
 

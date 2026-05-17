@@ -4,10 +4,7 @@ import { PermissionKeys } from '../registry/permission-keys';
 import { RolePermissionService } from '../role-permissions/role-permission.service';
 import { RoleService } from '../roles/role.service';
 import { UserRoleService } from '../user-roles/user-role.service';
-import type {
-  PermissionResolution,
-  ResolvePermissionsInput,
-} from './permission-resolution.types';
+import type { PermissionResolution, ResolvePermissionsInput } from './permission-resolution.types';
 
 @Injectable()
 export class PermissionResolverService {
@@ -18,9 +15,7 @@ export class PermissionResolverService {
     private readonly permissionService: PermissionService,
   ) {}
 
-  async resolveUserPermissions(
-    input: ResolvePermissionsInput,
-  ): Promise<PermissionResolution> {
+  async resolveUserPermissions(input: ResolvePermissionsInput): Promise<PermissionResolution> {
     const userRoles = await this.userRoleService.findActiveByUserId(
       input.userId,
       input.now ?? new Date(),
@@ -35,12 +30,10 @@ export class PermissionResolverService {
     }
 
     const roles = await Promise.all(
-      userRoles.map((userRole) =>
-        this.roleService.findById(String(userRole.roleId)),
-      ),
+      userRoles.map((userRole) => this.roleService.findById(String(userRole.roleId))),
     );
-    const activeRoles = roles.filter(
-      (role): role is NonNullable<typeof role> => Boolean(role?.isActive),
+    const activeRoles = roles.filter((role): role is NonNullable<typeof role> =>
+      Boolean(role?.isActive),
     );
     const roleKeys = [...new Set(activeRoles.map((role) => role.key))];
     const isSuperAdmin = roleKeys.includes('super_admin');
@@ -64,9 +57,7 @@ export class PermissionResolverService {
     const permissionKeys = [
       ...new Set(
         permissions
-          .filter((permission): permission is NonNullable<typeof permission> =>
-            Boolean(permission),
-          )
+          .filter((permission): permission is NonNullable<typeof permission> => Boolean(permission))
           .map((permission) => permission.key),
       ),
     ];

@@ -19,9 +19,9 @@ describe('RoleService admin protections', () => {
       findByKey: jest.fn().mockResolvedValue({ key: 'editor' }),
     } as never);
 
-    await expect(
-      service.createAdminRole({ key: 'editor', name: 'Editor' }),
-    ).rejects.toThrow(ConflictException);
+    await expect(service.createAdminRole({ key: 'editor', name: 'Editor' })).rejects.toThrow(
+      ConflictException,
+    );
   });
 
   it('rejects system role update', async () => {
@@ -29,9 +29,9 @@ describe('RoleService admin protections', () => {
       findById: jest.fn().mockResolvedValue({ _id: 'role-1', isSystem: true }),
     } as never);
 
-    await expect(
-      service.updateAdminRole('role-1', { name: 'Updated' }),
-    ).rejects.toThrow(ConflictException);
+    await expect(service.updateAdminRole('role-1', { name: 'Updated' })).rejects.toThrow(
+      ConflictException,
+    );
   });
 
   it('rejects system role deactivation', async () => {
@@ -39,8 +39,6 @@ describe('RoleService admin protections', () => {
       findById: jest.fn().mockResolvedValue({ _id: 'role-1', isSystem: true }),
     } as never);
 
-    await expect(service.deactivateAdminRole('role-1')).rejects.toThrow(
-      ConflictException,
-    );
+    await expect(service.deactivateAdminRole('role-1')).rejects.toThrow(ConflictException);
   });
 });

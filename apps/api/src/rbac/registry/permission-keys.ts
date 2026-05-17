@@ -42,6 +42,4 @@ export const Permissions = {
 
 export type PermissionKey = (typeof Permissions)[keyof typeof Permissions];
 
-export const PermissionKeys = Object.values(
-  Permissions,
-) as readonly PermissionKey[];
+export const PermissionKeys = Object.values(Permissions) as readonly PermissionKey[];

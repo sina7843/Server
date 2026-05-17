@@ -13,15 +13,8 @@ import { AccessTokenGuard } from '../../auth/guards/access-token.guard';
 import { RequirePermission } from '../decorators/require-permission.decorator';
 import { AttachPermissionDto } from '../dto/attach-permission.dto';
 import { CreateRoleDto } from '../dto/create-role.dto';
-import {
-  RbacGenericResponse,
-  createRbacGenericResponse,
-} from '../dto/rbac-response.dto';
-import {
-  RoleResponse,
-  RolesResponse,
-  toRoleResponse,
-} from '../dto/role-response.dto';
+import { RbacGenericResponse, createRbacGenericResponse } from '../dto/rbac-response.dto';
+import { RoleResponse, RolesResponse, toRoleResponse } from '../dto/role-response.dto';
 import { UpdateRoleDto } from '../dto/update-role.dto';
 import {
   validateAttachPermissionDto,
@@ -107,9 +100,7 @@ export class AdminRolesController {
     @Body() body: AttachPermissionDto,
   ): Promise<RbacGenericResponse> {
     const validRoleId = validateObjectId(roleId, 'id');
-    const input = validateAttachPermissionDto(
-      body as unknown as Record<string, unknown>,
-    );
+    const input = validateAttachPermissionDto(body as unknown as Record<string, unknown>);
     const role = await this.roleService.findById(validRoleId);
     const permission = await this.permissionService.findById(input.permissionId);
 

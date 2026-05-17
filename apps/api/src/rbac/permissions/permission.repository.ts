@@ -2,10 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Permission, type PermissionDocument } from './permission.schema';
-import type {
-  PermissionId,
-  UpsertSystemPermissionInput,
-} from './permission.types';
+import type { PermissionId, UpsertSystemPermissionInput } from './permission.types';
 
 @Injectable()
 export class PermissionRepository {
@@ -39,9 +36,7 @@ export class PermissionRepository {
     return this.permissionModel.find(input).sort({ key: 1 }).exec();
   }
 
-  async upsertSystemPermission(
-    input: UpsertSystemPermissionInput,
-  ): Promise<PermissionDocument> {
+  async upsertSystemPermission(input: UpsertSystemPermissionInput): Promise<PermissionDocument> {
     const updated = await this.permissionModel
       .findOneAndUpdate(
         { key: input.key },
@@ -51,9 +46,7 @@ export class PermissionRepository {
             module: input.module,
             resource: input.resource,
             action: input.action,
-            ...(input.description !== undefined
-              ? { description: input.description }
-              : {}),
+            ...(input.description !== undefined ? { description: input.description } : {}),
             isSystem: true,
           },
         },
@@ -64,9 +57,7 @@ export class PermissionRepository {
     return updated as PermissionDocument;
   }
 
-  async upsertSystemPermissionForSeed(
-    input: UpsertSystemPermissionInput,
-  ): Promise<{
+  async upsertSystemPermissionForSeed(input: UpsertSystemPermissionInput): Promise<{
     readonly document: PermissionDocument;
     readonly created: boolean;
     readonly updated: boolean;

@@ -1,16 +1,10 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { RoleRegistry } from '../registry/role-registry';
 import { RoleRepository } from './role.repository';
 import type { RoleDocument } from './role.schema';
 import type { CreateRoleInput, RoleId, UpdateRoleInput } from './role.types';
 
-const RESERVED_ROLE_KEYS: ReadonlySet<string> = new Set(
-  RoleRegistry.map((role) => role.key),
-);
+const RESERVED_ROLE_KEYS: ReadonlySet<string> = new Set(RoleRegistry.map((role) => role.key));
 
 @Injectable()
 export class RoleService {
@@ -52,26 +46,18 @@ export class RoleService {
     return this.roleRepository.createRole({
       key: input.key,
       name: input.name,
-      ...(input.description !== undefined
-        ? { description: input.description }
-        : {}),
+      ...(input.description !== undefined ? { description: input.description } : {}),
       isSystem: false,
       isAssignable: input.isAssignable ?? true,
       isActive: true,
     });
   }
 
-  updateRole(
-    roleId: RoleId,
-    input: UpdateRoleInput,
-  ): Promise<RoleDocument | null> {
+  updateRole(roleId: RoleId, input: UpdateRoleInput): Promise<RoleDocument | null> {
     return this.roleRepository.updateRole(roleId, input);
   }
 
-  async updateAdminRole(
-    roleId: RoleId,
-    input: UpdateRoleInput,
-  ): Promise<RoleDocument | null> {
+  async updateAdminRole(roleId: RoleId, input: UpdateRoleInput): Promise<RoleDocument | null> {
     const role = await this.roleRepository.findById(roleId);
 
     if (!role) {
@@ -84,12 +70,8 @@ export class RoleService {
 
     return this.roleRepository.updateRole(roleId, {
       ...(input.name !== undefined ? { name: input.name } : {}),
-      ...(input.description !== undefined
-        ? { description: input.description }
-        : {}),
-      ...(input.isAssignable !== undefined
-        ? { isAssignable: input.isAssignable }
-        : {}),
+      ...(input.description !== undefined ? { description: input.description } : {}),
+      ...(input.isAssignable !== undefined ? { isAssignable: input.isAssignable } : {}),
       ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
     });
   }

@@ -1,10 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PermissionRepository } from './permission.repository';
 import type { PermissionDocument } from './permission.schema';
-import type {
-  PermissionId,
-  UpsertSystemPermissionInput,
-} from './permission.types';
+import type { PermissionId, UpsertSystemPermissionInput } from './permission.types';
 
 @Injectable()
 export class PermissionService {
@@ -35,9 +32,7 @@ export class PermissionService {
     return this.permissionRepository.listFiltered(input);
   }
 
-  upsertSystemPermission(
-    input: UpsertSystemPermissionInput,
-  ): Promise<PermissionDocument> {
+  upsertSystemPermission(input: UpsertSystemPermissionInput): Promise<PermissionDocument> {
     return this.permissionRepository.upsertSystemPermission(input);
   }
 

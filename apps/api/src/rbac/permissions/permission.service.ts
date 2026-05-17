@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PermissionRepository } from './permission.repository';
 import type { PermissionDocument } from './permission.schema';
-import type { PermissionId, SystemPermissionInput } from './permission.types';
-
-export interface PermissionListFilter {
-  readonly module?: string;
-  readonly resource?: string;
-}
+import type {
+  PermissionId,
+  UpsertSystemPermissionInput,
+} from './permission.types';
 
 @Injectable()
 export class PermissionService {
@@ -28,17 +26,22 @@ export class PermissionService {
     return this.permissionRepository.list();
   }
 
-  listFiltered(filter: PermissionListFilter): Promise<PermissionDocument[]> {
-    return this.permissionRepository.listFiltered(filter);
+  listFiltered(
+    input: {
+      readonly module?: string;
+      readonly resource?: string;
+    } = {},
+  ): Promise<PermissionDocument[]> {
+    return this.permissionRepository.listFiltered(input);
   }
 
-  upsertSystemPermission(input: SystemPermissionInput): Promise<PermissionDocument | null> {
-    return this.permissionRepository.upsertSystemPermission({
-      ...input,
-    });
+  upsertSystemPermission(
+    input: UpsertSystemPermissionInput,
+  ): Promise<PermissionDocument> {
+    return this.permissionRepository.upsertSystemPermission(input);
   }
 
-  upsertSystemPermissionForSeed(input: SystemPermissionInput) {
+  upsertSystemPermissionForSeed(input: UpsertSystemPermissionInput) {
     return this.permissionRepository.upsertSystemPermissionForSeed(input);
   }
 }

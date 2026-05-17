@@ -41,3 +41,6 @@ packages/sdk/src/index.ts
 docs/architecture/rbac.md
 docs/security/rbac-checklist.md
 docs/development/slice-0.3-verification.md
+apps/api/src/rbac/permissions/permission.types.ts
+apps/api/src/rbac/permissions/permission.repository.ts
+apps/api/src/rbac/permissions/permission.service.ts

@@ -8,4 +8,6 @@ export interface SystemPermissionInput {
   readonly description?: string;
 }
 
+export type UpsertSystemPermissionInput = SystemPermissionInput;
+
 export type PermissionId = Types.ObjectId | string;

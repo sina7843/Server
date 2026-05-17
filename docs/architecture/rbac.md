@@ -1,15 +1,15 @@
 # RBAC Architecture — Slice 0.3
 
-## Implemented backend scope
+Slice 0.3 includes backend RBAC APIs protected by `AccessTokenGuard` and
+`PermissionGuard`.
 
-Slice 0.3 now includes:
+## Fixed authorization behavior
 
-- RBAC persistence for roles, permissions, user-role assignments, and role-permission mappings
-- Code-owned permission registry
-- Idempotent seed service
-- Permission resolution
-- `AccessTokenGuard` + `PermissionGuard` protected RBAC admin backend APIs
-- Thin ABAC-ready object policy foundation
+- Permission resolution returns permission keys, not permission ids.
+- Active `super_admin` grants all registered permission keys.
+- Inactive roles are ignored.
+- Expired user-role assignments are ignored by active assignment queries.
+- Users without active roles resolve to no permissions.
 
 ## Admin backend APIs
 
@@ -29,11 +29,15 @@ Implemented backend routes:
 Permissions remain code/seed-owned. Permission creation, update, and delete APIs
 do not exist.
 
+## System role protection
+
+Base system role keys are reserved. Admin APIs must not create duplicate reserved
+roles, mutate `isSystem`, or deactivate system roles.
+
 ## Not implemented
 
 - Admin frontend UI
-- Nuxt RBAC screens
+- Permission builder UI
 - Full ABAC engine
-- Dynamic policy builder
-- Profile, Content, Media, Audit, Search, Analytics features
-- Production monitoring, backup, or deployment
+- Dynamic policy language
+- Profile/Content/Media features

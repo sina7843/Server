@@ -1,32 +1,35 @@
 # RBAC Security Checklist — Slice 0.3
 
-## Route protection
+## Authorization
+
+- [ ] Permission resolver returns permission keys.
+- [ ] `super_admin` grants all registered permission keys.
+- [ ] Inactive roles are ignored.
+- [ ] Expired user-role assignments are ignored.
+- [ ] Users without roles are denied by default.
+- [ ] `PermissionGuard` denies missing metadata and empty metadata.
+- [ ] `PermissionGuard` denies missing auth context.
+
+## API protection
 
 - [ ] RBAC admin APIs use `AccessTokenGuard`.
 - [ ] RBAC admin APIs use `PermissionGuard`.
-- [ ] Required permissions use centralized constants.
-- [ ] No test/dev bypass exists.
+- [ ] No permission creation API exists.
+- [ ] No permission update/delete API exists.
 
-## Permission safety
+## DTO validation
 
-- [ ] Permissions are code/seed-owned.
-- [ ] `POST /admin/v1/permissions` does not exist.
-- [ ] `PATCH /admin/v1/permissions/:id` does not exist.
-- [ ] `DELETE /admin/v1/permissions/:id` does not exist.
+- [ ] Role key format is validated.
+- [ ] ObjectId fields are validated.
+- [ ] `expiresAt` is validated as a date string.
+- [ ] Unknown/internal fields are rejected.
 
-## Role safety
+## System role protection
 
-- [ ] Role key is immutable through API.
-- [ ] `isSystem` is not accepted from role create/update bodies.
-- [ ] Role delete deactivates roles and does not hard-delete.
-- [ ] Inactive roles do not grant permissions.
-
-## User-role safety
-
-- [ ] Assignments require existing user and active assignable role.
-- [ ] `scopeType` and `scopeId` are stored only.
-- [ ] Remove user role is scoped to target user.
-- [ ] Responses do not expose full user documents.
+- [ ] Reserved base role keys cannot be created by admin API.
+- [ ] `isSystem` cannot be mutated through admin API.
+- [ ] System roles cannot be deactivated by admin API.
+- [ ] Roles are deactivated, not hard-deleted.
 
 ## Sensitive data
 

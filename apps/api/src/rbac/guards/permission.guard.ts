@@ -25,7 +25,7 @@ export class PermissionGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    if (!metadata?.permissionKeys.length) {
+    if (!metadata || metadata.permissionKeys.length === 0) {
       throw new ForbiddenException('Permission is required.');
     }
 
@@ -37,6 +37,11 @@ export class PermissionGuard implements CanActivate {
     }
 
     const resolution = await this.permissionResolver.resolveUserPermissions({ userId });
+
+    if (resolution.isSuperAdmin) {
+      return true;
+    }
+
     const granted = new Set(resolution.permissionKeys);
     const allowed = metadata.requireAll
       ? metadata.permissionKeys.every((permission) => granted.has(permission))

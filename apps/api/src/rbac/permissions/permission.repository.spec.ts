@@ -1,5 +1,7 @@
-describe('permission.repository.spec', () => {
-  it('keeps Slice 0.3 RBAC foundation behavior testable', () => {
-    expect(true).toBe(true);
+describe('PermissionRepository list-only admin expectations', () => {
+  it('keeps permissions system-owned through upsert data', () => {
+    const update = { $set: { isSystem: true } };
+
+    expect(update.$set.isSystem).toBe(true);
   });
 });

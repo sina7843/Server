@@ -23,22 +23,33 @@ pnpm build
 pnpm format:check
 ```
 
-## 2. RBAC API verification
+## 2. Required RBAC fixes
 
-- [ ] RBAC admin controllers exist.
-- [ ] All RBAC admin APIs are protected by `AccessTokenGuard` and `PermissionGuard`.
-- [ ] Role CRUD uses deactivate behavior for delete.
-- [ ] Permission API is list-only.
-- [ ] Role-permission attach/detach works safely.
-- [ ] User-role assignment/removal is scoped and safe.
+- [ ] PermissionResolver returns permission keys, not permission ids.
+- [ ] `super_admin` grants all registered permission keys.
+- [ ] RBAC controllers resolve `AccessTokenGuard` dependencies through `AuthModule`.
+- [ ] DTO validation is real and tested.
+- [ ] System roles are protected.
+- [ ] Reserved base role keys cannot be created through API.
+- [ ] Placeholder tests are replaced with meaningful tests.
 
-## 3. Scope exclusions
+## 3. RBAC API verification
+
+- [ ] Super admin can access protected RBAC APIs.
+- [ ] User without permission is forbidden.
+- [ ] Missing auth is unauthorized.
+- [ ] `GET /admin/v1/permissions` is protected.
+- [ ] `POST /admin/v1/permissions` does not exist.
+- [ ] System role cannot be deactivated.
+- [ ] Role assignment validates assignable role.
+
+## 4. Scope exclusions
 
 Confirm absence of:
 
 - Admin frontend UI
 - Permission creation/update/delete API
 - Full ABAC engine
-- Dynamic policy builder
-- Profile/Content/Media feature implementation
-- Monitoring/backup/deployment changes
+- Dynamic policy language
+- Profile/Content/Media features
+- Production deployment

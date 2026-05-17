@@ -1,5 +1,4 @@
+apps/api/src/rbac/controllers/admin-roles.controller.ts
 apps/api/src/rbac/controllers/admin-user-roles.controller.ts
-apps/api/src/rbac/dto/assign-user-role.dto.ts
-apps/api/src/rbac/dto/attach-permission.dto.ts
-apps/api/src/rbac/dto/create-role.dto.ts
-apps/api/src/rbac/dto/update-role.dto.ts
+apps/api/src/rbac/resolution/permission-resolver.service.spec.ts
+apps/api/src/rbac/roles/role.service.ts

@@ -10,16 +10,21 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AccessTokenGuard } from '../../auth/guards/access-token.guard';
-import { PermissionGuard } from '../guards/permission.guard';
 import { RequirePermission } from '../decorators/require-permission.decorator';
-import { Permissions } from '../registry/permission-keys';
-
 import { AttachPermissionDto } from '../dto/attach-permission.dto';
 import { CreateRoleDto } from '../dto/create-role.dto';
 import { RbacGenericResponse, createRbacGenericResponse } from '../dto/rbac-response.dto';
 import { RoleResponse, RolesResponse, toRoleResponse } from '../dto/role-response.dto';
 import { UpdateRoleDto } from '../dto/update-role.dto';
+import {
+  validateAttachPermissionDto,
+  validateCreateRoleDto,
+  validateObjectId,
+  validateUpdateRoleDto,
+} from '../dto/rbac-validation';
+import { PermissionGuard } from '../guards/permission.guard';
 import { PermissionService } from '../permissions/permission.service';
+import { Permissions } from '../registry/permission-keys';
 import { RolePermissionService } from '../role-permissions/role-permission.service';
 import { RoleService } from '../roles/role.service';
 
@@ -43,7 +48,9 @@ export class AdminRolesController {
   @Post()
   @RequirePermission(Permissions.RBAC_ROLE_CREATE)
   async createRole(@Body() body: CreateRoleDto): Promise<RoleResponse> {
-    const role = await this.roleService.createAdminRole(body);
+    const role = await this.roleService.createAdminRole(
+      validateCreateRoleDto(body as unknown as Record<string, unknown>),
+    );
 
     return toRoleResponse(role);
   }
@@ -51,7 +58,7 @@ export class AdminRolesController {
   @Get(':id')
   @RequirePermission(Permissions.RBAC_ROLE_READ)
   async getRole(@Param('id') roleId: string): Promise<RoleResponse> {
-    const role = await this.roleService.findById(roleId);
+    const role = await this.roleService.findById(validateObjectId(roleId, 'id'));
 
     if (!role) {
       throw new NotFoundException('Role not found.');
@@ -66,7 +73,10 @@ export class AdminRolesController {
     @Param('id') roleId: string,
     @Body() body: UpdateRoleDto,
   ): Promise<RoleResponse> {
-    const role = await this.roleService.updateAdminRole(roleId, body);
+    const role = await this.roleService.updateAdminRole(
+      validateObjectId(roleId, 'id'),
+      validateUpdateRoleDto(body as unknown as Record<string, unknown>),
+    );
 
     if (!role) {
       throw new NotFoundException('Role not found.');
@@ -78,7 +88,7 @@ export class AdminRolesController {
   @Delete(':id')
   @RequirePermission(Permissions.RBAC_ROLE_DEACTIVATE)
   async deactivateRole(@Param('id') roleId: string): Promise<RbacGenericResponse> {
-    await this.roleService.deactivateAdminRole(roleId);
+    await this.roleService.deactivateAdminRole(validateObjectId(roleId, 'id'));
 
     return createRbacGenericResponse('Role deactivated.');
   }
@@ -89,16 +99,18 @@ export class AdminRolesController {
     @Param('id') roleId: string,
     @Body() body: AttachPermissionDto,
   ): Promise<RbacGenericResponse> {
-    const role = await this.roleService.findById(roleId);
-    const permission = await this.permissionService.findById(body.permissionId);
+    const validRoleId = validateObjectId(roleId, 'id');
+    const input = validateAttachPermissionDto(body as unknown as Record<string, unknown>);
+    const role = await this.roleService.findById(validRoleId);
+    const permission = await this.permissionService.findById(input.permissionId);
 
     if (!role || !role.isActive || !permission) {
       throw new NotFoundException('Role or permission not found.');
     }
 
     await this.rolePermissionService.attachPermission({
-      roleId,
-      permissionId: body.permissionId,
+      roleId: validRoleId,
+      permissionId: input.permissionId,
     });
 
     return createRbacGenericResponse('Permission attached to role.');
@@ -110,7 +122,10 @@ export class AdminRolesController {
     @Param('id') roleId: string,
     @Param('permissionId') permissionId: string,
   ): Promise<RbacGenericResponse> {
-    await this.rolePermissionService.detachPermission({ roleId, permissionId });
+    await this.rolePermissionService.detachPermission({
+      roleId: validateObjectId(roleId, 'id'),
+      permissionId: validateObjectId(permissionId, 'permissionId'),
+    });
 
     return createRbacGenericResponse('Permission detached from role.');
   }

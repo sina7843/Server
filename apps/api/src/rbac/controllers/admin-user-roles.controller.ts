@@ -15,6 +15,7 @@ import { RequirePermission } from '../decorators/require-permission.decorator';
 import { AssignUserRoleDto } from '../dto/assign-user-role.dto';
 import { RbacGenericResponse, createRbacGenericResponse } from '../dto/rbac-response.dto';
 import { toUserRoleResponse, UserRoleResponse } from '../dto/user-role-response.dto';
+import { validateAssignUserRoleDto, validateObjectId } from '../dto/rbac-validation';
 import { PermissionGuard } from '../guards/permission.guard';
 import { Permissions } from '../registry/permission-keys';
 import { RoleService } from '../roles/role.service';
@@ -36,21 +37,23 @@ export class AdminUserRolesController {
     @Body() body: AssignUserRoleDto,
     @CurrentAuthContext() authContext: AuthContext,
   ): Promise<UserRoleResponse> {
-    const user = await this.userRepository.findById(userId);
-    const role = await this.roleService.findById(body.roleId);
+    const targetUserId = validateObjectId(userId, 'id');
+    const input = validateAssignUserRoleDto(body as unknown as Record<string, unknown>);
+    const user = await this.userRepository.findById(targetUserId);
+    const role = await this.roleService.findById(input.roleId);
 
     if (!user || user.status === 'deleted' || !role || !role.isActive || !role.isAssignable) {
       throw new NotFoundException('User or role not found.');
     }
 
     const userRole = await this.userRoleService.assignRole({
-      userId,
-      roleId: body.roleId,
-      ...(body.scopeType !== undefined ? { scopeType: body.scopeType } : {}),
-      ...(body.scopeId !== undefined ? { scopeId: body.scopeId } : {}),
-      ...(authContext.userId ? { assignedBy: authContext.userId } : {}),
+      userId: targetUserId,
+      roleId: input.roleId,
+      ...(input.scopeType !== undefined ? { scopeType: input.scopeType } : {}),
+      ...(input.scopeId !== undefined ? { scopeId: input.scopeId } : {}),
+      assignedBy: authContext.userId,
       assignedAt: new Date(),
-      ...(body.expiresAt ? { expiresAt: new Date(body.expiresAt) } : {}),
+      ...(input.expiresAt ? { expiresAt: new Date(input.expiresAt) } : {}),
     });
 
     return toUserRoleResponse(userRole);
@@ -62,7 +65,10 @@ export class AdminUserRolesController {
     @Param('id') userId: string,
     @Param('userRoleId') userRoleId: string,
   ): Promise<RbacGenericResponse> {
-    await this.userRoleService.removeUserRoleForUser(userId, userRoleId);
+    await this.userRoleService.removeUserRoleForUser(
+      validateObjectId(userId, 'id'),
+      validateObjectId(userRoleId, 'userRoleId'),
+    );
 
     return createRbacGenericResponse('User role removed.');
   }

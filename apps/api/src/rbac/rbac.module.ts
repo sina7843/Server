@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from '../auth/users/user.schema';
-import { UserRepository } from '../auth/users/user.repository';
+import { AuthModule } from '../auth/auth.module';
 import { AdminPermissionsController } from './controllers/admin-permissions.controller';
 import { AdminRolesController } from './controllers/admin-roles.controller';
 import { AdminUserRolesController } from './controllers/admin-user-roles.controller';
@@ -25,12 +24,12 @@ import { UserRoleService } from './user-roles/user-role.service';
 
 @Module({
   imports: [
+    AuthModule,
     MongooseModule.forFeature([
       { name: Role.name, schema: RoleSchema },
       { name: Permission.name, schema: PermissionSchema },
       { name: UserRole.name, schema: UserRoleSchema },
       { name: RolePermission.name, schema: RolePermissionSchema },
-      { name: User.name, schema: UserSchema },
     ]),
   ],
   controllers: [AdminRolesController, AdminPermissionsController, AdminUserRolesController],
@@ -43,7 +42,6 @@ import { UserRoleService } from './user-roles/user-role.service';
     UserRoleService,
     RolePermissionRepository,
     RolePermissionService,
-    UserRepository,
     RbacSeedService,
     PermissionResolverService,
     PermissionGuard,

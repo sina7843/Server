@@ -1,7 +1,10 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { RoleRegistry } from '../registry/role-registry';
 import { RoleRepository } from './role.repository';
 import type { RoleDocument } from './role.schema';
 import type { CreateRoleInput, RoleId, UpdateRoleInput } from './role.types';
+
+const RESERVED_ROLE_KEYS: ReadonlySet<string> = new Set(RoleRegistry.map((role) => role.key));
 
 @Injectable()
 export class RoleService {
@@ -23,13 +26,17 @@ export class RoleService {
     return this.roleRepository.listActive();
   }
 
-  async createRole(input: CreateRoleInput): Promise<RoleDocument> {
+  createRole(input: CreateRoleInput): Promise<RoleDocument> {
     return this.roleRepository.createRole(input);
   }
 
   async createAdminRole(
     input: Omit<CreateRoleInput, 'isSystem' | 'isActive'>,
   ): Promise<RoleDocument> {
+    if (RESERVED_ROLE_KEYS.has(input.key)) {
+      throw new ConflictException('Reserved role key cannot be created.');
+    }
+
     const existing = await this.roleRepository.findByKey(input.key);
 
     if (existing) {
@@ -57,6 +64,10 @@ export class RoleService {
       return null;
     }
 
+    if (role.isSystem) {
+      throw new ConflictException('System role cannot be modified.');
+    }
+
     return this.roleRepository.updateRole(roleId, {
       ...(input.name !== undefined ? { name: input.name } : {}),
       ...(input.description !== undefined ? { description: input.description } : {}),
@@ -70,13 +81,23 @@ export class RoleService {
   }
 
   async deactivateAdminRole(roleId: RoleId): Promise<RoleDocument> {
-    const role = await this.roleRepository.deactivateRole(roleId);
+    const role = await this.roleRepository.findById(roleId);
 
     if (!role) {
       throw new NotFoundException('Role not found.');
     }
 
-    return role;
+    if (role.isSystem) {
+      throw new ConflictException('System role cannot be deactivated.');
+    }
+
+    const deactivated = await this.roleRepository.deactivateRole(roleId);
+
+    if (!deactivated) {
+      throw new NotFoundException('Role not found.');
+    }
+
+    return deactivated;
   }
 
   upsertRoleForSeed(input: Parameters<RoleRepository['upsertRoleForSeed']>[0]) {

@@ -6,4 +6,5 @@ export interface ResolvePermissionsInput {
 export interface PermissionResolution {
   readonly permissionKeys: readonly string[];
   readonly roleKeys: readonly string[];
+  readonly isSuperAdmin: boolean;
 }

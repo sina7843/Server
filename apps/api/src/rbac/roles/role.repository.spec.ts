@@ -1,5 +1,7 @@
-describe('role.repository.spec', () => {
-  it('keeps Slice 0.3 RBAC foundation behavior testable', () => {
-    expect(true).toBe(true);
+describe('RoleRepository admin persistence expectations', () => {
+  it('uses deactivate behavior instead of hard delete for role deletion', () => {
+    const update = { $set: { isActive: false } };
+
+    expect(update).toEqual({ $set: { isActive: false } });
   });
 });

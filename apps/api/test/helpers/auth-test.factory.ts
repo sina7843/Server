@@ -3,6 +3,9 @@ import {
   createGenericAuthResponse,
   LOGOUT_ALL_GENERIC_MESSAGE,
   LOGOUT_GENERIC_MESSAGE,
+  REVOKE_SESSION_GENERIC_MESSAGE,
+  FORGOT_PASSWORD_GENERIC_MESSAGE,
+  RESET_PASSWORD_GENERIC_MESSAGE,
   VERIFY_PHONE_GENERIC_MESSAGE,
 } from '../../src/auth/dto/auth-response.dto';
 
@@ -11,6 +14,7 @@ export function createAuthTestConfig(overrides: Partial<AuthConfig> = {}): AuthC
     accessTokenTtlSeconds: 900,
     refreshTokenTtlDays: 30,
     passwordMinLength: 8,
+    passwordResetTokenTtlSeconds: 600,
     otpTtlSeconds: 300,
     otpMaxAttempts: 5,
     otpResendCooldownSeconds: 90,
@@ -54,4 +58,41 @@ export function createLogoutSuccessResponse() {
 
 export function createLogoutAllSuccessResponse() {
   return createGenericAuthResponse(LOGOUT_ALL_GENERIC_MESSAGE);
+}
+
+export function createForgotPasswordSuccessResponse() {
+  return createGenericAuthResponse(FORGOT_PASSWORD_GENERIC_MESSAGE);
+}
+
+export function createResetPasswordSuccessResponse() {
+  return createGenericAuthResponse(RESET_PASSWORD_GENERIC_MESSAGE);
+}
+
+export function createMeResponse() {
+  return {
+    user: {
+      id: 'user-1',
+      phoneVerified: true,
+      status: 'active' as const,
+      phoneMasked: '***00',
+    },
+  };
+}
+
+export function createSessionsResponse() {
+  return {
+    sessions: [
+      {
+        id: 'session-1',
+        deviceName: 'Laptop',
+        expiresAt: '2026-02-01T00:00:00.000Z',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        isCurrent: true,
+      },
+    ],
+  };
+}
+
+export function createRevokeSessionSuccessResponse() {
+  return createGenericAuthResponse(REVOKE_SESSION_GENERIC_MESSAGE);
 }

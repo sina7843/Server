@@ -1,0 +1,6 @@
+docs/architecture/auth.md
+docs/security/auth-security-checklist.md
+docs/development/slice-0.2-verification.md
+docs/adr/0002-phone-first-auth.md
+docs/README.md
+README.md

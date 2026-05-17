@@ -53,3 +53,7 @@ apps/api/.env.example
 `AUTH_JWT_SECRET` is an example-only local development value and must be replaced in real local `.env` files. Do not commit real JWT secrets or SMS provider credentials.
 
 `SMS_PROVIDER=mock` is the only accepted provider value in this slice. No SMS provider integration, Auth flow, OTP generation, session persistence, or JWT issuing is implemented by these environment examples.
+
+## Password reset token example
+
+`AUTH_PASSWORD_RESET_TOKEN_TTL_SECONDS=600` is a local example for short-lived password reset tokens in Slice 0.2. Do not commit production secrets.

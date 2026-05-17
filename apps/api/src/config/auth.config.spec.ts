@@ -4,6 +4,7 @@ const validAuthEnv = {
   AUTH_ACCESS_TOKEN_TTL_SECONDS: '900',
   AUTH_REFRESH_TOKEN_TTL_DAYS: '30',
   AUTH_PASSWORD_MIN_LENGTH: '8',
+  AUTH_PASSWORD_RESET_TOKEN_TTL_SECONDS: '600',
   AUTH_OTP_TTL_SECONDS: '300',
   AUTH_OTP_MAX_ATTEMPTS: '5',
   AUTH_OTP_RESEND_COOLDOWN_SECONDS: '90',
@@ -21,6 +22,7 @@ describe('getAuthConfig', () => {
       accessTokenTtlSeconds: 900,
       refreshTokenTtlDays: 30,
       passwordMinLength: 8,
+      passwordResetTokenTtlSeconds: 600,
       otpTtlSeconds: 300,
       otpMaxAttempts: 5,
       otpResendCooldownSeconds: 90,
@@ -36,9 +38,7 @@ describe('getAuthConfig', () => {
     const missingSecretEnv: Record<string, string> = { ...validAuthEnv };
     delete missingSecretEnv.AUTH_JWT_SECRET;
 
-    expect(() => getAuthConfig(missingSecretEnv)).toThrow(
-      'AUTH_JWT_SECRET is required.',
-    );
+    expect(() => getAuthConfig(missingSecretEnv)).toThrow('AUTH_JWT_SECRET is required.');
   });
 
   it('fails for invalid numeric values', () => {
@@ -64,20 +64,18 @@ describe('getAuthConfig', () => {
   });
 
   it('fails for unknown SMS provider values', () => {
-    expect(() =>
-      getAuthConfig({ ...validAuthEnv, SMS_PROVIDER: 'real-provider' }),
-    ).toThrow('SMS_PROVIDER has an unsupported value.');
+    expect(() => getAuthConfig({ ...validAuthEnv, SMS_PROVIDER: 'real-provider' })).toThrow(
+      'SMS_PROVIDER has an unsupported value.',
+    );
   });
 
   it('validates OTP safety ranges', () => {
-    expect(() =>
-      getAuthConfig({ ...validAuthEnv, AUTH_OTP_TTL_SECONDS: '600' }),
-    ).toThrow('AUTH_OTP_TTL_SECONDS must be less than or equal to 300.');
+    expect(() => getAuthConfig({ ...validAuthEnv, AUTH_OTP_TTL_SECONDS: '600' })).toThrow(
+      'AUTH_OTP_TTL_SECONDS must be less than or equal to 300.',
+    );
 
     expect(() =>
       getAuthConfig({ ...validAuthEnv, AUTH_OTP_RESEND_COOLDOWN_SECONDS: '30' }),
-    ).toThrow(
-      'AUTH_OTP_RESEND_COOLDOWN_SECONDS must be greater than or equal to 60.',
-    );
+    ).toThrow('AUTH_OTP_RESEND_COOLDOWN_SECONDS must be greater than or equal to 60.');
   });
 });

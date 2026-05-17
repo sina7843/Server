@@ -8,3 +8,5 @@ It must not contain product feature logic.
 Slice 0.1 includes neutral foundation-level exports.
 Slice 0.2 adds only safe Auth foundation contracts such as `UserStatus`, `SessionRevocationReason`, and `OtpPurpose`.
 These contracts are not endpoint DTOs and do not implement Auth, Session, OTP, Profile, RBAC, Admin, Content, or Media behavior.
+
+Slice 0.2 also includes minimal password-reset request/response contracts only. It does not include Profile, Role, Permission, Admin, or full User DTOs.

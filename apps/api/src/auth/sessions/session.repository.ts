@@ -60,6 +60,17 @@ export class SessionRepository {
       .exec();
   }
 
+  findByUserId(userId: SessionObjectId): Promise<SessionDocument[]> {
+    return this.sessionModel.find({ userId }).exec();
+  }
+
+  findByIdAndUserId(
+    sessionId: SessionObjectId,
+    userId: SessionObjectId,
+  ): Promise<SessionDocument | null> {
+    return this.sessionModel.findOne({ _id: sessionId, userId }).exec();
+  }
+
   updateRefreshTokenHash(
     sessionId: SessionObjectId,
     refreshTokenHash: string,
@@ -93,6 +104,30 @@ export class SessionRepository {
     return this.sessionModel
       .findByIdAndUpdate(
         sessionId,
+        {
+          $set: {
+            revokedAt,
+            revokedReason,
+          },
+        },
+        { new: true },
+      )
+      .exec();
+  }
+
+  revokeSessionForUser(
+    sessionId: SessionObjectId,
+    userId: SessionObjectId,
+    revokedReason: SessionRevocationReason,
+    revokedAt = new Date(),
+  ): Promise<SessionDocument | null> {
+    return this.sessionModel
+      .findOneAndUpdate(
+        {
+          _id: sessionId,
+          userId,
+          revokedAt: { $exists: false },
+        },
         {
           $set: {
             revokedAt,

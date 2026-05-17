@@ -1,7 +1,11 @@
 /* global describe, expect, it, jest */
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { createAuthTestConfig } from '../../test/helpers/auth-test.factory';
-import { REGISTER_GENERIC_MESSAGE, VERIFY_PHONE_GENERIC_MESSAGE } from './dto/auth-response.dto';
+import {
+  REGISTER_GENERIC_MESSAGE,
+  REVOKE_SESSION_GENERIC_MESSAGE,
+  VERIFY_PHONE_GENERIC_MESSAGE,
+} from './dto/auth-response.dto';
 import { AuthService } from './auth.service';
 import { OtpChallengeRepository } from './otp/otp.repository';
 import { OtpChallengeService } from './otp/otp.service';
@@ -48,9 +52,14 @@ describe('AuthService', () => {
       createSession: jest.fn().mockResolvedValue({ _id: 'session-1' }),
       findActiveByRefreshTokenHash: jest.fn(),
       findActiveById: jest.fn(),
+      findByUserId: jest.fn().mockResolvedValue([]),
+      findByIdAndUserId: jest.fn(),
       updateRefreshTokenHash: jest.fn().mockResolvedValue({ _id: 'session-1' }),
       touchLastUsedAt: jest.fn().mockResolvedValue({ _id: 'session-1' }),
       revokeSession: jest.fn().mockResolvedValue({ _id: 'session-1', revokedAt: new Date() }),
+      revokeSessionForUser: jest
+        .fn()
+        .mockResolvedValue({ _id: 'session-1', revokedAt: new Date() }),
       revokeAllForUser: jest.fn().mockResolvedValue({ modifiedCount: 2 }),
     } as unknown as jest.Mocked<SessionRepository>;
     const accessTokenService = {
@@ -616,6 +625,140 @@ describe('AuthService', () => {
         success: true,
         message: 'All sessions were logged out successfully.',
       });
+    });
+  });
+
+  describe('getCurrentAuthIdentity', () => {
+    it('returns minimal active user identity', async () => {
+      const { service, userRepository } = await createService();
+      userRepository.findById.mockResolvedValue((await createActiveUser()) as never);
+
+      const response = await service.getCurrentAuthIdentity({
+        userId: 'user-1',
+        sessionId: 'session-1',
+        accessTokenJti: 'access-jti-1',
+      });
+
+      expect(response).toEqual({
+        user: {
+          id: 'user-1',
+          phoneVerified: true,
+          status: 'active',
+          phoneMasked: '***00',
+        },
+      });
+      expect(JSON.stringify(response)).not.toContain('passwordHash');
+      expect(JSON.stringify(response)).not.toContain('roles');
+      expect(JSON.stringify(response)).not.toContain('permissions');
+      expect(JSON.stringify(response)).not.toContain('profile');
+      expect(JSON.stringify(response)).not.toContain('session');
+      expect(JSON.stringify(response)).not.toContain('jti');
+    });
+
+    it.each(['pending_verification', 'suspended', 'banned', 'deleted'] as const)(
+      'rejects %s users safely',
+      async (status) => {
+        const { service, userRepository } = await createService();
+        userRepository.findById.mockResolvedValue((await createActiveUser({ status })) as never);
+
+        await expect(
+          service.getCurrentAuthIdentity({
+            userId: 'user-1',
+            sessionId: 'session-1',
+            accessTokenJti: 'access-jti-1',
+          }),
+        ).rejects.toBeInstanceOf(UnauthorizedException);
+      },
+    );
+  });
+
+  describe('sessions', () => {
+    it('lists only current user sessions as safe metadata', async () => {
+      const { service, sessionRepository } = await createService();
+      sessionRepository.findByUserId.mockResolvedValue([
+        {
+          _id: '507f1f77bcf86cd799439011',
+          userId: 'user-1',
+          refreshTokenHash: 'hidden-hash',
+          accessTokenJti: 'hidden-jti',
+          deviceName: 'Laptop',
+          expiresAt: new Date('2026-02-01T00:00:00.000Z'),
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        },
+      ] as never);
+
+      const response = await service.listCurrentUserSessions({
+        userId: 'user-1',
+        sessionId: '507f1f77bcf86cd799439011',
+        accessTokenJti: 'jti-1',
+      });
+
+      expect(sessionRepository.findByUserId).toHaveBeenCalledWith('user-1');
+      expect(response).toEqual({
+        sessions: [
+          {
+            id: '507f1f77bcf86cd799439011',
+            deviceName: 'Laptop',
+            expiresAt: '2026-02-01T00:00:00.000Z',
+            createdAt: '2026-01-01T00:00:00.000Z',
+            isCurrent: true,
+          },
+        ],
+      });
+      expect(JSON.stringify(response)).not.toContain('refreshTokenHash');
+      expect(JSON.stringify(response)).not.toContain('accessTokenJti');
+      expect(JSON.stringify(response)).not.toContain('roles');
+      expect(JSON.stringify(response)).not.toContain('permissions');
+      expect(JSON.stringify(response)).not.toContain('profile');
+    });
+
+    it('revokes only a session owned by the current user', async () => {
+      const { service, sessionRepository } = await createService();
+      const sessionId = '507f1f77bcf86cd799439011';
+      sessionRepository.findByIdAndUserId.mockResolvedValue({
+        _id: sessionId,
+        userId: 'user-1',
+      } as never);
+
+      const response = await service.revokeCurrentUserSession(
+        { userId: 'user-1', sessionId: 'current-session', accessTokenJti: 'jti-1' },
+        sessionId,
+      );
+
+      expect(sessionRepository.findByIdAndUserId).toHaveBeenCalledWith(sessionId, 'user-1');
+      expect(sessionRepository.revokeSessionForUser).toHaveBeenCalledWith(
+        sessionId,
+        'user-1',
+        'user_revoked',
+      );
+      expect(response).toEqual({ success: true, message: REVOKE_SESSION_GENERIC_MESSAGE });
+    });
+
+    it('does not revoke another user session when ownership lookup fails', async () => {
+      const { service, sessionRepository } = await createService();
+      const sessionId = '507f1f77bcf86cd799439011';
+      sessionRepository.findByIdAndUserId.mockResolvedValue(null);
+
+      const response = await service.revokeCurrentUserSession(
+        { userId: 'user-1', sessionId: 'current-session', accessTokenJti: 'jti-1' },
+        sessionId,
+      );
+
+      expect(sessionRepository.revokeSessionForUser).not.toHaveBeenCalled();
+      expect(response).toEqual({ success: true, message: REVOKE_SESSION_GENERIC_MESSAGE });
+    });
+
+    it('handles invalid session id safely without revocation', async () => {
+      const { service, sessionRepository } = await createService();
+
+      const response = await service.revokeCurrentUserSession(
+        { userId: 'user-1', sessionId: 'current-session', accessTokenJti: 'jti-1' },
+        'not-a-valid-object-id',
+      );
+
+      expect(sessionRepository.findByIdAndUserId).not.toHaveBeenCalled();
+      expect(sessionRepository.revokeSessionForUser).not.toHaveBeenCalled();
+      expect(response).toEqual({ success: true, message: REVOKE_SESSION_GENERIC_MESSAGE });
     });
   });
 });

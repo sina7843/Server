@@ -1,25 +1,37 @@
 import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Types } from 'mongoose';
 import { AUTH_CONFIG } from '../config/app-config.module';
 import type { AuthConfig } from '../config/auth.config';
+import { createMeResponse, type MeResponseDto } from './dto/me-response.dto';
+import {
+  createAuthSessionsResponse,
+  type AuthSessionsResponseDto,
+} from './dto/session-response.dto';
 import { createTokenResponse, type TokenResponseDto } from './dto/token-response.dto';
 import {
   createGenericAuthResponse,
   type AuthGenericResponseDto,
   LOGOUT_ALL_GENERIC_MESSAGE,
   LOGOUT_GENERIC_MESSAGE,
+  REVOKE_SESSION_GENERIC_MESSAGE,
   VERIFY_PHONE_GENERIC_MESSAGE,
 } from './dto/auth-response.dto';
 import type { AuthContext } from './guards/authenticated-request';
+import type { ForgotPasswordDto } from './dto/forgot-password.dto';
 import type { LoginDto } from './dto/login.dto';
 import type { RefreshDto } from './dto/refresh.dto';
+import type { ResetPasswordDto } from './dto/reset-password.dto';
+import type { VerifyResetOtpDto, VerifyResetOtpResponseDto } from './dto/verify-reset-otp.dto';
 import type { RegisterDto } from './dto/register.dto';
 import type { VerifyPhoneDto } from './dto/verify-phone.dto';
 import { OtpChallengeRepository } from './otp/otp.repository';
 import type { OtpPurpose } from './otp/otp-purpose';
 import { OtpChallengeService } from './otp/otp.service';
+import { PasswordResetService } from './password-reset/password-reset.service';
 import { generateOtpCode, hashOtpCode, verifyOtpCode } from './security/otp-code';
 import { hashToken } from './security/token-hasher';
 import { hashPassword, verifyPassword } from './security/password-hasher';
+import { maskPhone } from './security/masking';
 import { normalizePhoneNumber } from './security/phone-normalizer';
 import { SessionRepository } from './sessions/session.repository';
 import { SmsService } from './sms/sms.service';
@@ -57,6 +69,7 @@ export class AuthService {
     private readonly sessionRepository: SessionRepository,
     private readonly accessTokenService: AccessTokenService,
     private readonly refreshTokenService: RefreshTokenService,
+    private readonly passwordResetService?: PasswordResetService,
   ) {}
 
   async register(
@@ -205,6 +218,64 @@ export class AuthService {
     });
   }
 
+  async forgotPassword(input: ForgotPasswordDto): Promise<AuthGenericResponseDto> {
+    return this.getPasswordResetService().forgotPassword(input);
+  }
+
+  async verifyResetOtp(input: VerifyResetOtpDto): Promise<VerifyResetOtpResponseDto> {
+    return this.getPasswordResetService().verifyResetOtp(input);
+  }
+
+  async resetPassword(input: ResetPasswordDto): Promise<AuthGenericResponseDto> {
+    return this.getPasswordResetService().resetPassword(input);
+  }
+
+  async getCurrentAuthIdentity(authContext: AuthContext): Promise<MeResponseDto> {
+    const user = await this.userRepository.findById(authContext.userId);
+
+    if (!user || !this.userService.canAttemptLogin(user)) {
+      throw this.createInvalidLogoutError();
+    }
+
+    return createMeResponse({
+      id: String(user._id),
+      phoneVerified: Boolean(user.phoneVerifiedAt),
+      phoneMasked: maskPhone(user.phoneNormalized),
+    });
+  }
+
+  async listCurrentUserSessions(authContext: AuthContext): Promise<AuthSessionsResponseDto> {
+    const sessions = await this.sessionRepository.findByUserId(authContext.userId);
+
+    return createAuthSessionsResponse({
+      sessions,
+      currentSessionId: authContext.sessionId,
+    });
+  }
+
+  async revokeCurrentUserSession(
+    authContext: AuthContext,
+    sessionId: string,
+  ): Promise<AuthGenericResponseDto> {
+    if (!Types.ObjectId.isValid(sessionId)) {
+      return createGenericAuthResponse(REVOKE_SESSION_GENERIC_MESSAGE);
+    }
+
+    const session = await this.sessionRepository.findByIdAndUserId(sessionId, authContext.userId);
+
+    if (!session) {
+      return createGenericAuthResponse(REVOKE_SESSION_GENERIC_MESSAGE);
+    }
+
+    await this.sessionRepository.revokeSessionForUser(
+      sessionId,
+      authContext.userId,
+      'user_revoked',
+    );
+
+    return createGenericAuthResponse(REVOKE_SESSION_GENERIC_MESSAGE);
+  }
+
   async logout(authContext: AuthContext): Promise<AuthGenericResponseDto> {
     await this.revokeCurrentSession(authContext.sessionId, 'logout');
 
@@ -215,6 +286,14 @@ export class AuthService {
     await this.sessionRepository.revokeAllForUser(authContext.userId, 'logout_all');
 
     return createGenericAuthResponse(LOGOUT_ALL_GENERIC_MESSAGE);
+  }
+
+  private getPasswordResetService(): PasswordResetService {
+    if (!this.passwordResetService) {
+      throw new Error('Password reset service is not configured.');
+    }
+
+    return this.passwordResetService;
   }
 
   private async recordFailedLogin(user: { _id: unknown; failedLoginCount: number }, now: Date) {

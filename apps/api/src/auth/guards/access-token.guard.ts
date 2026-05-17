@@ -26,7 +26,7 @@ export class AccessTokenGuard implements CanActivate {
       throw createUnauthorizedError();
     }
 
-    const claims = this.accessTokenService.verifyAccessToken(accessToken);
+    const claims = verifyTokenSafely(this.accessTokenService, accessToken);
 
     if (!claims.sessionId) {
       throw createUnauthorizedError();
@@ -56,6 +56,14 @@ export class AccessTokenGuard implements CanActivate {
     };
 
     return true;
+  }
+}
+
+function verifyTokenSafely(accessTokenService: AccessTokenService, accessToken: string) {
+  try {
+    return accessTokenService.verifyAccessToken(accessToken);
+  } catch {
+    throw createUnauthorizedError();
   }
 }
 

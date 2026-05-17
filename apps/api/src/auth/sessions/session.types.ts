@@ -6,7 +6,8 @@ export type SessionRevocationReason =
   | 'password_reset'
   | 'admin_revoked'
   | 'expired'
-  | 'security';
+  | 'security'
+  | 'user_revoked';
 
 export type SessionObjectId = Types.ObjectId | string;
 

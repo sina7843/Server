@@ -118,6 +118,21 @@ export class UserRepository {
     return this.userModel.findByIdAndUpdate(userId, update, { new: true }).exec();
   }
 
+  updatePasswordHash(
+    userId: Types.ObjectId | string,
+    passwordHash: string,
+  ): Promise<UserDocument | null> {
+    return this.userModel
+      .findByIdAndUpdate(
+        userId,
+        {
+          $set: { passwordHash },
+        },
+        { new: true },
+      )
+      .exec();
+  }
+
   resetFailedLoginState(userId: Types.ObjectId | string): Promise<UserDocument | null> {
     return this.userModel
       .findByIdAndUpdate(

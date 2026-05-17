@@ -11,6 +11,7 @@ describe('SessionRepository', () => {
     const find = jest.fn().mockReturnValue({ exec });
     const findOne = jest.fn().mockReturnValue({ exec });
     const findByIdAndUpdate = jest.fn().mockReturnValue({ exec });
+    const findOneAndUpdate = jest.fn().mockReturnValue({ exec });
     const updateMany = jest.fn().mockReturnValue({ exec });
     const create = jest.fn().mockResolvedValue({});
     const model = {
@@ -18,6 +19,7 @@ describe('SessionRepository', () => {
       find,
       findOne,
       findByIdAndUpdate,
+      findOneAndUpdate,
       updateMany,
     } as unknown as Model<SessionDocument>;
 
@@ -26,6 +28,7 @@ describe('SessionRepository', () => {
       exec,
       find,
       findByIdAndUpdate,
+      findOneAndUpdate,
       findOne,
       repository: new SessionRepository(model),
       updateMany,
@@ -62,6 +65,22 @@ describe('SessionRepository', () => {
       revokedAt: { $exists: false },
       expiresAt: { $gt: NOW },
     });
+  });
+
+  it('lists sessions by current user id only', async () => {
+    const { find, repository } = createRepository();
+
+    await repository.findByUserId('user-id');
+
+    expect(find).toHaveBeenCalledWith({ userId: 'user-id' });
+  });
+
+  it('finds a session by id and current user id', async () => {
+    const { findOne, repository } = createRepository();
+
+    await repository.findByIdAndUserId('session-id', 'user-id');
+
+    expect(findOne).toHaveBeenCalledWith({ _id: 'session-id', userId: 'user-id' });
   });
 
   it('updates refreshTokenHash and accessTokenJti during rotation', async () => {
@@ -106,6 +125,28 @@ describe('SessionRepository', () => {
         $set: {
           revokedAt,
           revokedReason: 'logout',
+        },
+      },
+      { new: true },
+    );
+  });
+
+  it('revokes one current-user session by session id and user id', async () => {
+    const { findOneAndUpdate, repository } = createRepository();
+    const revokedAt = new Date('2026-01-01T00:01:00.000Z');
+
+    await repository.revokeSessionForUser('session-id', 'user-id', 'user_revoked', revokedAt);
+
+    expect(findOneAndUpdate).toHaveBeenCalledWith(
+      {
+        _id: 'session-id',
+        userId: 'user-id',
+        revokedAt: { $exists: false },
+      },
+      {
+        $set: {
+          revokedAt,
+          revokedReason: 'user_revoked',
         },
       },
       { new: true },

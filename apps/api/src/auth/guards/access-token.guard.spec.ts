@@ -79,6 +79,14 @@ describe('AccessTokenGuard', () => {
     );
   });
 
+  it('rejects malformed authorization headers', async () => {
+    const { guard } = createGuard();
+
+    await expect(
+      guard.canActivate(createExecutionContext({ headers: { authorization: 'Token invalid' } })),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
   it('rejects invalid or expired tokens', async () => {
     const { accessTokenService, guard } = createGuard();
     accessTokenService.verifyAccessToken.mockImplementation(() => {

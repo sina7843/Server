@@ -1,8 +1,8 @@
 # Dragon Ecosystem
 
-Dragon Ecosystem is currently in Phase 0 / Slice 0.1 foundation work.
+Dragon Ecosystem is currently in Phase 0 foundation work.
 
-This repository contains the monorepo foundation, minimal app shells, shared package skeletons, local-only infrastructure, environment examples, CI, and base documentation. No product feature is implemented yet.
+This repository contains the monorepo foundation, minimal app shells, shared package skeletons, local-only infrastructure, environment examples, CI, base documentation, and the Slice 0.2 backend Auth / OTP / Session foundation.
 
 ## Workspace
 
@@ -30,12 +30,19 @@ See `docs/development/environment.md` for environment example file conventions.
 
 ## Documentation
 
-See `docs/README.md` for Slice 0.1 documentation and ADR placeholders.
+See `docs/README.md` for project documentation and ADRs.
+
+Auth documentation:
+
+- `docs/architecture/auth.md`
+- `docs/security/auth-security-checklist.md`
+- `docs/development/slice-0.2-verification.md`
 
 ## CI
 
 CI runs install, lint, typecheck, test, build, and format checks.
 
-## Slice 0.1 verification
+## Slice verification
 
-See `docs/development/slice-0.1-verification.md` for the final Slice 0.1 verification checklist.
+- `docs/development/slice-0.1-verification.md`
+- `docs/development/slice-0.2-verification.md`

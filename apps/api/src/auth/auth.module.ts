@@ -7,6 +7,7 @@ import { NotificationLogRepository } from './notifications/notification-log.repo
 import { NotificationLog, NotificationLogSchema } from './notifications/notification-log.schema';
 import { NotificationLogService } from './notifications/notification-log.service';
 import { OtpChallenge, OtpChallengeSchema } from './otp/otp-challenge.schema';
+import { PasswordResetService } from './password-reset/password-reset.service';
 import { OtpChallengeRepository } from './otp/otp.repository';
 import { OtpChallengeService } from './otp/otp.service';
 import { SessionRepository } from './sessions/session.repository';
@@ -33,6 +34,7 @@ import { UserService } from './users/user.service';
   controllers: [AuthController],
   providers: [
     AuthService,
+    PasswordResetService,
     AccessTokenGuard,
     AccessTokenService,
     RefreshTokenService,
@@ -53,6 +55,7 @@ import { UserService } from './users/user.service';
   ],
   exports: [
     AuthService,
+    PasswordResetService,
     AccessTokenGuard,
     AccessTokenService,
     RefreshTokenService,

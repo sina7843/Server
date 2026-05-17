@@ -12,7 +12,10 @@ import { Permission, PermissionSchema } from './permissions/permission.schema';
 import { PermissionService } from './permissions/permission.service';
 import { PermissionResolverService } from './resolution/permission-resolver.service';
 import { RolePermissionRepository } from './role-permissions/role-permission.repository';
-import { RolePermission, RolePermissionSchema } from './role-permissions/role-permission.schema';
+import {
+  RolePermission,
+  RolePermissionSchema,
+} from './role-permissions/role-permission.schema';
 import { RolePermissionService } from './role-permissions/role-permission.service';
 import { RoleRepository } from './roles/role.repository';
 import { Role, RoleSchema } from './roles/role.schema';
@@ -32,7 +35,11 @@ import { UserRoleService } from './user-roles/user-role.service';
       { name: RolePermission.name, schema: RolePermissionSchema },
     ]),
   ],
-  controllers: [AdminRolesController, AdminPermissionsController, AdminUserRolesController],
+  controllers: [
+    AdminRolesController,
+    AdminPermissionsController,
+    AdminUserRolesController,
+  ],
   providers: [
     RoleRepository,
     RoleService,

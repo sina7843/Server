@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import {
   PERMISSION_METADATA_KEY,
@@ -20,10 +25,9 @@ export class PermissionGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const metadata = this.reflector.getAllAndOverride<PermissionMetadata | undefined>(
-      PERMISSION_METADATA_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const metadata = this.reflector.getAllAndOverride<
+      PermissionMetadata | undefined
+    >(PERMISSION_METADATA_KEY, [context.getHandler(), context.getClass()]);
 
     if (!metadata || metadata.permissionKeys.length === 0) {
       throw new ForbiddenException('Permission is required.');
@@ -36,7 +40,8 @@ export class PermissionGuard implements CanActivate {
       throw new ForbiddenException('Permission denied.');
     }
 
-    const resolution = await this.permissionResolver.resolveUserPermissions({ userId });
+    const resolution =
+      await this.permissionResolver.resolveUserPermissions({ userId });
 
     if (resolution.isSuperAdmin) {
       return true;

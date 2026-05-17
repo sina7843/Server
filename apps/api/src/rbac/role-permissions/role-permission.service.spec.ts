@@ -11,7 +11,10 @@ describe('RolePermissionService', () => {
     } as never);
 
     await expect(
-      service.attachPermission({ roleId: 'role-1', permissionId: 'permission-1' }),
+      service.attachPermission({
+        roleId: 'role-1',
+        permissionId: 'permission-1',
+      }),
     ).resolves.toBe(existing);
 
     expect(attachPermission).not.toHaveBeenCalled();
@@ -25,7 +28,10 @@ describe('RolePermissionService', () => {
     } as never);
 
     await expect(
-      service.attachPermission({ roleId: 'role-1', permissionId: 'permission-1' }),
+      service.attachPermission({
+        roleId: 'role-1',
+        permissionId: 'permission-1',
+      }),
     ).resolves.toBe(created);
   });
 });

@@ -1,4 +1,7 @@
-import { FORBIDDEN_PERMISSION_ENDPOINTS, RBAC_ADMIN_ENDPOINTS } from './helpers/rbac-test.factory';
+import {
+  FORBIDDEN_PERMISSION_ENDPOINTS,
+  RBAC_ADMIN_ENDPOINTS,
+} from './helpers/rbac-test.factory';
 
 describe('RBAC admin API surface', () => {
   it('defines the expected protected admin endpoints', () => {

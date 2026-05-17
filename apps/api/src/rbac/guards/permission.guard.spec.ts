@@ -72,7 +72,9 @@ describe('PermissionGuard', () => {
       } as never,
     );
 
-    await expect(guard.canActivate(createContext('user-1'))).rejects.toThrow(ForbiddenException);
+    await expect(guard.canActivate(createContext('user-1'))).rejects.toThrow(
+      ForbiddenException,
+    );
   });
 
   it('denies missing auth context', async () => {
@@ -86,16 +88,22 @@ describe('PermissionGuard', () => {
       { resolveUserPermissions: jest.fn() } as never,
     );
 
-    await expect(guard.canActivate(createContext())).rejects.toThrow(ForbiddenException);
+    await expect(guard.canActivate(createContext())).rejects.toThrow(
+      ForbiddenException,
+    );
   });
 
   it('denies missing metadata', async () => {
     const guard = new PermissionGuard(
-      { getAllAndOverride: jest.fn().mockReturnValue(undefined) } as unknown as Reflector,
+      {
+        getAllAndOverride: jest.fn().mockReturnValue(undefined),
+      } as unknown as Reflector,
       { resolveUserPermissions: jest.fn() } as never,
     );
 
-    await expect(guard.canActivate(createContext('user-1'))).rejects.toThrow(ForbiddenException);
+    await expect(guard.canActivate(createContext('user-1'))).rejects.toThrow(
+      ForbiddenException,
+    );
   });
 
   it('denies empty metadata', async () => {
@@ -109,7 +117,9 @@ describe('PermissionGuard', () => {
       { resolveUserPermissions: jest.fn() } as never,
     );
 
-    await expect(guard.canActivate(createContext('user-1'))).rejects.toThrow(ForbiddenException);
+    await expect(guard.canActivate(createContext('user-1'))).rejects.toThrow(
+      ForbiddenException,
+    );
   });
 
   it('denies by default for users without roles', async () => {
@@ -129,6 +139,8 @@ describe('PermissionGuard', () => {
       } as never,
     );
 
-    await expect(guard.canActivate(createContext('user-1'))).rejects.toThrow(ForbiddenException);
+    await expect(guard.canActivate(createContext('user-1'))).rejects.toThrow(
+      ForbiddenException,
+    );
   });
 });

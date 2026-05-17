@@ -36,7 +36,10 @@ export class RbacSeedService {
     const roleIdsByKey = new Map<BaseRoleKey, string>();
 
     for (const permission of PermissionRegistry) {
-      const result = await this.permissionRepository.upsertSystemPermissionForSeed(permission);
+      const result =
+        await this.permissionRepository.upsertSystemPermissionForSeed(
+          permission,
+        );
 
       if (result.created) {
         permissionsCreated += 1;
@@ -59,10 +62,9 @@ export class RbacSeedService {
       roleIdsByKey.set(role.key, String(result.document._id));
     }
 
-    for (const [roleKey, permissionKeys] of Object.entries(RolePermissionRegistryMap) as [
-      BaseRoleKey,
-      readonly string[],
-    ][]) {
+    for (const [roleKey, permissionKeys] of Object.entries(
+      RolePermissionRegistryMap,
+    ) as [BaseRoleKey, readonly string[]][]) {
       const roleId = roleIdsByKey.get(roleKey);
 
       if (!roleId) {
@@ -78,10 +80,11 @@ export class RbacSeedService {
           continue;
         }
 
-        const result = await this.rolePermissionRepository.attachPermissionForSeed({
-          roleId,
-          permissionId,
-        });
+        const result =
+          await this.rolePermissionRepository.attachPermissionForSeed({
+            roleId,
+            permissionId,
+          });
 
         if (result.created) {
           rolePermissionsAttached += 1;
@@ -90,14 +93,17 @@ export class RbacSeedService {
     }
 
     const bootstrapPhone =
-      options.bootstrapSuperAdminPhone ?? process.env.RBAC_BOOTSTRAP_SUPER_ADMIN_PHONE;
+      options.bootstrapSuperAdminPhone ??
+      process.env.RBAC_BOOTSTRAP_SUPER_ADMIN_PHONE;
 
     if (bootstrapPhone?.trim()) {
       const assignmentCreated = await this.assignBootstrapSuperAdmin({
         phone: bootstrapPhone,
         roleIdsByKey,
         skipped,
-        ...(options.assignedAt !== undefined ? { assignedAt: options.assignedAt } : {}),
+        ...(options.assignedAt !== undefined
+          ? { assignedAt: options.assignedAt }
+          : {}),
       });
 
       if (assignmentCreated) {
@@ -125,7 +131,8 @@ export class RbacSeedService {
     readonly skipped: string[];
   }): Promise<boolean> {
     const normalizedPhone = normalizePhoneNumber(input.phone);
-    const user = await this.userRepository.findActiveByPhoneNormalized(normalizedPhone);
+    const user =
+      await this.userRepository.findActiveByPhoneNormalized(normalizedPhone);
 
     if (!user) {
       input.skipped.push('super-admin-bootstrap:user-not-found-or-not-active');
@@ -142,7 +149,9 @@ export class RbacSeedService {
     const result = await this.userRoleRepository.assignRoleForSeed({
       userId: String(user._id),
       roleId,
-      ...(input.assignedAt !== undefined ? { assignedAt: input.assignedAt } : {}),
+      ...(input.assignedAt !== undefined
+        ? { assignedAt: input.assignedAt }
+        : {}),
     });
 
     return result.created;

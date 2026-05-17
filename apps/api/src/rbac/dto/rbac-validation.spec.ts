@@ -27,9 +27,9 @@ describe('RBAC DTO validation', () => {
   });
 
   it('rejects invalid role key format', () => {
-    expect(() => validateCreateRoleDto({ key: 'Bad-Key', name: 'Bad role' })).toThrow(
-      BadRequestException,
-    );
+    expect(() =>
+      validateCreateRoleDto({ key: 'Bad-Key', name: 'Bad role' }),
+    ).toThrow(BadRequestException);
   });
 
   it('rejects unknown and internal create-role fields', () => {
@@ -48,7 +48,9 @@ describe('RBAC DTO validation', () => {
       isActive: false,
     });
 
-    expect(() => validateUpdateRoleDto({ key: 'new_key' })).toThrow(BadRequestException);
+    expect(() => validateUpdateRoleDto({ key: 'new_key' })).toThrow(
+      BadRequestException,
+    );
   });
 
   it('validates ObjectId params and body ids', () => {
@@ -56,7 +58,9 @@ describe('RBAC DTO validation', () => {
     expect(validateAttachPermissionDto({ permissionId: objectId })).toEqual({
       permissionId: objectId,
     });
-    expect(() => validateAttachPermissionDto({ permissionId: 'bad' })).toThrow(BadRequestException);
+    expect(() => validateAttachPermissionDto({ permissionId: 'bad' })).toThrow(
+      BadRequestException,
+    );
   });
 
   it('validates assign user role body', () => {
@@ -76,12 +80,12 @@ describe('RBAC DTO validation', () => {
   });
 
   it('rejects invalid expiresAt and unknown assign fields', () => {
-    expect(() => validateAssignUserRoleDto({ roleId: objectId, expiresAt: 'bad-date' })).toThrow(
-      BadRequestException,
-    );
+    expect(() =>
+      validateAssignUserRoleDto({ roleId: objectId, expiresAt: 'bad-date' }),
+    ).toThrow(BadRequestException);
 
-    expect(() => validateAssignUserRoleDto({ roleId: objectId, assignedBy: objectId })).toThrow(
-      BadRequestException,
-    );
+    expect(() =>
+      validateAssignUserRoleDto({ roleId: objectId, assignedBy: objectId }),
+    ).toThrow(BadRequestException);
   });
 });

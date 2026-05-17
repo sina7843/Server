@@ -5,10 +5,15 @@ import type { AttachPermissionInput } from './role-permission.types';
 
 @Injectable()
 export class RolePermissionService {
-  constructor(private readonly rolePermissionRepository: RolePermissionRepository) {}
+  constructor(
+    private readonly rolePermissionRepository: RolePermissionRepository,
+  ) {}
 
-  async attachPermission(input: AttachPermissionInput): Promise<RolePermissionDocument> {
-    const existing = await this.rolePermissionRepository.findByRolePermission(input);
+  async attachPermission(
+    input: AttachPermissionInput,
+  ): Promise<RolePermissionDocument> {
+    const existing =
+      await this.rolePermissionRepository.findByRolePermission(input);
 
     if (existing) {
       return existing;
@@ -17,7 +22,9 @@ export class RolePermissionService {
     return this.rolePermissionRepository.attachPermission(input);
   }
 
-  detachPermission(input: AttachPermissionInput): Promise<RolePermissionDocument | null> {
+  detachPermission(
+    input: AttachPermissionInput,
+  ): Promise<RolePermissionDocument | null> {
     return this.rolePermissionRepository.detachPermission(input);
   }
 

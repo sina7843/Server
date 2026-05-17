@@ -2,10 +2,25 @@ import { BadRequestException } from '@nestjs/common';
 
 const OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
 const ROLE_KEY_PATTERN = /^[a-z][a-z0-9_]*$/;
-const KNOWN_CREATE_ROLE_FIELDS = new Set(['key', 'name', 'description', 'isAssignable']);
-const KNOWN_UPDATE_ROLE_FIELDS = new Set(['name', 'description', 'isAssignable', 'isActive']);
+const KNOWN_CREATE_ROLE_FIELDS = new Set([
+  'key',
+  'name',
+  'description',
+  'isAssignable',
+]);
+const KNOWN_UPDATE_ROLE_FIELDS = new Set([
+  'name',
+  'description',
+  'isAssignable',
+  'isActive',
+]);
 const KNOWN_ATTACH_PERMISSION_FIELDS = new Set(['permissionId']);
-const KNOWN_ASSIGN_USER_ROLE_FIELDS = new Set(['roleId', 'scopeType', 'scopeId', 'expiresAt']);
+const KNOWN_ASSIGN_USER_ROLE_FIELDS = new Set([
+  'roleId',
+  'scopeType',
+  'scopeId',
+  'expiresAt',
+]);
 
 export function validateObjectId(value: unknown, fieldName: string): string {
   if (typeof value !== 'string' || !OBJECT_ID_PATTERN.test(value)) {
@@ -17,7 +32,9 @@ export function validateObjectId(value: unknown, fieldName: string): string {
 
 export function validateRoleKey(value: unknown): string {
   if (typeof value !== 'string' || !ROLE_KEY_PATTERN.test(value)) {
-    throw new BadRequestException('Role key must use lowercase letters, numbers, and underscores.');
+    throw new BadRequestException(
+      'Role key must use lowercase letters, numbers, and underscores.',
+    );
   }
 
   return value;
@@ -34,7 +51,10 @@ export function assertKnownFields(
   }
 }
 
-export function assertStringField(value: unknown, fieldName: string): string {
+export function assertStringField(
+  value: unknown,
+  fieldName: string,
+): string {
   if (typeof value !== 'string' || value.trim().length === 0) {
     throw new BadRequestException(`${fieldName} is required.`);
   }
@@ -42,7 +62,10 @@ export function assertStringField(value: unknown, fieldName: string): string {
   return value.trim();
 }
 
-export function assertOptionalStringField(value: unknown, fieldName: string): string | undefined {
+export function assertOptionalStringField(
+  value: unknown,
+  fieldName: string,
+): string | undefined {
   if (value === undefined) {
     return undefined;
   }
@@ -54,7 +77,10 @@ export function assertOptionalStringField(value: unknown, fieldName: string): st
   return value.trim();
 }
 
-export function assertOptionalBooleanField(value: unknown, fieldName: string): boolean | undefined {
+export function assertOptionalBooleanField(
+  value: unknown,
+  fieldName: string,
+): boolean | undefined {
   if (value === undefined) {
     return undefined;
   }
@@ -66,7 +92,10 @@ export function assertOptionalBooleanField(value: unknown, fieldName: string): b
   return value;
 }
 
-export function assertOptionalDateField(value: unknown, fieldName: string): string | undefined {
+export function assertOptionalDateField(
+  value: unknown,
+  fieldName: string,
+): string | undefined {
   if (value === undefined) {
     return undefined;
   }
@@ -103,11 +132,16 @@ export interface ValidatedAssignUserRoleDto {
   readonly expiresAt?: string;
 }
 
-export function validateCreateRoleDto(value: Record<string, unknown>): ValidatedCreateRoleDto {
+export function validateCreateRoleDto(
+  value: Record<string, unknown>,
+): ValidatedCreateRoleDto {
   assertKnownFields(value, KNOWN_CREATE_ROLE_FIELDS);
 
   const description = assertOptionalStringField(value.description, 'description');
-  const isAssignable = assertOptionalBooleanField(value.isAssignable, 'isAssignable');
+  const isAssignable = assertOptionalBooleanField(
+    value.isAssignable,
+    'isAssignable',
+  );
 
   return {
     key: validateRoleKey(value.key),
@@ -117,12 +151,17 @@ export function validateCreateRoleDto(value: Record<string, unknown>): Validated
   };
 }
 
-export function validateUpdateRoleDto(value: Record<string, unknown>): ValidatedUpdateRoleDto {
+export function validateUpdateRoleDto(
+  value: Record<string, unknown>,
+): ValidatedUpdateRoleDto {
   assertKnownFields(value, KNOWN_UPDATE_ROLE_FIELDS);
 
   const name = assertOptionalStringField(value.name, 'name');
   const description = assertOptionalStringField(value.description, 'description');
-  const isAssignable = assertOptionalBooleanField(value.isAssignable, 'isAssignable');
+  const isAssignable = assertOptionalBooleanField(
+    value.isAssignable,
+    'isAssignable',
+  );
   const isActive = assertOptionalBooleanField(value.isActive, 'isActive');
 
   return {

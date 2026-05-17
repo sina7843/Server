@@ -1,9 +1,10 @@
 import { PermissionKeys } from '../registry/permission-keys';
 import { PermissionResolverService } from './permission-resolver.service';
 
-const role = (id: string, key: string, isActive = true) => ({ _id: id, key, isActive }) as never;
+const role = (id: string, key: string, isActive = true) =>
+  ({ _id: id, key, isActive }) as never;
 
-const userRole = (roleId: string, expiresAt?: Date) => ({ roleId, expiresAt }) as never;
+const userRole = (roleId: string) => ({ roleId }) as never;
 
 const permission = (id: string, key: string) => ({ _id: id, key }) as never;
 
@@ -13,14 +14,20 @@ describe('PermissionResolverService', () => {
       { findActiveByUserId: jest.fn().mockResolvedValue([userRole('role-1')]) } as never,
       { findById: jest.fn().mockResolvedValue(role('role-1', 'admin')) } as never,
       {
-        findPermissionIdsByRoleIds: jest.fn().mockResolvedValue(['permission-id-1']),
+        findPermissionIdsByRoleIds: jest
+          .fn()
+          .mockResolvedValue(['permission-id-1']),
       } as never,
       {
-        findById: jest.fn().mockResolvedValue(permission('permission-id-1', 'rbac.role.read')),
+        findById: jest
+          .fn()
+          .mockResolvedValue(permission('permission-id-1', 'rbac.role.read')),
       } as never,
     );
 
-    await expect(service.resolveUserPermissions({ userId: 'user-1' })).resolves.toEqual({
+    await expect(
+      service.resolveUserPermissions({ userId: 'user-1' }),
+    ).resolves.toEqual({
       permissionKeys: ['rbac.role.read'],
       roleKeys: ['admin'],
       isSuperAdmin: false,
@@ -39,7 +46,9 @@ describe('PermissionResolverService', () => {
       { findById: jest.fn() } as never,
     );
 
-    await expect(service.resolveUserPermissions({ userId: 'user-1' })).resolves.toEqual({
+    await expect(
+      service.resolveUserPermissions({ userId: 'user-1' }),
+    ).resolves.toEqual({
       permissionKeys: PermissionKeys,
       roleKeys: ['super_admin'],
       isSuperAdmin: true,
@@ -54,7 +63,9 @@ describe('PermissionResolverService', () => {
       { findById: jest.fn() } as never,
     );
 
-    await expect(service.resolveUserPermissions({ userId: 'user-1' })).resolves.toEqual({
+    await expect(
+      service.resolveUserPermissions({ userId: 'user-1' }),
+    ).resolves.toEqual({
       permissionKeys: [],
       roleKeys: [],
       isSuperAdmin: false,
@@ -69,7 +80,9 @@ describe('PermissionResolverService', () => {
       { findById: jest.fn() } as never,
     );
 
-    await expect(service.resolveUserPermissions({ userId: 'user-1' })).resolves.toEqual({
+    await expect(
+      service.resolveUserPermissions({ userId: 'user-1' }),
+    ).resolves.toEqual({
       permissionKeys: [],
       roleKeys: [],
       isSuperAdmin: false,

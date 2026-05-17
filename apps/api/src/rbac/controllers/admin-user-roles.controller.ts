@@ -13,9 +13,18 @@ import { CurrentAuthContext } from '../../auth/guards/current-auth-context.decor
 import { UserRepository } from '../../auth/users/user.repository';
 import { RequirePermission } from '../decorators/require-permission.decorator';
 import { AssignUserRoleDto } from '../dto/assign-user-role.dto';
-import { RbacGenericResponse, createRbacGenericResponse } from '../dto/rbac-response.dto';
-import { toUserRoleResponse, UserRoleResponse } from '../dto/user-role-response.dto';
-import { validateAssignUserRoleDto, validateObjectId } from '../dto/rbac-validation';
+import {
+  RbacGenericResponse,
+  createRbacGenericResponse,
+} from '../dto/rbac-response.dto';
+import {
+  toUserRoleResponse,
+  UserRoleResponse,
+} from '../dto/user-role-response.dto';
+import {
+  validateAssignUserRoleDto,
+  validateObjectId,
+} from '../dto/rbac-validation';
 import { PermissionGuard } from '../guards/permission.guard';
 import { Permissions } from '../registry/permission-keys';
 import { RoleService } from '../roles/role.service';
@@ -38,11 +47,19 @@ export class AdminUserRolesController {
     @CurrentAuthContext() authContext: AuthContext,
   ): Promise<UserRoleResponse> {
     const targetUserId = validateObjectId(userId, 'id');
-    const input = validateAssignUserRoleDto(body as unknown as Record<string, unknown>);
+    const input = validateAssignUserRoleDto(
+      body as unknown as Record<string, unknown>,
+    );
     const user = await this.userRepository.findById(targetUserId);
     const role = await this.roleService.findById(input.roleId);
 
-    if (!user || user.status === 'deleted' || !role || !role.isActive || !role.isAssignable) {
+    if (
+      !user ||
+      user.status === 'deleted' ||
+      !role ||
+      !role.isActive ||
+      !role.isAssignable
+    ) {
       throw new NotFoundException('User or role not found.');
     }
 

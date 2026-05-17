@@ -1,7 +1,10 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { AccessTokenGuard } from '../../auth/guards/access-token.guard';
 import { RequirePermission } from '../decorators/require-permission.decorator';
-import { PermissionsResponse, toPermissionResponse } from '../dto/permission-response.dto';
+import {
+  PermissionsResponse,
+  toPermissionResponse,
+} from '../dto/permission-response.dto';
 import { PermissionGuard } from '../guards/permission.guard';
 import { PermissionService } from '../permissions/permission.service';
 import { Permissions } from '../registry/permission-keys';

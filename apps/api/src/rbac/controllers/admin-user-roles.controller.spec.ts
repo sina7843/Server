@@ -10,7 +10,9 @@ describe('AdminUserRolesController', () => {
     const controller = new AdminUserRolesController(
       { findById: jest.fn().mockResolvedValue({ _id: userId, status: 'active' }) } as never,
       {
-        findById: jest.fn().mockResolvedValue({ _id: roleId, isActive: true, isAssignable: true }),
+        findById: jest
+          .fn()
+          .mockResolvedValue({ _id: roleId, isActive: true, isAssignable: true }),
       } as never,
       {
         assignRole: jest.fn().mockResolvedValue({
@@ -36,7 +38,9 @@ describe('AdminUserRolesController', () => {
     const controller = new AdminUserRolesController(
       { findById: jest.fn().mockResolvedValue({ _id: userId, status: 'active' }) } as never,
       {
-        findById: jest.fn().mockResolvedValue({ _id: roleId, isActive: true, isAssignable: false }),
+        findById: jest
+          .fn()
+          .mockResolvedValue({ _id: roleId, isActive: true, isAssignable: false }),
       } as never,
       {} as never,
     );

@@ -40,6 +40,12 @@ export const DragonPermissions = {
   ANALYTICS_READ: 'analytics.analytics.read',
 } as const;
 
-export type DragonPermissionKey = (typeof DragonPermissions)[keyof typeof DragonPermissions];
+export type DragonPermissionKey =
+  (typeof DragonPermissions)[keyof typeof DragonPermissions];
 
-export type DragonRoleKey = 'super_admin' | 'admin' | 'content_manager' | 'support' | 'user';
+export type DragonRoleKey =
+  | 'super_admin'
+  | 'admin'
+  | 'content_manager'
+  | 'support'
+  | 'user';

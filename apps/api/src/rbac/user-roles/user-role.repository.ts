@@ -16,33 +16,18 @@ export class UserRoleRepository {
     private readonly userRoleModel: Model<UserRoleDocument>,
   ) {}
 
-  async assignRole(input: AssignRoleInput): Promise<UserRoleDocument> {
-    const created = await this.userRoleModel.create({
-      userId: input.userId,
-      roleId: input.roleId,
-      ...(input.scopeType !== undefined ? { scopeType: input.scopeType } : {}),
-      ...(input.scopeId !== undefined ? { scopeId: input.scopeId } : {}),
-      ...(input.assignedBy !== undefined ? { assignedBy: input.assignedBy } : {}),
-      assignedAt: input.assignedAt ?? new Date(),
-      ...(input.expiresAt !== undefined ? { expiresAt: input.expiresAt } : {}),
-    });
-
-    return created as UserRoleDocument;
-  }
-
-  removeUserRole(userRoleId: UserRoleId): Promise<UserRoleDocument | null> {
-    return this.userRoleModel.findByIdAndDelete(userRoleId).exec();
-  }
-
-  removeUserRoleForUser(userId: string, userRoleId: UserRoleId): Promise<UserRoleDocument | null> {
-    return this.userRoleModel.findOneAndDelete({ _id: userRoleId, userId }).exec();
+  findById(userRoleId: UserRoleId): Promise<UserRoleDocument | null> {
+    return this.userRoleModel.findById(userRoleId).exec();
   }
 
   findByUserId(userId: string): Promise<UserRoleDocument[]> {
     return this.userRoleModel.find({ userId }).exec();
   }
 
-  findActiveByUserId(userId: string, now = new Date()): Promise<UserRoleDocument[]> {
+  findActiveByUserId(
+    userId: string,
+    now = new Date(),
+  ): Promise<UserRoleDocument[]> {
     return this.userRoleModel
       .find({
         userId,
@@ -51,29 +36,66 @@ export class UserRoleRepository {
       .exec();
   }
 
-  findByUserAndScope(userId: string, scope?: UserRoleScopeInput): Promise<UserRoleDocument[]> {
-    const query: Record<string, unknown> = { userId };
-
-    if (scope?.scopeType !== undefined) {
-      query.scopeType = scope.scopeType;
-    }
-
-    if (scope?.scopeId !== undefined) {
-      query.scopeId = scope.scopeId;
-    }
-
-    return this.userRoleModel.find(query).exec();
+  findByUserAndScope(
+    userId: string,
+    scope: UserRoleScopeInput = {},
+  ): Promise<UserRoleDocument[]> {
+    return this.userRoleModel
+      .find({ userId, ...this.buildScopeFilter(scope) })
+      .exec();
   }
 
-  findByUserRoleAndScope(input: FindUserRoleInput): Promise<UserRoleDocument | null> {
-    const query: Record<string, unknown> = {
-      userId: input.userId,
-      roleId: input.roleId,
-      scopeType: input.scopeType ?? { $exists: false },
-      scopeId: input.scopeId ?? { $exists: false },
+  findByUserRoleAndScope(
+    input: FindUserRoleInput,
+  ): Promise<UserRoleDocument | null> {
+    return this.userRoleModel
+      .findOne({
+        userId: input.userId,
+        roleId: input.roleId,
+        ...this.buildScopeFilter(input),
+      })
+      .exec();
+  }
+
+  async assignRole(input: AssignRoleInput): Promise<UserRoleDocument> {
+    const createInput: Record<string, Date | string> = {
+      userId: String(input.userId),
+      roleId: String(input.roleId),
+      assignedAt: input.assignedAt ?? new Date(),
     };
 
-    return this.userRoleModel.findOne(query).exec();
+    if (input.scopeType !== undefined) {
+      createInput.scopeType = input.scopeType;
+    }
+
+    if (input.scopeId !== undefined) {
+      createInput.scopeId = input.scopeId;
+    }
+
+    if (input.assignedBy !== undefined) {
+      createInput.assignedBy = String(input.assignedBy);
+    }
+
+    if (input.expiresAt !== undefined) {
+      createInput.expiresAt = input.expiresAt;
+    }
+
+    const created = await this.userRoleModel.create(createInput);
+
+    return created as UserRoleDocument;
+  }
+
+  removeUserRole(userRoleId: UserRoleId): Promise<UserRoleDocument | null> {
+    return this.userRoleModel.findByIdAndDelete(userRoleId).exec();
+  }
+
+  removeUserRoleForUser(
+    userId: string,
+    userRoleId: UserRoleId,
+  ): Promise<UserRoleDocument | null> {
+    return this.userRoleModel
+      .findOneAndDelete({ _id: userRoleId, userId })
+      .exec();
   }
 
   async assignRoleForSeed(input: AssignRoleInput): Promise<{
@@ -99,6 +121,15 @@ export class UserRoleRepository {
     return {
       document,
       created: true,
+    };
+  }
+
+  private buildScopeFilter(
+    scope: UserRoleScopeInput,
+  ): Record<string, string | { $exists: false }> {
+    return {
+      scopeType: scope.scopeType ?? { $exists: false },
+      scopeId: scope.scopeId ?? { $exists: false },
     };
   }
 }

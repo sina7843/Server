@@ -13,6 +13,10 @@
 
 ## OTP security
 
+- [ ] OTP phone/IP abuse limits are enforced for phone verification and password reset.
+- [ ] OTP limit failures do not send SMS and do not reveal account existence.
+- [ ] OTP request metadata is stored only as safe request metadata and is not returned to clients.
+
 - [ ] OTP hashes use slow secure hashing.
 - [ ] OTP verification enforces expiration.
 - [ ] OTP verification enforces consumed state.
@@ -30,6 +34,10 @@
 - [ ] Password reset does not auto-login the user.
 
 ## Token and session security
+
+- [ ] Access token JTI is validated against the active session state.
+- [ ] Refresh token rotation uses a single conditional atomic session update.
+- [ ] Stale refresh token reuse cannot rotate a session twice.
 
 - [ ] Access token claims are minimal.
 - [ ] Access tokens do not include phone, password hash, roles, permissions, profile, or status reason.

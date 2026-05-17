@@ -51,6 +51,8 @@ describe('PasswordResetService', () => {
       incrementAttempts: jest.fn().mockResolvedValue({ _id: 'otp-1' }),
       markVerified: jest.fn().mockResolvedValue({ _id: 'otp-1' }),
       markConsumed: jest.fn().mockResolvedValue({ _id: 'otp-1' }),
+      countRecentChallengesByPhone: jest.fn().mockResolvedValue(0),
+      countRecentChallengesByIp: jest.fn().mockResolvedValue(0),
     } as unknown as jest.Mocked<OtpChallengeRepository>;
     const smsService = {
       sendSms: jest.fn().mockResolvedValue({ provider: 'mock', status: 'sent' }),
@@ -124,6 +126,54 @@ describe('PasswordResetService', () => {
         expect(otpChallengeRepository.createChallenge).not.toHaveBeenCalled();
         expect(smsService.sendSms).not.toHaveBeenCalled();
       },
+    );
+  });
+
+  it('does not create or send reset OTP when phone daily limit is reached', async () => {
+    const { service, userRepository, otpChallengeRepository, smsService } = createService();
+    userRepository.findActiveByPhoneNormalized.mockResolvedValue(createActiveUser() as never);
+    otpChallengeRepository.countRecentChallengesByPhone.mockResolvedValue(10);
+
+    const response = await service.forgotPassword(
+      { phone: '+989120000000' },
+      { ip: '203.0.113.10' },
+    );
+
+    expect(response.success).toBe(true);
+    expect(otpChallengeRepository.createChallenge).not.toHaveBeenCalled();
+    expect(smsService.sendSms).not.toHaveBeenCalled();
+  });
+
+  it('does not create or send reset OTP when IP limit is reached', async () => {
+    const { service, userRepository, otpChallengeRepository, smsService } = createService();
+    userRepository.findActiveByPhoneNormalized.mockResolvedValue(createActiveUser() as never);
+    otpChallengeRepository.countRecentChallengesByIp.mockResolvedValue(30);
+
+    const response = await service.forgotPassword(
+      { phone: '+989120000000' },
+      { ip: '203.0.113.10' },
+    );
+
+    expect(response.success).toBe(true);
+    expect(otpChallengeRepository.createChallenge).not.toHaveBeenCalled();
+    expect(smsService.sendSms).not.toHaveBeenCalled();
+  });
+
+  it('stores request metadata on password_reset OTP challenge when available', async () => {
+    const { service, userRepository, otpChallengeRepository } = createService();
+    userRepository.findActiveByPhoneNormalized.mockResolvedValue(createActiveUser() as never);
+
+    await service.forgotPassword(
+      { phone: '+989120000000' },
+      { ip: '203.0.113.10', userAgent: 'jest-agent', requestId: 'request-1' },
+    );
+
+    expect(otpChallengeRepository.createChallenge).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ip: '203.0.113.10',
+        userAgent: 'jest-agent',
+        requestId: 'request-1',
+      }),
     );
   });
 

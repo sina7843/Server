@@ -49,6 +49,10 @@ export class AccessTokenGuard implements CanActivate {
       throw createUnauthorizedError();
     }
 
+    if (!session.accessTokenJti || session.accessTokenJti !== claims.jti) {
+      throw createUnauthorizedError();
+    }
+
     request.auth = {
       userId: claims.sub,
       sessionId: claims.sessionId,

@@ -56,13 +56,13 @@ OTP challenges support these purposes:
 
 Slice 0.2 implements phone verification and password reset usage only. Sensitive action and admin step-up values exist structurally but no flow is implemented for them.
 
-OTP codes are never stored raw. OTP verification enforces expiration, consumed state, and max attempts. Expired OTP records are TTL-aware, and cleanup behavior remains conservative.
+OTP codes are never stored raw. OTP verification enforces expiration, consumed state, and max attempts. OTP creation for phone verification and password reset enforces the configured per-phone and per-IP abuse limits. Auth request metadata such as IP, user agent, and request id is stored on OTP challenges when available. Expired OTP records are TTL-aware, and cleanup behavior remains conservative.
 
 ## Session and refresh token model
 
 Login creates a session and returns an access token plus a refresh token. Only the refresh token hash is stored.
 
-Refresh rotates the refresh token in the same session. The old refresh token must stop working after rotation. Access token claims remain minimal and do not include phone, password hashes, roles, permissions, profile data, or status reasons.
+Refresh rotates the refresh token in the same session using a conditional atomic update that requires the submitted refresh-token hash to still match the session. The old refresh token must stop working after rotation, and stale or replayed refresh tokens cannot rotate twice. Access token claims remain minimal and do not include phone, password hashes, roles, permissions, profile data, or status reasons.
 
 ## Password reset flow
 
@@ -72,7 +72,7 @@ After a valid password reset OTP is verified, the API issues a short-lived reset
 
 ## Authentication guard
 
-Slice 0.2 includes an authentication-only access token guard. The guard verifies a bearer access token, checks the minimal claims, loads the current user, enforces active status, and attaches a minimal auth context to the request.
+Slice 0.2 includes an authentication-only access token guard. The guard verifies a bearer access token, checks the minimal claims, validates the token JTI against the active session state, loads the current user, enforces active status, and attaches a minimal auth context to the request.
 
 The guard is not an RBAC guard. It does not check roles, permissions, or policy rules, and it does not attach a full user document or profile data to the request.
 
@@ -104,6 +104,8 @@ Slice 0.2 keeps these boundaries:
 - the current provider is mock-only
 - notification logs store masked and hashed recipient data, not raw recipient values
 - cleanup returns counts only
+- refresh rotation uses an atomic conditional session update
+- access token JTI is validated against the active session
 
 ## Not implemented in Slice 0.2
 

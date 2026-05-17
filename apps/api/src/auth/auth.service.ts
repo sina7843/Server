@@ -193,22 +193,22 @@ export class AuthService {
 
     const nextRefreshToken = this.refreshTokenService.issueRefreshToken(now);
     const nextAccessTokenJti = this.accessTokenService.createJti();
-    const rotatedSession = await this.sessionRepository.updateRefreshTokenHash(
-      session._id,
-      nextRefreshToken.refreshTokenHash,
+    const rotatedSession = await this.sessionRepository.rotateRefreshTokenAtomically({
+      sessionId: session._id,
+      currentRefreshTokenHash,
+      nextRefreshTokenHash: nextRefreshToken.refreshTokenHash,
       nextAccessTokenJti,
-    );
+      now,
+    });
 
     if (!rotatedSession) {
       throw this.createInvalidRefreshError();
     }
 
-    await this.sessionRepository.touchLastUsedAt(session._id, now);
-
     const issuedAccessToken = this.accessTokenService.issueAccessToken({
       sub: String(user._id),
       jti: nextAccessTokenJti,
-      sessionId: String(session._id),
+      sessionId: String(rotatedSession._id),
     });
 
     return createTokenResponse({
@@ -218,8 +218,11 @@ export class AuthService {
     });
   }
 
-  async forgotPassword(input: ForgotPasswordDto): Promise<AuthGenericResponseDto> {
-    return this.getPasswordResetService().forgotPassword(input);
+  async forgotPassword(
+    input: ForgotPasswordDto,
+    metadata: RequestMetadata = {},
+  ): Promise<AuthGenericResponseDto> {
+    return this.getPasswordResetService().forgotPassword(input, metadata);
   }
 
   async verifyResetOtp(input: VerifyResetOtpDto): Promise<VerifyResetOtpResponseDto> {
@@ -346,11 +349,54 @@ export class AuthService {
     await this.sessionRepository.revokeSession(sessionId, revokedReason);
   }
 
+  private async isOtpRequestAllowed(
+    phoneNormalized: string,
+    purpose: OtpPurpose,
+    metadata: RequestMetadata,
+    now: Date,
+  ): Promise<boolean> {
+    const since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const phoneCount = await this.otpChallengeRepository.countRecentChallengesByPhone(
+      phoneNormalized,
+      purpose,
+      since,
+    );
+
+    if (phoneCount >= this.authConfig.otpDailyPhoneLimit) {
+      return false;
+    }
+
+    if (metadata.ip !== undefined) {
+      const ipCount = await this.otpChallengeRepository.countRecentChallengesByIp(
+        metadata.ip,
+        purpose,
+        since,
+      );
+
+      if (ipCount >= this.authConfig.otpIpLimit) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   private async sendPhoneVerificationOtpIfAllowed(
     phoneNormalized: string,
     metadata: RegisterRequestMetadata,
   ): Promise<void> {
     const now = new Date();
+    const otpRequestAllowed = await this.isOtpRequestAllowed(
+      phoneNormalized,
+      PHONE_VERIFICATION_PURPOSE,
+      metadata,
+      now,
+    );
+
+    if (!otpRequestAllowed) {
+      return;
+    }
+
     const latestChallenge = await this.otpChallengeRepository.findLatestActiveByPhoneAndPurpose(
       phoneNormalized,
       PHONE_VERIFICATION_PURPOSE,

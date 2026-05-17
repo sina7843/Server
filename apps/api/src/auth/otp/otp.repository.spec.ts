@@ -10,12 +10,14 @@ describe('OtpChallengeRepository', () => {
     const exec = jest.fn().mockResolvedValue(null);
     const sort = jest.fn().mockReturnValue({ exec });
     const create = jest.fn().mockResolvedValue({});
+    const countDocuments = jest.fn().mockReturnValue({ exec });
     const find = jest.fn().mockReturnValue({ sort });
     const findOne = jest.fn().mockReturnValue({ sort });
     const findByIdAndUpdate = jest.fn().mockReturnValue({ exec });
     const updateMany = jest.fn().mockReturnValue({ exec });
     const model = {
       create,
+      countDocuments,
       find,
       findOne,
       findByIdAndUpdate,
@@ -23,6 +25,7 @@ describe('OtpChallengeRepository', () => {
     } as unknown as Model<OtpChallengeDocument>;
 
     return {
+      countDocuments,
       create,
       exec,
       find,
@@ -141,6 +144,32 @@ describe('OtpChallengeRepository', () => {
     expect(updateMany).not.toHaveBeenCalledWith(
       expect.objectContaining({ codeHash: expect.anything() }),
     );
+  });
+
+  it('counts recent challenges by normalized phone and purpose for abuse limits', async () => {
+    const { countDocuments, repository } = createRepository();
+    const since = new Date('2026-01-01T00:00:00.000Z');
+
+    await repository.countRecentChallengesByPhone(phoneNormalized, purpose, since);
+
+    expect(countDocuments).toHaveBeenCalledWith({
+      phoneNormalized,
+      purpose,
+      createdAt: { $gte: since },
+    });
+  });
+
+  it('counts recent challenges by request ip and purpose for abuse limits', async () => {
+    const { countDocuments, repository } = createRepository();
+    const since = new Date('2026-01-01T00:00:00.000Z');
+
+    await repository.countRecentChallengesByIp('203.0.113.10', purpose, since);
+
+    expect(countDocuments).toHaveBeenCalledWith({
+      ip: '203.0.113.10',
+      purpose,
+      createdAt: { $gte: since },
+    });
   });
 
   it('declares required schema indexes including expiresAt TTL', () => {

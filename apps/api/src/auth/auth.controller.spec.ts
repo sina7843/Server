@@ -20,6 +20,14 @@ const tokenResponse = {
 };
 
 describe('AuthController', () => {
+  const requestMetadata = {
+    ip: '203.0.113.10',
+    headers: {
+      'user-agent': 'jest-agent',
+      'x-request-id': 'request-1',
+    },
+  };
+
   function createController() {
     const authService = {
       register: jest.fn().mockResolvedValue(createGenericAuthResponse()),
@@ -68,15 +76,21 @@ describe('AuthController', () => {
   it('parses the register payload and returns the generic response', async () => {
     const { authService, controller } = createController();
 
-    const response = await controller.register({
-      phone: '+98 912 000 0000',
-      password: 'strong-pass',
-    });
+    const response = await controller.register(
+      {
+        phone: '+98 912 000 0000',
+        password: 'strong-pass',
+      },
+      requestMetadata,
+    );
 
-    expect(authService.register).toHaveBeenCalledWith({
-      phone: '+98 912 000 0000',
-      password: 'strong-pass',
-    });
+    expect(authService.register).toHaveBeenCalledWith(
+      {
+        phone: '+98 912 000 0000',
+        password: 'strong-pass',
+      },
+      { ip: '203.0.113.10', userAgent: 'jest-agent', requestId: 'request-1' },
+    );
     expect(response).toEqual(createGenericAuthResponse());
   });
 
@@ -98,17 +112,23 @@ describe('AuthController', () => {
   it('parses the login payload and returns token response', async () => {
     const { authService, controller } = createController();
 
-    const response = await controller.login({
-      phone: '+98 912 000 0000',
-      password: 'correct-password',
-      deviceId: 'device-1',
-    });
+    const response = await controller.login(
+      {
+        phone: '+98 912 000 0000',
+        password: 'correct-password',
+        deviceId: 'device-1',
+      },
+      requestMetadata,
+    );
 
-    expect(authService.login).toHaveBeenCalledWith({
-      phone: '+98 912 000 0000',
-      password: 'correct-password',
-      deviceId: 'device-1',
-    });
+    expect(authService.login).toHaveBeenCalledWith(
+      {
+        phone: '+98 912 000 0000',
+        password: 'correct-password',
+        deviceId: 'device-1',
+      },
+      { ip: '203.0.113.10', userAgent: 'jest-agent', requestId: 'request-1' },
+    );
     expect(response).toEqual(tokenResponse);
   });
 
@@ -128,9 +148,15 @@ describe('AuthController', () => {
   it('parses the forgot-password payload and returns generic response', async () => {
     const { authService, controller } = createController();
 
-    const response = await controller.forgotPassword({ phone: '+98 912 000 0000' });
+    const response = await controller.forgotPassword(
+      { phone: '+98 912 000 0000' },
+      requestMetadata,
+    );
 
-    expect(authService.forgotPassword).toHaveBeenCalledWith({ phone: '+98 912 000 0000' });
+    expect(authService.forgotPassword).toHaveBeenCalledWith(
+      { phone: '+98 912 000 0000' },
+      { ip: '203.0.113.10', userAgent: 'jest-agent', requestId: 'request-1' },
+    );
     expect(response).toEqual(createGenericAuthResponse(FORGOT_PASSWORD_GENERIC_MESSAGE));
   });
 

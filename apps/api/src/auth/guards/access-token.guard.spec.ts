@@ -38,6 +38,7 @@ describe('AccessTokenGuard', () => {
         _id: 'session-1',
         userId: 'user-1',
         expiresAt: new Date(Date.now() + 60_000),
+        accessTokenJti: 'access-jti-1',
       }),
     } as unknown as jest.Mocked<SessionRepository>;
     const guard = new AccessTokenGuard(
@@ -119,6 +120,37 @@ describe('AccessTokenGuard', () => {
   it('rejects revoked or missing sessions', async () => {
     const { guard, sessionRepository } = createGuard();
     sessionRepository.findActiveById.mockResolvedValue(null);
+
+    await expect(
+      guard.canActivate(
+        createExecutionContext({ headers: { authorization: 'Bearer access-token' } }),
+      ),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it('rejects tokens whose jti does not match the active session jti', async () => {
+    const { guard, sessionRepository } = createGuard();
+    sessionRepository.findActiveById.mockResolvedValue({
+      _id: 'session-1',
+      userId: 'user-1',
+      expiresAt: new Date(Date.now() + 60_000),
+      accessTokenJti: 'different-jti',
+    } as never);
+
+    await expect(
+      guard.canActivate(
+        createExecutionContext({ headers: { authorization: 'Bearer access-token' } }),
+      ),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it('rejects sessions without a persisted access token jti', async () => {
+    const { guard, sessionRepository } = createGuard();
+    sessionRepository.findActiveById.mockResolvedValue({
+      _id: 'session-1',
+      userId: 'user-1',
+      expiresAt: new Date(Date.now() + 60_000),
+    } as never);
 
     await expect(
       guard.canActivate(

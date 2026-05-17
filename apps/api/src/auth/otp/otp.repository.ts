@@ -100,6 +100,30 @@ export class OtpChallengeRepository {
       .exec();
   }
 
+  countRecentChallengesByPhone(
+    phoneNormalized: string,
+    purpose: OtpPurpose,
+    createdSince: Date,
+  ): Promise<number> {
+    return this.otpChallengeModel
+      .countDocuments({
+        phoneNormalized,
+        purpose,
+        createdAt: { $gte: createdSince },
+      })
+      .exec();
+  }
+
+  countRecentChallengesByIp(ip: string, purpose: OtpPurpose, createdSince: Date): Promise<number> {
+    return this.otpChallengeModel
+      .countDocuments({
+        ip,
+        purpose,
+        createdAt: { $gte: createdSince },
+      })
+      .exec();
+  }
+
   findUnconsumedByPhoneAndPurpose(
     phoneNormalized: string,
     purpose: OtpPurpose,

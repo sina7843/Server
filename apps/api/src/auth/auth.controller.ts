@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { AuthService, type RequestMetadata } from './auth.service';
 import { type AuthGenericResponseDto } from './dto/auth-response.dto';
 import { parseForgotPasswordDto } from './dto/forgot-password.dto';
 import { parseLoginDto } from './dto/login.dto';
@@ -21,8 +21,11 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  register(@Body() body: unknown): Promise<AuthGenericResponseDto> {
-    return this.authService.register(parseRegisterDto(body));
+  register(
+    @Body() body: unknown,
+    @Req() request: AuthMetadataRequest,
+  ): Promise<AuthGenericResponseDto> {
+    return this.authService.register(parseRegisterDto(body), extractRequestMetadata(request));
   }
 
   @Post('verify-phone')
@@ -31,8 +34,8 @@ export class AuthController {
   }
 
   @Post('login')
-  login(@Body() body: unknown): Promise<TokenResponseDto> {
-    return this.authService.login(parseLoginDto(body));
+  login(@Body() body: unknown, @Req() request: AuthMetadataRequest): Promise<TokenResponseDto> {
+    return this.authService.login(parseLoginDto(body), extractRequestMetadata(request));
   }
 
   @Post('refresh')
@@ -41,8 +44,14 @@ export class AuthController {
   }
 
   @Post('password/forgot')
-  forgotPassword(@Body() body: unknown): Promise<AuthGenericResponseDto> {
-    return this.authService.forgotPassword(parseForgotPasswordDto(body));
+  forgotPassword(
+    @Body() body: unknown,
+    @Req() request: AuthMetadataRequest,
+  ): Promise<AuthGenericResponseDto> {
+    return this.authService.forgotPassword(
+      parseForgotPasswordDto(body),
+      extractRequestMetadata(request),
+    );
   }
 
   @Post('password/verify-reset-otp')
@@ -97,4 +106,39 @@ export class AuthController {
   ): Promise<AuthGenericResponseDto> {
     return this.authService.revokeCurrentUserSession(authContext, sessionId);
   }
+}
+
+interface AuthMetadataRequest {
+  readonly ip?: string;
+  readonly headers?: Record<string, string | string[] | undefined>;
+}
+
+function extractRequestMetadata(request: AuthMetadataRequest): RequestMetadata {
+  const metadata: { requestId?: string; ip?: string; userAgent?: string } = {};
+  const requestId = readHeader(request, 'x-request-id');
+  const userAgent = readHeader(request, 'user-agent');
+
+  if (request.ip !== undefined && request.ip.length > 0) {
+    metadata.ip = request.ip;
+  }
+
+  if (userAgent !== undefined && userAgent.length > 0) {
+    metadata.userAgent = userAgent;
+  }
+
+  if (requestId !== undefined && requestId.length > 0) {
+    metadata.requestId = requestId;
+  }
+
+  return metadata;
+}
+
+function readHeader(request: AuthMetadataRequest, headerName: string): string | undefined {
+  const value = request.headers?.[headerName];
+
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+
+  return value;
 }

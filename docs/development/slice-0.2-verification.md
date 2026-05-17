@@ -90,6 +90,11 @@ DELETE /api/v1/auth/sessions/:sessionId
 
 ## 5. OTP verification
 
+- [ ] OTP phone/IP limits are enforced for phone verification and password reset.
+- [ ] OTP limit failures do not create OTP challenges.
+- [ ] OTP limit failures do not send SMS.
+- [ ] OTP request metadata is passed from controller to service and stored on challenge records when available.
+
 - [ ] Phone verification OTP is created for registration.
 - [ ] Password reset OTP is created only for eligible active verified users.
 - [ ] Raw OTP code is never stored.
@@ -101,6 +106,11 @@ DELETE /api/v1/auth/sessions/:sessionId
 - [ ] OTP cleanup is TTL-aware and safe.
 
 ## 6. Login/session/refresh verification
+
+- [ ] Refresh token rotation uses an atomic conditional update.
+- [ ] Reusing a stale refresh token fails safely.
+- [ ] Access token JTI is validated against session state.
+- [ ] Old access token with stale JTI is rejected after refresh rotation when the session JTI changes.
 
 - [ ] Active verified user can login with correct password.
 - [ ] Login creates a session.

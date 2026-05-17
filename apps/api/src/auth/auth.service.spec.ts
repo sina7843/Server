@@ -2,6 +2,7 @@
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { createAuthTestConfig } from '../../test/helpers/auth-test.factory';
 import {
+  createGenericAuthResponse,
   REGISTER_GENERIC_MESSAGE,
   REVOKE_SESSION_GENERIC_MESSAGE,
   VERIFY_PHONE_GENERIC_MESSAGE,
@@ -39,6 +40,8 @@ describe('AuthService', () => {
       incrementAttempts: jest.fn().mockResolvedValue({ _id: 'otp-1' }),
       markVerified: jest.fn().mockResolvedValue({ _id: 'otp-1' }),
       markConsumed: jest.fn().mockResolvedValue({ _id: 'otp-1' }),
+      countRecentChallengesByPhone: jest.fn().mockResolvedValue(0),
+      countRecentChallengesByIp: jest.fn().mockResolvedValue(0),
     } as unknown as jest.Mocked<OtpChallengeRepository>;
     const otpChallengeService = new OtpChallengeService();
     const smsService = {
@@ -55,6 +58,7 @@ describe('AuthService', () => {
       findByUserId: jest.fn().mockResolvedValue([]),
       findByIdAndUserId: jest.fn(),
       updateRefreshTokenHash: jest.fn().mockResolvedValue({ _id: 'session-1' }),
+      rotateRefreshTokenAtomically: jest.fn().mockResolvedValue({ _id: 'session-1' }),
       touchLastUsedAt: jest.fn().mockResolvedValue({ _id: 'session-1' }),
       revokeSession: jest.fn().mockResolvedValue({ _id: 'session-1', revokedAt: new Date() }),
       revokeSessionForUser: jest
@@ -235,6 +239,64 @@ describe('AuthService', () => {
 
       expect(otpChallengeRepository.createChallenge).not.toHaveBeenCalled();
       expect(smsService.sendSms).not.toHaveBeenCalled();
+    });
+
+    it('does not create or send OTP when phone daily limit is reached', async () => {
+      const { service, userRepository, otpChallengeRepository, smsService } = await createService();
+      userRepository.findByPhoneNormalized.mockResolvedValue(null);
+      otpChallengeRepository.countRecentChallengesByPhone.mockResolvedValue(10);
+
+      const response = await service.register(
+        { phone: '+989120000000', password: 'strong-pass' },
+        { ip: '203.0.113.10' },
+      );
+
+      expect(response).toEqual(createGenericAuthResponse());
+      expect(otpChallengeRepository.createChallenge).not.toHaveBeenCalled();
+      expect(smsService.sendSms).not.toHaveBeenCalled();
+      expect(otpChallengeRepository.countRecentChallengesByPhone).toHaveBeenCalledWith(
+        '+989120000000',
+        'phone_verification',
+        expect.any(Date),
+      );
+    });
+
+    it('does not create or send OTP when IP limit is reached', async () => {
+      const { service, userRepository, otpChallengeRepository, smsService } = await createService();
+      userRepository.findByPhoneNormalized.mockResolvedValue(null);
+      otpChallengeRepository.countRecentChallengesByIp.mockResolvedValue(30);
+
+      const response = await service.register(
+        { phone: '+989120000000', password: 'strong-pass' },
+        { ip: '203.0.113.10' },
+      );
+
+      expect(response).toEqual(createGenericAuthResponse());
+      expect(otpChallengeRepository.createChallenge).not.toHaveBeenCalled();
+      expect(smsService.sendSms).not.toHaveBeenCalled();
+      expect(otpChallengeRepository.countRecentChallengesByIp).toHaveBeenCalledWith(
+        '203.0.113.10',
+        'phone_verification',
+        expect.any(Date),
+      );
+    });
+
+    it('stores request metadata on OTP challenge when available', async () => {
+      const { service, userRepository, otpChallengeRepository } = await createService();
+      userRepository.findByPhoneNormalized.mockResolvedValue(null);
+
+      await service.register(
+        { phone: '+989120000000', password: 'strong-pass' },
+        { ip: '203.0.113.10', userAgent: 'jest-agent', requestId: 'request-1' },
+      );
+
+      expect(otpChallengeRepository.createChallenge).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ip: '203.0.113.10',
+          userAgent: 'jest-agent',
+          requestId: 'request-1',
+        }),
+      );
     });
 
     it('rejects passwords below the configured minimum length', async () => {
@@ -496,11 +558,13 @@ describe('AuthService', () => {
         hashToken('current-refresh-token'),
         expect.any(Date),
       );
-      expect(sessionRepository.updateRefreshTokenHash).toHaveBeenCalledWith(
-        'session-1',
-        'hashed-refresh-token',
-        'access-jti-1',
-      );
+      expect(sessionRepository.rotateRefreshTokenAtomically).toHaveBeenCalledWith({
+        sessionId: 'session-1',
+        currentRefreshTokenHash: hashToken('current-refresh-token'),
+        nextRefreshTokenHash: 'hashed-refresh-token',
+        nextAccessTokenJti: 'access-jti-1',
+        now: expect.any(Date),
+      });
       expect(accessTokenService.issueAccessToken).toHaveBeenCalledWith({
         sub: 'user-1',
         jti: 'access-jti-1',
@@ -527,7 +591,7 @@ describe('AuthService', () => {
       );
     });
 
-    it('updates session lastUsedAt', async () => {
+    it('updates session lastUsedAt atomically during rotation', async () => {
       const { service, sessionRepository, userRepository } = await createService();
       sessionRepository.findActiveByRefreshTokenHash.mockResolvedValue(
         createActiveSession() as never,
@@ -536,7 +600,12 @@ describe('AuthService', () => {
 
       await service.refresh({ refreshToken: 'current-refresh-token' });
 
-      expect(sessionRepository.touchLastUsedAt).toHaveBeenCalledWith('session-1', expect.any(Date));
+      expect(sessionRepository.rotateRefreshTokenAtomically).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sessionId: 'session-1',
+          now: expect.any(Date),
+        }),
+      );
     });
 
     it.each([{ expiresAt: new Date(Date.now() - 1_000) }, { revokedAt: new Date() }])(
@@ -551,6 +620,19 @@ describe('AuthService', () => {
         expect(overrides).toBeDefined();
       },
     );
+
+    it('rejects stale refresh rotation when atomic update fails', async () => {
+      const { service, sessionRepository, userRepository } = await createService();
+      sessionRepository.findActiveByRefreshTokenHash.mockResolvedValue(
+        createActiveSession() as never,
+      );
+      sessionRepository.rotateRefreshTokenAtomically.mockResolvedValue(null);
+      userRepository.findById.mockResolvedValue((await createActiveUser()) as never);
+
+      await expect(service.refresh({ refreshToken: 'current-refresh-token' })).rejects.toThrow(
+        'Invalid refresh token.',
+      );
+    });
 
     it('rejects missing sessions safely', async () => {
       const { service, sessionRepository } = await createService();

@@ -26,3 +26,11 @@ export interface SessionState {
   readonly expiresAt: Date;
   readonly revokedAt?: Date | null;
 }
+
+export interface RotateRefreshTokenInput {
+  readonly sessionId: SessionObjectId;
+  readonly currentRefreshTokenHash: string;
+  readonly nextRefreshTokenHash: string;
+  readonly nextAccessTokenJti: string;
+  readonly now: Date;
+}

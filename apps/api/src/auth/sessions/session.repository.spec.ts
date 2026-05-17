@@ -100,6 +100,36 @@ describe('SessionRepository', () => {
     );
   });
 
+  it('rotates refresh token atomically only when the current hash still matches', async () => {
+    const { findOneAndUpdate, repository } = createRepository();
+    const now = new Date('2026-01-01T00:03:00.000Z');
+
+    await repository.rotateRefreshTokenAtomically({
+      sessionId: 'session-id',
+      currentRefreshTokenHash: 'current-hash',
+      nextRefreshTokenHash: 'next-hash',
+      nextAccessTokenJti: 'next-jti',
+      now,
+    });
+
+    expect(findOneAndUpdate).toHaveBeenCalledWith(
+      {
+        _id: 'session-id',
+        refreshTokenHash: 'current-hash',
+        revokedAt: { $exists: false },
+        expiresAt: { $gt: now },
+      },
+      {
+        $set: {
+          refreshTokenHash: 'next-hash',
+          accessTokenJti: 'next-jti',
+          lastUsedAt: now,
+        },
+      },
+      { new: true },
+    );
+  });
+
   it('touches lastUsedAt during refresh rotation', async () => {
     const { findByIdAndUpdate, repository } = createRepository();
     const lastUsedAt = new Date('2026-01-01T00:02:00.000Z');

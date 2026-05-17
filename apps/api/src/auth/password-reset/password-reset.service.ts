@@ -61,6 +61,17 @@ export class PasswordResetService {
       return createGenericAuthResponse(FORGOT_PASSWORD_GENERIC_MESSAGE);
     }
 
+    const otpRequestAllowed = await this.isOtpRequestAllowed(
+      phoneNormalized,
+      PASSWORD_RESET_PURPOSE,
+      metadata,
+      now,
+    );
+
+    if (!otpRequestAllowed) {
+      return createGenericAuthResponse(FORGOT_PASSWORD_GENERIC_MESSAGE);
+    }
+
     const latestChallenge = await this.otpChallengeRepository.findLatestActiveByPhoneAndPurpose(
       phoneNormalized,
       PASSWORD_RESET_PURPOSE,
@@ -210,6 +221,38 @@ export class PasswordResetService {
     }
 
     return { sub, purpose: PASSWORD_RESET_PURPOSE, jti, exp };
+  }
+
+  private async isOtpRequestAllowed(
+    phoneNormalized: string,
+    purpose: typeof PASSWORD_RESET_PURPOSE,
+    metadata: PasswordResetRequestMetadata,
+    now: Date,
+  ): Promise<boolean> {
+    const since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const phoneCount = await this.otpChallengeRepository.countRecentChallengesByPhone(
+      phoneNormalized,
+      purpose,
+      since,
+    );
+
+    if (phoneCount >= this.authConfig.otpDailyPhoneLimit) {
+      return false;
+    }
+
+    if (metadata.ip !== undefined) {
+      const ipCount = await this.otpChallengeRepository.countRecentChallengesByIp(
+        metadata.ip,
+        purpose,
+        since,
+      );
+
+      if (ipCount >= this.authConfig.otpIpLimit) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   private isEligibleForPasswordReset(user: UserStatusState, now: Date): boolean {

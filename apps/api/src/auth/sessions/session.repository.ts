@@ -2,7 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Session, type SessionDocument } from './session.schema';
-import type { CreateSessionInput, SessionObjectId, SessionRevocationReason } from './session.types';
+import type {
+  CreateSessionInput,
+  RotateRefreshTokenInput,
+  SessionObjectId,
+  SessionRevocationReason,
+} from './session.types';
 
 @Injectable()
 export class SessionRepository {
@@ -84,6 +89,27 @@ export class SessionRepository {
 
     return this.sessionModel
       .findByIdAndUpdate(sessionId, { $set: updatedFields }, { new: true })
+      .exec();
+  }
+
+  rotateRefreshTokenAtomically(input: RotateRefreshTokenInput): Promise<SessionDocument | null> {
+    return this.sessionModel
+      .findOneAndUpdate(
+        {
+          _id: input.sessionId,
+          refreshTokenHash: input.currentRefreshTokenHash,
+          revokedAt: { $exists: false },
+          expiresAt: { $gt: input.now },
+        },
+        {
+          $set: {
+            refreshTokenHash: input.nextRefreshTokenHash,
+            accessTokenJti: input.nextAccessTokenJti,
+            lastUsedAt: input.now,
+          },
+        },
+        { new: true },
+      )
       .exec();
   }
 

@@ -18,18 +18,23 @@ describe('OTP code utilities', () => {
     expect(() => generateOtpCode(11)).toThrow('between 4 and 10');
   });
 
-  it('hashes OTP code without returning the raw code', () => {
+  it('hashes OTP code without returning the raw code', async () => {
     const code = '123456';
-    const codeHash = hashOtpCode(code);
+    const codeHash = await hashOtpCode(code);
 
     expect(codeHash).not.toBe(code);
+    expect(codeHash).toContain('argon2id');
   });
 
-  it('verifies correct and wrong OTP codes safely', () => {
-    const codeHash = hashOtpCode('123456');
+  it('verifies correct and wrong OTP codes safely', async () => {
+    const codeHash = await hashOtpCode('123456');
 
-    expect(verifyOtpCode('123456', codeHash)).toBe(true);
-    expect(verifyOtpCode('654321', codeHash)).toBe(false);
-    expect(verifyOtpCode('not-code', codeHash)).toBe(false);
+    await expect(verifyOtpCode('123456', codeHash)).resolves.toBe(true);
+    await expect(verifyOtpCode('654321', codeHash)).resolves.toBe(false);
+    await expect(verifyOtpCode('not-code', codeHash)).resolves.toBe(false);
+  });
+
+  it('rejects invalid OTP hashes safely', async () => {
+    await expect(verifyOtpCode('123456', 'not-an-argon2-hash')).resolves.toBe(false);
   });
 });

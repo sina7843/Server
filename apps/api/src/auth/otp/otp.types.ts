@@ -1,5 +1,5 @@
-import type { Types } from "mongoose";
-import type { OtpPurpose } from "./otp-purpose";
+import type { Types } from 'mongoose';
+import type { OtpPurpose } from './otp-purpose';
 
 export interface CreateOtpChallengeInput {
   phoneNormalized: string;

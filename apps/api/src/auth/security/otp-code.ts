@@ -1,5 +1,5 @@
 import { randomInt } from 'node:crypto';
-import { hashToken, safeCompareHash } from './token-hasher';
+import * as argon2 from 'argon2';
 
 const OTP_CODE_PATTERN = /^\d+$/;
 
@@ -17,18 +17,24 @@ export function generateOtpCode(length = 6): string {
   return code;
 }
 
-export function hashOtpCode(code: string): string {
+export async function hashOtpCode(code: string): Promise<string> {
   assertOtpCode(code);
 
-  return hashToken(code);
+  return argon2.hash(code, {
+    type: argon2.argon2id,
+  });
 }
 
-export function verifyOtpCode(code: string, codeHash: string): boolean {
+export async function verifyOtpCode(code: string, codeHash: string): Promise<boolean> {
   if (!OTP_CODE_PATTERN.test(code)) {
     return false;
   }
 
-  return safeCompareHash(code, codeHash);
+  try {
+    return await argon2.verify(codeHash, code);
+  } catch {
+    return false;
+  }
 }
 
 function assertOtpCode(code: string): void {

@@ -1,14 +1,11 @@
-import type { Model } from "mongoose";
-import {
-  OtpChallengeSchema,
-  type OtpChallengeDocument,
-} from "./otp-challenge.schema";
-import { OtpChallengeRepository } from "./otp.repository";
+import type { Model } from 'mongoose';
+import { OtpChallengeSchema, type OtpChallengeDocument } from './otp-challenge.schema';
+import { OtpChallengeRepository } from './otp.repository';
 
-const phoneNormalized = "+989120000000";
-const purpose = "phone_verification" as const;
+const phoneNormalized = '+989120000000';
+const purpose = 'phone_verification' as const;
 
-describe("OtpChallengeRepository", () => {
+describe('OtpChallengeRepository', () => {
   function createRepository() {
     const exec = jest.fn().mockResolvedValue(null);
     const sort = jest.fn().mockReturnValue({ exec });
@@ -34,14 +31,14 @@ describe("OtpChallengeRepository", () => {
     };
   }
 
-  it("creates challenges with a code hash and without a raw OTP code field", async () => {
+  it('creates challenges with a code hash and without a raw OTP code field', async () => {
     const { create, repository } = createRepository();
-    const expiresAt = new Date("2026-01-01T00:05:00.000Z");
+    const expiresAt = new Date('2026-01-01T00:05:00.000Z');
 
     await repository.createChallenge({
       phoneNormalized,
       purpose,
-      codeHash: "hashed-otp-placeholder",
+      codeHash: 'hashed-otp-placeholder',
       expiresAt,
       maxAttempts: 5,
     });
@@ -49,7 +46,7 @@ describe("OtpChallengeRepository", () => {
     expect(create).toHaveBeenCalledWith({
       phoneNormalized,
       purpose,
-      codeHash: "hashed-otp-placeholder",
+      codeHash: 'hashed-otp-placeholder',
       expiresAt,
       attempts: 0,
       maxAttempts: 5,
@@ -59,20 +56,14 @@ describe("OtpChallengeRepository", () => {
       userAgent: undefined,
       requestId: undefined,
     });
-    expect(create).not.toHaveBeenCalledWith(
-      expect.objectContaining({ code: expect.anything() }),
-    );
+    expect(create).not.toHaveBeenCalledWith(expect.objectContaining({ code: expect.anything() }));
   });
 
-  it("latest-active lookup filters by phoneNormalized and purpose", async () => {
+  it('latest-active lookup filters by phoneNormalized and purpose', async () => {
     const { findOne, repository, sort } = createRepository();
-    const now = new Date("2026-01-01T00:00:00.000Z");
+    const now = new Date('2026-01-01T00:00:00.000Z');
 
-    await repository.findLatestActiveByPhoneAndPurpose(
-      phoneNormalized,
-      purpose,
-      now,
-    );
+    await repository.findLatestActiveByPhoneAndPurpose(phoneNormalized, purpose, now);
 
     expect(findOne).toHaveBeenCalledWith({
       phoneNormalized,
@@ -83,15 +74,11 @@ describe("OtpChallengeRepository", () => {
     expect(sort).toHaveBeenCalledWith({ createdAt: -1 });
   });
 
-  it("latest-active lookup excludes consumed and expired challenges", async () => {
+  it('latest-active lookup excludes consumed and expired challenges', async () => {
     const { findOne, repository } = createRepository();
-    const now = new Date("2026-01-01T00:00:00.000Z");
+    const now = new Date('2026-01-01T00:00:00.000Z');
 
-    await repository.findLatestActiveByPhoneAndPurpose(
-      phoneNormalized,
-      purpose,
-      now,
-    );
+    await repository.findLatestActiveByPhoneAndPurpose(phoneNormalized, purpose, now);
 
     expect(findOne).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -101,39 +88,39 @@ describe("OtpChallengeRepository", () => {
     );
   });
 
-  it("increments attempts through an atomic update", async () => {
+  it('increments attempts through an atomic update', async () => {
     const { findByIdAndUpdate, repository } = createRepository();
 
-    await repository.incrementAttempts("challenge-id");
+    await repository.incrementAttempts('challenge-id');
 
     expect(findByIdAndUpdate).toHaveBeenCalledWith(
-      "challenge-id",
+      'challenge-id',
       { $inc: { attempts: 1 } },
       { new: true },
     );
   });
 
-  it("marks challenges as verified and consumed without token generation", async () => {
+  it('marks challenges as verified and consumed without token generation', async () => {
     const { findByIdAndUpdate, repository } = createRepository();
-    const verifiedAt = new Date("2026-01-01T00:01:00.000Z");
-    const consumedAt = new Date("2026-01-01T00:02:00.000Z");
+    const verifiedAt = new Date('2026-01-01T00:01:00.000Z');
+    const consumedAt = new Date('2026-01-01T00:02:00.000Z');
 
-    await repository.markVerified("challenge-id", verifiedAt);
-    await repository.markConsumed("challenge-id", consumedAt);
+    await repository.markVerified('challenge-id', verifiedAt);
+    await repository.markConsumed('challenge-id', consumedAt);
 
     expect(findByIdAndUpdate).toHaveBeenCalledWith(
-      "challenge-id",
+      'challenge-id',
       { $set: { verifiedAt } },
       { new: true },
     );
     expect(findByIdAndUpdate).toHaveBeenCalledWith(
-      "challenge-id",
+      'challenge-id',
       { $set: { consumedAt } },
       { new: true },
     );
   });
 
-  it("declares required schema indexes including expiresAt TTL", () => {
+  it('declares required schema indexes including expiresAt TTL', () => {
     const indexes = OtpChallengeSchema.indexes();
 
     expect(indexes).toEqual(

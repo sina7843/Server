@@ -65,12 +65,12 @@ export class SmsService {
   private async sendThroughProvider(input: SendAuthSmsInput): Promise<SendSmsResult> {
     try {
       return await this.smsProvider.sendSms(input);
-    } catch (error) {
+    } catch {
       return {
         provider: 'unknown',
         status: 'failed',
         errorCode: 'sms_provider_error',
-        errorMessage: error instanceof Error ? error.message : 'SMS provider failed.',
+        errorMessage: 'SMS provider failed.',
       };
     }
   }

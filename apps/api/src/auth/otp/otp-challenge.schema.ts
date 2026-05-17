@@ -1,8 +1,8 @@
-import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { HydratedDocument, Types } from "mongoose";
-import { OTP_PURPOSES, type OtpPurpose } from "./otp-purpose";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument, Types } from 'mongoose';
+import { OTP_PURPOSES, type OtpPurpose } from './otp-purpose';
 
-@Schema({ collection: "otp_challenges", timestamps: true })
+@Schema({ collection: 'otp_challenges', timestamps: true })
 export class OtpChallenge {
   declare _id: Types.ObjectId;
 

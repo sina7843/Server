@@ -1,12 +1,9 @@
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
-import {
-  OtpChallenge,
-  type OtpChallengeDocument,
-} from "./otp-challenge.schema";
-import type { OtpPurpose } from "./otp-purpose";
-import type { CreateOtpChallengeInput, OtpChallengeId } from "./otp.types";
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { OtpChallenge, type OtpChallengeDocument } from './otp-challenge.schema';
+import type { OtpPurpose } from './otp-purpose';
+import type { CreateOtpChallengeInput, OtpChallengeId } from './otp.types';
 
 @Injectable()
 export class OtpChallengeRepository {
@@ -15,9 +12,7 @@ export class OtpChallengeRepository {
     private readonly otpChallengeModel: Model<OtpChallengeDocument>,
   ) {}
 
-  async createChallenge(
-    input: CreateOtpChallengeInput,
-  ): Promise<OtpChallengeDocument> {
+  async createChallenge(input: CreateOtpChallengeInput): Promise<OtpChallengeDocument> {
     const created = await this.otpChallengeModel.create({
       phoneNormalized: input.phoneNormalized,
       purpose: input.purpose,
@@ -51,9 +46,7 @@ export class OtpChallengeRepository {
       .exec();
   }
 
-  incrementAttempts(
-    challengeId: OtpChallengeId,
-  ): Promise<OtpChallengeDocument | null> {
+  incrementAttempts(challengeId: OtpChallengeId): Promise<OtpChallengeDocument | null> {
     return this.otpChallengeModel
       .findByIdAndUpdate(challengeId, { $inc: { attempts: 1 } }, { new: true })
       .exec();
@@ -77,15 +70,9 @@ export class OtpChallengeRepository {
       .exec();
   }
 
-  incrementResendCount(
-    challengeId: OtpChallengeId,
-  ): Promise<OtpChallengeDocument | null> {
+  incrementResendCount(challengeId: OtpChallengeId): Promise<OtpChallengeDocument | null> {
     return this.otpChallengeModel
-      .findByIdAndUpdate(
-        challengeId,
-        { $inc: { resendCount: 1 } },
-        { new: true },
-      )
+      .findByIdAndUpdate(challengeId, { $inc: { resendCount: 1 } }, { new: true })
       .exec();
   }
 

@@ -60,7 +60,6 @@ describe('SmsService', () => {
       providerMessageId: 'mock-message-1',
       purpose: 'phone_verification',
       requestId: 'request-1',
-      correlationId: undefined,
     });
     expect(notificationLogService.logSmsSent).not.toHaveBeenCalledWith(
       expect.objectContaining({ message: expect.anything() }),
@@ -90,6 +89,39 @@ describe('SmsService', () => {
         recipientPhoneNormalized: '+989120000000',
         errorCode: 'mock_failed',
         errorMessage: 'Mock failure.',
+      }),
+    );
+  });
+
+  it('sanitizes provider exception messages before logging failures', async () => {
+    const provider: SmsProvider = {
+      sendSms: jest.fn().mockRejectedValue(new Error('raw provider secret: OTP 123456')),
+    };
+    const notificationLogService = createNotificationLogService();
+    const service = new SmsService(provider, notificationLogService);
+
+    const result = await service.sendSms({
+      recipientPhoneNormalized: '+989120000000',
+      message: 'Your code is 123456',
+    });
+
+    expect(result).toEqual({
+      provider: 'unknown',
+      status: 'failed',
+      errorCode: 'sms_provider_error',
+      errorMessage: 'SMS provider failed.',
+    });
+    expect(notificationLogService.logSmsFailed).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: 'unknown',
+        recipientPhoneNormalized: '+989120000000',
+        errorCode: 'sms_provider_error',
+        errorMessage: 'SMS provider failed.',
+      }),
+    );
+    expect(notificationLogService.logSmsFailed).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        errorMessage: expect.stringContaining('raw provider secret'),
       }),
     );
   });

@@ -9,12 +9,14 @@ describe('UserRepository', () => {
     const findOne = jest.fn().mockReturnValue({ exec });
     const findById = jest.fn().mockReturnValue({ exec });
     const findByIdAndUpdate = jest.fn().mockReturnValue({ exec });
+    const updateMany = jest.fn().mockReturnValue({ exec });
     const create = jest.fn().mockResolvedValue({});
     const model = {
       create,
       findOne,
       findById,
       findByIdAndUpdate,
+      updateMany,
     } as unknown as Model<UserDocument>;
 
     return {
@@ -24,6 +26,7 @@ describe('UserRepository', () => {
       findByIdAndUpdate,
       findOne,
       repository: new UserRepository(model),
+      updateMany,
     };
   }
 
@@ -86,6 +89,30 @@ describe('UserRepository', () => {
       status: 'pending_verification',
       failedLoginCount: 0,
     });
+  });
+
+  it('soft-deletes expired pending unverified users only', async () => {
+    const { repository, updateMany } = createRepository();
+    const cutoff = new Date('2026-01-01T00:00:00.000Z');
+    const deletedAt = new Date('2026-01-02T00:00:00.000Z');
+
+    await repository.markExpiredPendingUsersDeleted(cutoff, deletedAt);
+
+    expect(updateMany).toHaveBeenCalledWith(
+      {
+        status: 'pending_verification',
+        phoneVerifiedAt: { $exists: false },
+        deletedAt: { $exists: false },
+        createdAt: { $lt: cutoff },
+      },
+      {
+        $set: {
+          status: 'deleted',
+          deletedAt,
+          statusReason: 'pending_verification_expired',
+        },
+      },
+    );
   });
 
   it('declares required schema indexes', () => {

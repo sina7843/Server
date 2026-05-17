@@ -57,3 +57,7 @@ apps/api/.env.example
 ## Password reset token example
 
 `AUTH_PASSWORD_RESET_TOKEN_TTL_SECONDS=600` is a local example for short-lived password reset tokens in Slice 0.2. Do not commit production secrets.
+
+## Auth cleanup foundation
+
+Slice 0.2 includes a callable Auth cleanup foundation registered inside the API Auth module. It uses code-level defaults for the pending-user cleanup threshold unless an explicit caller option is provided. No cleanup scheduler, cron, Redis queue, BullMQ processor, or public cleanup endpoint is configured by environment variables in this slice.

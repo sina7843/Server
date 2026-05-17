@@ -78,9 +78,9 @@
 - [ ] Active users are not cleaned by pending-user cleanup.
 - [ ] Expired sessions are marked revoked with reason `expired`.
 - [ ] Active sessions are not revoked by cleanup.
-- [ ] OTP cleanup is TTL-aware and does not expose `codeHash`.
+- [ ] OTP cleanup is TTL-aware, marks expired unconsumed challenges consumed, and does not expose `codeHash`.
 - [ ] No Redis or BullMQ is introduced in Slice 0.2 cleanup.
-- [ ] No cron or production scheduler is introduced in Slice 0.2 cleanup.
+- [ ] No cron, production scheduler, public cleanup endpoint, or worker loop is introduced in Slice 0.2 cleanup.
 
 ## Test coverage
 

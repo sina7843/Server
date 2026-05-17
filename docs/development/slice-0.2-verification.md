@@ -164,7 +164,7 @@ DELETE /api/v1/auth/sessions/:sessionId
 
 ## 11. Cleanup verification
 
-- [ ] Cleanup service exists.
+- [ ] `AuthCleanupService` exists and is registered in `AuthModule`.
 - [ ] Pending unverified users older than threshold are marked deleted.
 - [ ] New pending users are not cleaned.
 - [ ] Pending users with `phoneVerifiedAt` are not cleaned.
@@ -172,6 +172,7 @@ DELETE /api/v1/auth/sessions/:sessionId
 - [ ] Expired sessions are marked revoked with reason `expired`.
 - [ ] Active sessions are not revoked by cleanup.
 - [ ] Already revoked sessions are not modified.
+- [ ] OTP cleanup is TTL-aware and does not expose `codeHash`.
 - [ ] Cleanup result returns counts only.
 - [ ] No public cleanup endpoint exists.
 - [ ] No scheduler, cron, BullMQ, Redis, or worker loop exists.

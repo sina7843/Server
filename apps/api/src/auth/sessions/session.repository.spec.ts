@@ -173,6 +173,26 @@ describe('SessionRepository', () => {
     );
   });
 
+  it('marks expired unrevoked sessions as revoked with expired reason', async () => {
+    const { repository, updateMany } = createRepository();
+    const revokedAt = new Date('2026-01-01T00:30:00.000Z');
+
+    await repository.markExpiredSessionsRevoked(revokedAt);
+
+    expect(updateMany).toHaveBeenCalledWith(
+      {
+        expiresAt: { $lte: revokedAt },
+        revokedAt: { $exists: false },
+      },
+      {
+        $set: {
+          revokedAt,
+          revokedReason: 'expired',
+        },
+      },
+    );
+  });
+
   it('declares required schema indexes', () => {
     const indexes = SessionSchema.indexes();
 

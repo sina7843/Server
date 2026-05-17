@@ -182,4 +182,23 @@ export class SessionRepository {
       )
       .exec();
   }
+
+  async markExpiredSessionsRevoked(revokedAt = new Date()): Promise<number> {
+    const result = await this.sessionModel
+      .updateMany(
+        {
+          expiresAt: { $lte: revokedAt },
+          revokedAt: { $exists: false },
+        },
+        {
+          $set: {
+            revokedAt,
+            revokedReason: 'expired',
+          },
+        },
+      )
+      .exec();
+
+    return result?.modifiedCount ?? 0;
+  }
 }

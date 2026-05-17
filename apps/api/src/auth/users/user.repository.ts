@@ -150,6 +150,28 @@ export class UserRepository {
       .exec();
   }
 
+  async markExpiredPendingUsersDeleted(cutoff: Date, deletedAt = new Date()): Promise<number> {
+    const result = await this.userModel
+      .updateMany(
+        {
+          status: 'pending_verification',
+          phoneVerifiedAt: { $exists: false },
+          deletedAt: { $exists: false },
+          createdAt: { $lt: cutoff },
+        },
+        {
+          $set: {
+            status: 'deleted',
+            deletedAt,
+            statusReason: 'pending_verification_expired',
+          },
+        },
+      )
+      .exec();
+
+    return result?.modifiedCount ?? 0;
+  }
+
   softDelete(
     userId: Types.ObjectId | string,
     deletedAt = new Date(),

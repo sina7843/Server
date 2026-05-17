@@ -115,4 +115,20 @@ export class OtpChallengeRepository {
       .sort({ createdAt: -1 })
       .exec();
   }
+
+  async markExpiredUnconsumedChallengesConsumed(consumedAt = new Date()): Promise<number> {
+    const result = await this.otpChallengeModel
+      .updateMany(
+        {
+          expiresAt: { $lte: consumedAt },
+          consumedAt: { $exists: false },
+        },
+        {
+          $set: { consumedAt },
+        },
+      )
+      .exec();
+
+    return result?.modifiedCount ?? 0;
+  }
 }

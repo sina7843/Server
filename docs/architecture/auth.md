@@ -86,11 +86,11 @@ Session list/revoke is user-owned session management only. There is no admin ses
 
 Slice 0.2 includes a callable cleanup foundation for:
 
-- pending unverified users older than the configured threshold
-- expired OTP challenge safety handling
-- expired session revocation
+- pending unverified users older than the default or caller-provided threshold
+- expired unconsumed OTP challenges are marked consumed while the TTL index remains responsible for eventual removal
+- expired unrevoked sessions are marked revoked with reason `expired`
 
-The cleanup foundation has no public endpoint, scheduler, cron, BullMQ queue, Redis queue, worker loop, monitoring stack, or production automation in this slice.
+The cleanup foundation is registered in `AuthModule` and exposes a callable `runAuthCleanup` method. It has no public endpoint, scheduler, cron, BullMQ queue, Redis queue, worker loop, monitoring stack, or production automation in this slice.
 
 ## Security boundaries
 

@@ -13,11 +13,13 @@ describe('OtpChallengeRepository', () => {
     const find = jest.fn().mockReturnValue({ sort });
     const findOne = jest.fn().mockReturnValue({ sort });
     const findByIdAndUpdate = jest.fn().mockReturnValue({ exec });
+    const updateMany = jest.fn().mockReturnValue({ exec });
     const model = {
       create,
       find,
       findOne,
       findByIdAndUpdate,
+      updateMany,
     } as unknown as Model<OtpChallengeDocument>;
 
     return {
@@ -28,6 +30,7 @@ describe('OtpChallengeRepository', () => {
       findOne,
       repository: new OtpChallengeRepository(model),
       sort,
+      updateMany,
     };
   }
 
@@ -117,6 +120,26 @@ describe('OtpChallengeRepository', () => {
       'challenge-id',
       { $set: { consumedAt } },
       { new: true },
+    );
+  });
+
+  it('marks only expired unconsumed OTP challenges as consumed during cleanup', async () => {
+    const { repository, updateMany } = createRepository();
+    const consumedAt = new Date('2026-01-01T00:10:00.000Z');
+
+    await repository.markExpiredUnconsumedChallengesConsumed(consumedAt);
+
+    expect(updateMany).toHaveBeenCalledWith(
+      {
+        expiresAt: { $lte: consumedAt },
+        consumedAt: { $exists: false },
+      },
+      {
+        $set: { consumedAt },
+      },
+    );
+    expect(updateMany).not.toHaveBeenCalledWith(
+      expect.objectContaining({ codeHash: expect.anything() }),
     );
   });
 

@@ -12,6 +12,10 @@ export class UserRepository {
     return this.userModel.findOne({ phoneNormalized }).exec();
   }
 
+  findById(userId: Types.ObjectId | string): Promise<UserDocument | null> {
+    return this.userModel.findById(userId).exec();
+  }
+
   findNonDeletedByPhoneNormalized(phoneNormalized: string): Promise<UserDocument | null> {
     return this.userModel
       .findOne({

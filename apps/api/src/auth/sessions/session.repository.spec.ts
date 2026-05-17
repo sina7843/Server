@@ -64,6 +64,36 @@ describe('SessionRepository', () => {
     });
   });
 
+  it('updates refreshTokenHash and accessTokenJti during rotation', async () => {
+    const { findByIdAndUpdate, repository } = createRepository();
+
+    await repository.updateRefreshTokenHash('session-id', 'new-hashed-refresh-token', 'new-jti');
+
+    expect(findByIdAndUpdate).toHaveBeenCalledWith(
+      'session-id',
+      {
+        $set: {
+          refreshTokenHash: 'new-hashed-refresh-token',
+          accessTokenJti: 'new-jti',
+        },
+      },
+      { new: true },
+    );
+  });
+
+  it('touches lastUsedAt during refresh rotation', async () => {
+    const { findByIdAndUpdate, repository } = createRepository();
+    const lastUsedAt = new Date('2026-01-01T00:02:00.000Z');
+
+    await repository.touchLastUsedAt('session-id', lastUsedAt);
+
+    expect(findByIdAndUpdate).toHaveBeenCalledWith(
+      'session-id',
+      { $set: { lastUsedAt } },
+      { new: true },
+    );
+  });
+
   it('sets revokedAt and revokedReason when revoking one session', async () => {
     const { findByIdAndUpdate, repository } = createRepository();
     const revokedAt = new Date('2026-01-01T00:01:00.000Z');

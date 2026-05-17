@@ -24,7 +24,9 @@ export class UserService {
   }
 
   canAttemptLogin(user: UserStatusState, now = new Date()): boolean {
-    return this.isActive(user) && !this.isTemporarilyLocked(user, now);
+    return (
+      this.isActive(user) && Boolean(user.phoneVerifiedAt) && !this.isTemporarilyLocked(user, now)
+    );
   }
 
   canCompletePhoneVerification(user: UserStatusState, now = new Date()): boolean {

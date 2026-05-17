@@ -21,7 +21,13 @@ describe('UserService', () => {
       { status: 'deleted' },
     ];
 
-    expect(service.canAttemptLogin({ status: 'active' }, now)).toBe(true);
+    expect(
+      service.canAttemptLogin(
+        { status: 'active', phoneVerifiedAt: new Date('2025-12-31T23:59:00.000Z') },
+        now,
+      ),
+    ).toBe(true);
+    expect(service.canAttemptLogin({ status: 'active' }, now)).toBe(false);
 
     for (const user of rejectedStatuses) {
       expect(service.canAttemptLogin(user, now)).toBe(false);

@@ -7,17 +7,20 @@ describe('UserRepository', () => {
   function createRepository() {
     const exec = jest.fn().mockResolvedValue(null);
     const findOne = jest.fn().mockReturnValue({ exec });
+    const findById = jest.fn().mockReturnValue({ exec });
     const findByIdAndUpdate = jest.fn().mockReturnValue({ exec });
     const create = jest.fn().mockResolvedValue({});
     const model = {
       create,
       findOne,
+      findById,
       findByIdAndUpdate,
     } as unknown as Model<UserDocument>;
 
     return {
       create,
       exec,
+      findById,
       findByIdAndUpdate,
       findOne,
       repository: new UserRepository(model),
@@ -30,6 +33,14 @@ describe('UserRepository', () => {
     await repository.findByPhoneNormalized('+989120000000');
 
     expect(findOne).toHaveBeenCalledWith({ phoneNormalized: '+989120000000' });
+  });
+
+  it('loads users by id for token/session flows', async () => {
+    const { findById, repository } = createRepository();
+
+    await repository.findById('user-id');
+
+    expect(findById).toHaveBeenCalledWith('user-id');
   });
 
   it('excludes deleted users in non-deleted phone lookup', async () => {

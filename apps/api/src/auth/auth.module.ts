@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
 import { MongooseModule } from '@nestjs/mongoose';
+import { AccessTokenGuard } from './guards/access-token.guard';
 import { NotificationLogRepository } from './notifications/notification-log.repository';
 import { NotificationLog, NotificationLogSchema } from './notifications/notification-log.schema';
 import { NotificationLogService } from './notifications/notification-log.service';
@@ -7,6 +10,8 @@ import { OtpChallenge, OtpChallengeSchema } from './otp/otp-challenge.schema';
 import { OtpChallengeRepository } from './otp/otp.repository';
 import { OtpChallengeService } from './otp/otp.service';
 import { SessionRepository } from './sessions/session.repository';
+import { AccessTokenService } from './tokens/access-token.service';
+import { RefreshTokenService } from './tokens/refresh-token.service';
 import { Session, SessionSchema } from './sessions/session.schema';
 import { SessionService } from './sessions/session.service';
 import { MockSmsProvider } from './sms/mock-sms.provider';
@@ -25,7 +30,12 @@ import { UserService } from './users/user.service';
       { name: NotificationLog.name, schema: NotificationLogSchema },
     ]),
   ],
+  controllers: [AuthController],
   providers: [
+    AuthService,
+    AccessTokenGuard,
+    AccessTokenService,
+    RefreshTokenService,
     UserRepository,
     UserService,
     SessionRepository,
@@ -42,6 +52,10 @@ import { UserService } from './users/user.service';
     SmsService,
   ],
   exports: [
+    AuthService,
+    AccessTokenGuard,
+    AccessTokenService,
+    RefreshTokenService,
     UserRepository,
     UserService,
     SessionRepository,

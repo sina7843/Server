@@ -2,6 +2,10 @@
 
 This package contains the framework-agnostic Dragon SDK foundation.
 
-It currently provides only a generic API client wrapper. It must not contain endpoint-specific clients in Slice 0.1.
+Slice 0.1 introduced only a generic API client wrapper. Slice 0.2 may export safe shared Auth request/response types, but it still must not contain endpoint-specific clients.
 
-It must not contain Nuxt/Vue-specific logic. Product API methods will be added only in later slices.
+This package must not contain Nuxt/Vue-specific logic, token storage, endpoint constants, or product API methods. Auth API methods will be added only in later slices when explicitly requested.
+
+Slice 0.2 also exposes type-only auth contracts such as `RefreshRequest` and `TokenResponse`; no refresh client method or token storage is implemented here.
+
+Slice 0.2 also exposes type-only logout response contracts. No logout or logout-all SDK methods are implemented.

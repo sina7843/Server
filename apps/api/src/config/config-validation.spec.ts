@@ -25,20 +25,20 @@ describe('config validation helpers', () => {
   });
 
   it('fails for numeric values outside configured ranges', () => {
-    expect(() =>
-      readPositiveIntegerEnv({ VALUE: '121' }, 'VALUE', { max: 120 }),
-    ).toThrow('VALUE must be less than or equal to 120.');
+    expect(() => readPositiveIntegerEnv({ VALUE: '121' }, 'VALUE', { max: 120 })).toThrow(
+      'VALUE must be less than or equal to 120.',
+    );
   });
 
   it('validates minimum string length without exposing values', () => {
-    expect(() =>
-      readStringWithMinLengthEnv({ SECRET: 'short' }, 'SECRET', 32),
-    ).toThrow('SECRET must be at least 32 characters long.');
+    expect(() => readStringWithMinLengthEnv({ SECRET: 'short' }, 'SECRET', 32)).toThrow(
+      'SECRET must be at least 32 characters long.',
+    );
   });
 
   it('rejects unsupported enum values', () => {
-    expect(() =>
-      readEnumEnv({ SMS_PROVIDER: 'unknown' }, 'SMS_PROVIDER', ['mock']),
-    ).toThrow('SMS_PROVIDER has an unsupported value.');
+    expect(() => readEnumEnv({ SMS_PROVIDER: 'unknown' }, 'SMS_PROVIDER', ['mock'])).toThrow(
+      'SMS_PROVIDER has an unsupported value.',
+    );
   });
 });

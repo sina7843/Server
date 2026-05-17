@@ -7,10 +7,7 @@ export interface PositiveIntegerRule {
   readonly max?: number;
 }
 
-export function readRequiredEnv(
-  env: AuthConfigEnv,
-  key: string,
-): string {
+export function readRequiredEnv(env: AuthConfigEnv, key: string): string {
   const value = env[key]?.trim();
 
   if (!value) {

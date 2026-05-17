@@ -1,24 +1,24 @@
 /* global expect */
 
 const INTERNAL_SENSITIVE_KEYS = [
-  "passwordHash",
-  "refreshTokenHash",
-  "codeHash",
-  "statusReason",
-  "roles",
-  "permissions",
-  "profile",
-  "metadata",
-  "accessTokenJti",
+  'passwordHash',
+  'refreshTokenHash',
+  'codeHash',
+  'statusReason',
+  'roles',
+  'permissions',
+  'profile',
+  'metadata',
+  'accessTokenJti',
 ];
 
 const RAW_SECRET_MARKERS = [
-  "raw-otp-code",
-  "raw-password-value",
-  "raw-access-token",
-  "raw-refresh-token",
-  "raw-reset-token",
-  "token-hash-value",
+  'raw-otp-code',
+  'raw-password-value',
+  'raw-access-token',
+  'raw-refresh-token',
+  'raw-reset-token',
+  'token-hash-value',
 ];
 
 export function expectNoSensitiveAuthFields(value: unknown): void {
@@ -36,8 +36,8 @@ export function expectNoSensitiveAuthFields(value: unknown): void {
 export function expectNoTokenResponse(value: unknown): void {
   const serialized = JSON.stringify(value);
 
-  expect(serialized).not.toContain("accessToken");
-  expect(serialized).not.toContain("refreshToken");
+  expect(serialized).not.toContain('accessToken');
+  expect(serialized).not.toContain('refreshToken');
   expectNoSensitiveAuthFields(value);
 }
 

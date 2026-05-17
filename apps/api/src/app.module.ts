@@ -3,9 +3,10 @@ import { AuthModule } from './auth/auth.module';
 import { AppConfigModule } from './config/app-config.module';
 import { DatabaseModule } from './database/database.module';
 import { HealthController } from './health.controller';
+import { RbacModule } from './rbac/rbac.module';
 
 @Module({
-  imports: [AppConfigModule, DatabaseModule, AuthModule],
+  imports: [AppConfigModule, DatabaseModule, AuthModule, RbacModule],
   controllers: [HealthController],
 })
 export class AppModule {}

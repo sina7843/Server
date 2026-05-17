@@ -1,12 +1,7 @@
 # @dragon/types
 
-This package contains shared Dragon DTO/contract/constants only.
+Shared Dragon contracts and constants.
 
-It must not contain database entities or persistence models.
-It must not contain product feature logic.
-
-Slice 0.1 includes neutral foundation-level exports.
-Slice 0.2 adds only safe Auth foundation contracts such as `UserStatus`, `SessionRevocationReason`, and `OtpPurpose`.
-These contracts are not endpoint DTOs and do not implement Auth, Session, OTP, Profile, RBAC, Admin, Content, or Media behavior.
-
-Slice 0.2 also includes minimal password-reset request/response contracts only. It does not include Profile, Role, Permission, Admin, or full User DTOs.
+Slice 0.3 includes neutral RBAC API contracts and code-owned permission constants.
+It does not include Admin UI contracts, Profile DTOs, Content/Media DTOs, or
+token/session internals.

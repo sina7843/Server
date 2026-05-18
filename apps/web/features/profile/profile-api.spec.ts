@@ -7,8 +7,9 @@ function jsonResponse(body: unknown, status = 200): Response {
     json: async () => body,
   } as Response;
 }
+
 describe('profile API helper', () => {
-  it('fetches public profile by username', async () => {
+  it('uses SDK profile client to fetch public profile by username', async () => {
     const fetcher = jest.fn().mockResolvedValue(
       jsonResponse({
         username: 'dragon',
@@ -22,7 +23,8 @@ describe('profile API helper', () => {
     await api.getPublicProfile('Dragon User');
 
     expect(fetcher).toHaveBeenCalledWith('/api/v1/u/Dragon%20User', {
-      headers: undefined,
+      method: 'GET',
+      headers: {},
     });
   });
 
@@ -46,7 +48,9 @@ describe('profile API helper', () => {
       fetcher: jest.fn().mockResolvedValue(jsonResponse({}, 500)),
     });
 
-    await expect(api.getPublicProfile('dragon')).rejects.toThrow('Profile request failed');
+    await expect(api.getPublicProfile('dragon')).rejects.toThrow(
+      'Request failed with status 500',
+    );
   });
 
   it('sends authenticated profile update payload without token storage', async () => {
@@ -65,8 +69,8 @@ describe('profile API helper', () => {
     expect(fetcher).toHaveBeenCalledWith('/api/v1/me/profile', {
       method: 'PATCH',
       headers: {
-        'content-type': 'application/json',
         authorization: 'Bearer access-token',
+        'content-type': 'application/json',
       },
       body: JSON.stringify({ visibility: 'private' }),
     });

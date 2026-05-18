@@ -1,13 +1,9 @@
+import type { ApiClient } from './client';
 import type {
   MyUserProfileDto,
   PublicProfileResponseDto,
   UpdateMyProfileDto,
 } from './profile-types';
-
-export interface ProfileHttpClient {
-  get<TResponse>(path: string): Promise<TResponse>;
-  patch<TResponse, TBody = unknown>(path: string, body: TBody): Promise<TResponse>;
-}
 
 export interface ProfilesClient {
   getPublicProfile(username: string): Promise<PublicProfileResponseDto>;
@@ -15,18 +11,31 @@ export interface ProfilesClient {
   updateMyProfile(input: UpdateMyProfileDto): Promise<MyUserProfileDto>;
 }
 
-export function createProfilesClient(client: ProfileHttpClient): ProfilesClient {
+export function createProfilesClient(client: ApiClient): ProfilesClient {
   return {
     getPublicProfile(username: string) {
-      return client.get<PublicProfileResponseDto>(`/api/v1/u/${encodeURIComponent(username)}`);
+      return client.request<PublicProfileResponseDto>({
+        method: 'GET',
+        path: `/api/v1/u/${encodeURIComponent(username)}`,
+      });
     },
 
     getMyProfile() {
-      return client.get<MyUserProfileDto>('/api/v1/me/profile');
+      return client.request<MyUserProfileDto>({
+        method: 'GET',
+        path: '/api/v1/me/profile',
+      });
     },
 
     updateMyProfile(input: UpdateMyProfileDto) {
-      return client.patch<MyUserProfileDto, UpdateMyProfileDto>('/api/v1/me/profile', input);
+      return client.request<MyUserProfileDto>({
+        method: 'PATCH',
+        path: '/api/v1/me/profile',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(input),
+      });
     },
   };
 }

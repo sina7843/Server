@@ -2,42 +2,53 @@ import { createProfilesClient } from './profiles';
 
 describe('createProfilesClient', () => {
   it('builds getPublicProfile request', async () => {
-    const get = jest.fn().mockResolvedValue({ state: 'not_found' });
-    const client = createProfilesClient({ get, patch: jest.fn() });
+    const request = jest.fn().mockResolvedValue({ state: 'not_found' });
+    const profiles = createProfilesClient({ request });
 
-    await client.getPublicProfile('Dragon User');
+    await profiles.getPublicProfile('Dragon User');
 
-    expect(get).toHaveBeenCalledWith('/api/v1/u/Dragon%20User');
+    expect(request).toHaveBeenCalledWith({
+      method: 'GET',
+      path: '/api/v1/u/Dragon%20User',
+    });
   });
 
   it('builds getMyProfile request', async () => {
-    const get = jest.fn().mockResolvedValue({
+    const request = jest.fn().mockResolvedValue({
       username: 'dragon',
       displayName: 'Dragon',
       visibility: 'public',
       publicUrl: '/u/dragon',
     });
-    const client = createProfilesClient({ get, patch: jest.fn() });
+    const profiles = createProfilesClient({ request });
 
-    await client.getMyProfile();
+    await profiles.getMyProfile();
 
-    expect(get).toHaveBeenCalledWith('/api/v1/me/profile');
+    expect(request).toHaveBeenCalledWith({
+      method: 'GET',
+      path: '/api/v1/me/profile',
+    });
   });
 
   it('builds updateMyProfile request without token storage', async () => {
-    const patch = jest.fn().mockResolvedValue({
+    const request = jest.fn().mockResolvedValue({
       username: 'dragon',
       displayName: 'Dragon',
       visibility: 'private',
       publicUrl: '/u/dragon',
     });
-    const client = createProfilesClient({ get: jest.fn(), patch });
+    const profiles = createProfilesClient({ request });
 
-    await client.updateMyProfile({ visibility: 'private' });
+    await profiles.updateMyProfile({ visibility: 'private' });
 
-    expect(patch).toHaveBeenCalledWith('/api/v1/me/profile', {
-      visibility: 'private',
+    expect(request).toHaveBeenCalledWith({
+      method: 'PATCH',
+      path: '/api/v1/me/profile',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ visibility: 'private' }),
     });
-    expect(client).not.toHaveProperty('token');
+    expect(profiles).not.toHaveProperty('token');
   });
 });

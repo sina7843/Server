@@ -27,6 +27,17 @@ pnpm format:check
 - [ ] Generated profile username does not use phone/email.
 - [ ] Real profile endpoint tests exist for public profile routes.
 - [ ] Real profile endpoint tests exist for account profile routes.
+- [ ] Invalid avatarMediaId returns 400 and cannot cause a 500.
+
+## Frontend closeout checks
+
+- [ ] apps/web depends on `@dragon/sdk`.
+- [ ] apps/web uses SDK profile methods through one thin helper.
+- [ ] apps/web does not duplicate profile endpoint paths outside SDK.
+- [ ] apps/web lint covers profile TypeScript files.
+- [ ] apps/web test runs profile tests.
+- [ ] `useAuthToken` does not use readable cookie access-token storage.
+- [ ] ProfileEditForm does not expose manual avatarMediaId editing.
 
 ## Routes
 
@@ -70,6 +81,7 @@ pnpm format:check
 
 - [ ] no avatar upload
 - [ ] no media picker
+- [ ] no manual media ID input UX
 - [ ] no follow/feed/wall UI
 - [ ] no customization/cosmetic UI
 - [ ] no Admin profile UI

@@ -1,4 +1,8 @@
-import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { UserProfileService } from './profile.service';
 
 const publicProfile = {
@@ -125,9 +129,21 @@ describe('UserProfileService API methods', () => {
       isUsernameTaken: jest.fn().mockResolvedValue(true),
     } as never);
 
-    await expect(service.updateMyProfile('user-1', { username: 'Dragon' })).rejects.toThrow(
-      ConflictException,
-    );
+    await expect(
+      service.updateMyProfile('user-1', { username: 'Dragon' }),
+    ).rejects.toThrow(ConflictException);
+  });
+
+  it('PATCH my profile rejects invalid avatarMediaId safely instead of causing ObjectId runtime errors', async () => {
+    const service = new UserProfileService({
+      findByUserId: jest.fn().mockResolvedValue(publicProfile),
+      isUsernameTaken: jest.fn().mockResolvedValue(false),
+      updateProfile: jest.fn(),
+    } as never);
+
+    await expect(
+      service.updateMyProfile('user-1', { avatarMediaId: 'not-an-object-id' }),
+    ).rejects.toThrow(BadRequestException);
   });
 
   it('PATCH my profile updates usernameNormalized and publicUrl', async () => {
@@ -160,12 +176,12 @@ describe('UserProfileService API methods', () => {
       findByUserId: jest.fn().mockResolvedValue(publicProfile),
     } as never);
 
-    await expect(service.updateMyProfile('user-1', { username: 'admin' })).rejects.toThrow(
-      BadRequestException,
-    );
-    await expect(service.updateMyProfile('user-1', { username: '../admin' })).rejects.toThrow(
-      BadRequestException,
-    );
+    await expect(
+      service.updateMyProfile('user-1', { username: 'admin' }),
+    ).rejects.toThrow(BadRequestException);
+    await expect(
+      service.updateMyProfile('user-1', { username: '../admin' }),
+    ).rejects.toThrow(BadRequestException);
   });
 
   it('PATCH my profile validates displayName, bio length, and visibility', async () => {
@@ -174,12 +190,12 @@ describe('UserProfileService API methods', () => {
       isUsernameTaken: jest.fn().mockResolvedValue(false),
     } as never);
 
-    await expect(service.updateMyProfile('user-1', { displayName: ' ' })).rejects.toThrow(
-      BadRequestException,
-    );
-    await expect(service.updateMyProfile('user-1', { bio: 'a'.repeat(501) })).rejects.toThrow(
-      BadRequestException,
-    );
+    await expect(
+      service.updateMyProfile('user-1', { displayName: ' ' }),
+    ).rejects.toThrow(BadRequestException);
+    await expect(
+      service.updateMyProfile('user-1', { bio: 'a'.repeat(501) }),
+    ).rejects.toThrow(BadRequestException);
     await expect(
       service.updateMyProfile('user-1', { visibility: 'friends' as never }),
     ).rejects.toThrow(BadRequestException);
@@ -197,8 +213,8 @@ describe('UserProfileService API methods', () => {
       { canUpdateOwnProfile: jest.fn().mockReturnValue(false) } as never,
     );
 
-    await expect(service.updateMyProfile('user-1', { displayName: 'New Name' })).rejects.toThrow(
-      ForbiddenException,
-    );
+    await expect(
+      service.updateMyProfile('user-1', { displayName: 'New Name' }),
+    ).rejects.toThrow(ForbiddenException);
   });
 });

@@ -1,13 +1,19 @@
-import { createProfileApi } from '../features/profile/profile-api';
+import { createApiClient, createProfilesClient } from '@dragon/sdk';
 
 export function useProfile() {
   const runtimeConfig = useRuntimeConfig();
   const { token } = useAuthToken();
 
-  return computed(() =>
-    createProfileApi({
-      baseUrl: runtimeConfig.public?.apiBaseUrl as string | undefined,
-      token: token.value,
-    }),
-  );
+  return computed(() => {
+    const apiClient = createApiClient({
+      baseUrl: (runtimeConfig.public?.apiBaseUrl as string | undefined) ?? '/',
+      headers: token.value
+        ? {
+            authorization: `Bearer ${token.value}`,
+          }
+        : undefined,
+    });
+
+    return createProfilesClient(apiClient);
+  });
 }

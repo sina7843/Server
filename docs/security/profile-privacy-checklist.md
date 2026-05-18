@@ -16,6 +16,26 @@
 - [ ] Lifecycle does not create profiles for pending/suspended/banned/deleted users.
 - [ ] Generated default username does not use phone or email.
 
+## Auth token handling
+
+- [ ] Slice 0.4 does not store access tokens in readable cookies.
+- [ ] `useAuthToken` is memory-only placeholder state.
+- [ ] No login UI or refresh flow is added in this profile slice.
+
+## SDK usage
+
+- [ ] apps/web uses `@dragon/sdk` for profile API calls.
+- [ ] profile API paths are not duplicated in frontend pages.
+- [ ] frontend profile tests are runnable through the web package test script.
+
+## Avatar and media
+
+- [ ] Avatar UI is display/fallback only.
+- [ ] Manual avatarMediaId editing is not exposed.
+- [ ] Backend rejects invalid avatarMediaId with 400.
+- [ ] No upload input exists.
+- [ ] No media picker exists.
+
 ## Auth dependency safety
 
 - [ ] ProfileModule imports AuthModule for `AccessTokenGuard` dependencies.
@@ -34,8 +54,7 @@
 
 - [ ] `/account/profile` requires authentication.
 - [ ] Update payload excludes phone, email, password, tokens, roles, and status.
-- [ ] Avatar media field is reference-only.
-- [ ] No upload input exists.
+- [ ] Avatar media field is reference-only and backend-safe.
 
 ## Out of scope
 

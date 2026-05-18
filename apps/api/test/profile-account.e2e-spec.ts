@@ -15,7 +15,7 @@ import { UserProfileService } from '../src/profiles/profile.service';
 const myProfile = {
   username: 'dragon',
   displayName: 'Dragon',
-  avatarMediaId: 'media-1',
+  avatarMediaId: '64f000000000000000000123',
   bio: 'My bio',
   visibility: 'public',
   publicUrl: '/u/dragon',
@@ -144,6 +144,20 @@ describe('authenticated profile API', () => {
     expect(profileService.updateMyProfile).not.toHaveBeenCalled();
   });
 
+  it('PATCH /api/v1/me/profile rejects invalid avatarMediaId safely with 400', async () => {
+    const response = await fetch(`${await app.getUrl()}/api/v1/me/profile`, {
+      method: 'PATCH',
+      headers: {
+        authorization: 'Bearer test-token',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ avatarMediaId: 'not-an-object-id' }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(profileService.updateMyProfile).not.toHaveBeenCalled();
+  });
+
   it('PATCH /api/v1/me/profile rejects duplicate username case-insensitively', async () => {
     profileService.updateMyProfile.mockRejectedValue(
       new ConflictException('Username is not available.'),
@@ -161,7 +175,7 @@ describe('authenticated profile API', () => {
     expect(response.status).toBe(409);
   });
 
-  it('PATCH /api/v1/me/profile strips sensitive fields through validation', async () => {
+  it('PATCH /api/v1/me/profile rejects sensitive fields through validation', async () => {
     const response = await fetch(`${await app.getUrl()}/api/v1/me/profile`, {
       method: 'PATCH',
       headers: {

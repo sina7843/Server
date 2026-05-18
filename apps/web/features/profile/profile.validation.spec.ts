@@ -35,14 +35,13 @@ describe('profile validation', () => {
     expect(validateVisibility('friends' as never)).toContain('Visibility');
   });
 
-  it('validates full update payload', () => {
+  it('validates full update payload without requiring avatarMediaId', () => {
     expect(
       validateProfileUpdate({
         username: 'dragon',
         displayName: 'Dragon',
         bio: 'Bio',
         visibility: 'public',
-        avatarMediaId: null,
       }),
     ).toEqual({ valid: true, errors: {} });
   });

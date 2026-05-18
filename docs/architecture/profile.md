@@ -17,7 +17,22 @@ Implemented:
   - `/account/security`
 - safe public/private/not-found profile states
 - safe DTO mapping
-- thin SDK/profile API helper
+- SDK-owned profile endpoint methods used by apps/web
+
+Frontend integration:
+
+- apps/web uses `@dragon/sdk` profile methods through a thin Nuxt helper.
+- profile endpoint paths live in `packages/sdk`.
+- Slice 0.4 does not store access tokens in readable cookies.
+- `useAuthToken` is an in-memory placeholder for future Auth UI integration.
+- refresh-token HttpOnly cookie behavior remains an Auth concern and is not implemented in this profile slice.
+
+Avatar and media behavior:
+
+- avatars are display/fallback only in the frontend.
+- manual avatar media ID editing is not exposed.
+- backend validates `avatarMediaId` as a valid ObjectId string or null if supplied.
+- avatar upload, Media Library, and media picker are not implemented.
 
 Runtime integration:
 

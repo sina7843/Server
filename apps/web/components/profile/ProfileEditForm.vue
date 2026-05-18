@@ -27,12 +27,6 @@
       <span v-if="errors.visibility">{{ errors.visibility }}</span>
     </label>
 
-    <label>
-      Avatar media reference
-      <input v-model="avatarMediaIdText" name="avatarMediaId" />
-      <span v-if="errors.avatarMediaId">{{ errors.avatarMediaId }}</span>
-    </label>
-
     <button type="submit" :disabled="submitting">
       {{ submitting ? 'Saving…' : 'Save profile' }}
     </button>
@@ -40,7 +34,10 @@
 </template>
 
 <script setup lang="ts">
-import type { MyUserProfileDto, UpdateMyProfileDto } from '../../features/profile/profile.types';
+import type {
+  MyUserProfileDto,
+  UpdateMyProfileDto,
+} from '../../features/profile/profile.types';
 import { validateProfileUpdate } from '../../features/profile/profile.validation';
 
 const props = defineProps<{
@@ -59,7 +56,6 @@ const form = reactive({
   visibility: props.profile.visibility,
 });
 
-const avatarMediaIdText = ref(props.profile.avatarMediaId ?? '');
 const errors = reactive<Record<string, string>>({});
 
 function submit() {
@@ -72,7 +68,6 @@ function submit() {
     displayName: form.displayName,
     bio: form.bio,
     visibility: form.visibility,
-    avatarMediaId: avatarMediaIdText.value || null,
   };
 
   const result = validateProfileUpdate({
@@ -80,7 +75,6 @@ function submit() {
     displayName: payload.displayName ?? '',
     bio: payload.bio,
     visibility: payload.visibility ?? 'public',
-    avatarMediaId: payload.avatarMediaId,
   });
 
   Object.assign(errors, result.errors);

@@ -9,14 +9,14 @@ describe('validateUpdateMyProfileDto', () => {
         displayName: 'Dragon',
         bio: 'Bio',
         visibility: 'private',
-        avatarMediaId: null,
+        avatarMediaId: '64f000000000000000000123',
       }),
     ).toEqual({
       username: 'dragon',
       displayName: 'Dragon',
       bio: 'Bio',
       visibility: 'private',
-      avatarMediaId: null,
+      avatarMediaId: '64f000000000000000000123',
     });
   });
 
@@ -31,18 +31,28 @@ describe('validateUpdateMyProfileDto', () => {
   });
 
   it('validates visibility enum', () => {
-    expect(() => validateUpdateMyProfileDto({ visibility: 'friends' })).toThrow(
-      BadRequestException,
-    );
+    expect(() =>
+      validateUpdateMyProfileDto({ visibility: 'friends' }),
+    ).toThrow(BadRequestException);
   });
 
-  it('treats avatarMediaId as string reference or null only', () => {
-    expect(validateUpdateMyProfileDto({ avatarMediaId: 'media-id' })).toEqual({
-      avatarMediaId: 'media-id',
+  it('accepts avatarMediaId as valid ObjectId string or null only', () => {
+    expect(
+      validateUpdateMyProfileDto({ avatarMediaId: '64f000000000000000000123' }),
+    ).toEqual({
+      avatarMediaId: '64f000000000000000000123',
     });
     expect(validateUpdateMyProfileDto({ avatarMediaId: null })).toEqual({
       avatarMediaId: null,
     });
-    expect(() => validateUpdateMyProfileDto({ avatarMediaId: 123 })).toThrow(BadRequestException);
+    expect(() => validateUpdateMyProfileDto({ avatarMediaId: 123 })).toThrow(
+      BadRequestException,
+    );
+  });
+
+  it('rejects invalid avatarMediaId safely instead of allowing a runtime ObjectId error', () => {
+    expect(() =>
+      validateUpdateMyProfileDto({ avatarMediaId: 'not-an-object-id' }),
+    ).toThrow(BadRequestException);
   });
 });

@@ -1,7 +1,13 @@
 import { BadRequestException } from '@nestjs/common';
 import { PROFILE_VISIBILITIES, type ProfileVisibility } from '../profile.types';
 
-const ALLOWED_FIELDS = new Set(['username', 'displayName', 'bio', 'visibility', 'avatarMediaId']);
+const ALLOWED_FIELDS = new Set([
+  'username',
+  'displayName',
+  'bio',
+  'visibility',
+  'avatarMediaId',
+]);
 const FORBIDDEN_FIELDS = new Set([
   'userId',
   'usernameNormalized',
@@ -20,6 +26,8 @@ const FORBIDDEN_FIELDS = new Set([
   'passwordHash',
 ]);
 
+const OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
+
 export class UpdateMyProfileDto {
   readonly username?: string;
   readonly displayName?: string;
@@ -28,11 +36,17 @@ export class UpdateMyProfileDto {
   readonly avatarMediaId?: string | null;
 }
 
-export function validateUpdateMyProfileDto(input: Record<string, unknown>): UpdateMyProfileDto {
-  const unknownFields = Object.keys(input).filter((field) => !ALLOWED_FIELDS.has(field));
+export function validateUpdateMyProfileDto(
+  input: Record<string, unknown>,
+): UpdateMyProfileDto {
+  const unknownFields = Object.keys(input).filter(
+    (field) => !ALLOWED_FIELDS.has(field),
+  );
 
   if (unknownFields.length > 0) {
-    const containsInternalField = unknownFields.some((field) => FORBIDDEN_FIELDS.has(field));
+    const containsInternalField = unknownFields.some((field) =>
+      FORBIDDEN_FIELDS.has(field),
+    );
 
     throw new BadRequestException(
       containsInternalField
@@ -87,6 +101,13 @@ export function validateUpdateMyProfileDto(input: Record<string, unknown>): Upda
   if (input.avatarMediaId !== undefined) {
     if (input.avatarMediaId !== null && typeof input.avatarMediaId !== 'string') {
       throw new BadRequestException('avatarMediaId must be a string or null.');
+    }
+
+    if (
+      typeof input.avatarMediaId === 'string' &&
+      !OBJECT_ID_PATTERN.test(input.avatarMediaId)
+    ) {
+      throw new BadRequestException('avatarMediaId must be a valid ObjectId.');
     }
 
     output.avatarMediaId = input.avatarMediaId;

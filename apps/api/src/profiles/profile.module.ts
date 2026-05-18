@@ -1,7 +1,6 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UserRepository } from '../auth/users/user.repository';
-import { User, UserSchema } from '../auth/users/user.schema';
+import { AuthModule } from '../auth/auth.module';
 import { ObjectPolicyService } from '../rbac/policies/object-policy.service';
 import { MeProfileController } from './me-profile.controller';
 import { ProfileController } from './profile.controller';
@@ -13,10 +12,8 @@ import { UserProfileVisibilityService } from './profile-visibility.service';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: UserProfile.name, schema: UserProfileSchema },
-      { name: User.name, schema: UserSchema },
-    ]),
+    forwardRef(() => AuthModule),
+    MongooseModule.forFeature([{ name: UserProfile.name, schema: UserProfileSchema }]),
   ],
   controllers: [ProfileController, MeProfileController],
   providers: [
@@ -24,7 +21,6 @@ import { UserProfileVisibilityService } from './profile-visibility.service';
     UserProfileService,
     UserProfileLifecycleService,
     UserProfileVisibilityService,
-    UserRepository,
     ObjectPolicyService,
   ],
   exports: [

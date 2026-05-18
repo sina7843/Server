@@ -95,9 +95,7 @@ export function validateBio(bio?: string): string | null {
   return null;
 }
 
-export function validateVisibility(
-  visibility: ProfileVisibility,
-): string | null {
+export function validateVisibility(visibility: ProfileVisibility): string | null {
   if (visibility !== 'public' && visibility !== 'private') {
     return 'Visibility must be public or private.';
   }

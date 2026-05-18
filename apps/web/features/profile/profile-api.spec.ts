@@ -46,9 +46,7 @@ describe('profile API helper', () => {
       fetcher: jest.fn().mockResolvedValue(jsonResponse({}, 500)),
     });
 
-    await expect(api.getPublicProfile('dragon')).rejects.toThrow(
-      'Profile request failed',
-    );
+    await expect(api.getPublicProfile('dragon')).rejects.toThrow('Profile request failed');
   });
 
   it('sends authenticated profile update payload without token storage', async () => {

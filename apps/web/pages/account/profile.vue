@@ -27,10 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import type {
-  MyUserProfileDto,
-  UpdateMyProfileDto,
-} from '../../features/profile/profile.types';
+import type { MyUserProfileDto, UpdateMyProfileDto } from '../../features/profile/profile.types';
 
 definePageMeta({
   middleware: 'auth-required',

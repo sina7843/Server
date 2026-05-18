@@ -9,6 +9,19 @@
 - [ ] Suspended users are not public.
 - [ ] Banned/deleted users resolve to safe not-found-like state.
 
+## Lifecycle
+
+- [ ] Successful phone verification ensures a profile for the active verified user.
+- [ ] Lifecycle creation is idempotent.
+- [ ] Lifecycle does not create profiles for pending/suspended/banned/deleted users.
+- [ ] Generated default username does not use phone or email.
+
+## Auth dependency safety
+
+- [ ] ProfileModule imports AuthModule for `AccessTokenGuard` dependencies.
+- [ ] AuthModule imports ProfileModule with `forwardRef`.
+- [ ] No auth bypass exists for profile account routes.
+
 ## SEO and indexing
 
 - [ ] Public active profile can be indexable.

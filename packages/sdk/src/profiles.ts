@@ -6,10 +6,7 @@ import type {
 
 export interface ProfileHttpClient {
   get<TResponse>(path: string): Promise<TResponse>;
-  patch<TResponse, TBody = unknown>(
-    path: string,
-    body: TBody,
-  ): Promise<TResponse>;
+  patch<TResponse, TBody = unknown>(path: string, body: TBody): Promise<TResponse>;
 }
 
 export interface ProfilesClient {
@@ -21,9 +18,7 @@ export interface ProfilesClient {
 export function createProfilesClient(client: ProfileHttpClient): ProfilesClient {
   return {
     getPublicProfile(username: string) {
-      return client.get<PublicProfileResponseDto>(
-        `/api/v1/u/${encodeURIComponent(username)}`,
-      );
+      return client.get<PublicProfileResponseDto>(`/api/v1/u/${encodeURIComponent(username)}`);
     },
 
     getMyProfile() {
@@ -31,10 +26,7 @@ export function createProfilesClient(client: ProfileHttpClient): ProfilesClient 
     },
 
     updateMyProfile(input: UpdateMyProfileDto) {
-      return client.patch<MyUserProfileDto, UpdateMyProfileDto>(
-        '/api/v1/me/profile',
-        input,
-      );
+      return client.patch<MyUserProfileDto, UpdateMyProfileDto>('/api/v1/me/profile', input);
     },
   };
 }

@@ -40,10 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import type {
-  MyUserProfileDto,
-  UpdateMyProfileDto,
-} from '../../features/profile/profile.types';
+import type { MyUserProfileDto, UpdateMyProfileDto } from '../../features/profile/profile.types';
 import { validateProfileUpdate } from '../../features/profile/profile.validation';
 
 const props = defineProps<{

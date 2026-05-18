@@ -1,23 +1,10 @@
 <template>
   <main>
     <ProfileStateMessage v-if="pageState.status === 'loading'" state="loading" />
-    <PublicProfileCard
-      v-else-if="pageState.status === 'public'"
-      :profile="pageState.profile"
-    />
-    <ProfileStateMessage
-      v-else-if="pageState.status === 'private'"
-      state="private"
-    />
-    <ProfileStateMessage
-      v-else-if="pageState.status === 'not_found'"
-      state="not_found"
-    />
-    <ProfileStateMessage
-      v-else
-      state="error"
-      :message="pageState.message"
-    />
+    <PublicProfileCard v-else-if="pageState.status === 'public'" :profile="pageState.profile" />
+    <ProfileStateMessage v-else-if="pageState.status === 'private'" state="private" />
+    <ProfileStateMessage v-else-if="pageState.status === 'not_found'" state="not_found" />
+    <ProfileStateMessage v-else state="error" :message="pageState.message" />
   </main>
 </template>
 

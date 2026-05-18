@@ -2,12 +2,12 @@
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { createAuthTestConfig } from '../../test/helpers/auth-test.factory';
 import {
-  createGenericAuthResponse,
   REGISTER_GENERIC_MESSAGE,
   REVOKE_SESSION_GENERIC_MESSAGE,
   VERIFY_PHONE_GENERIC_MESSAGE,
 } from './dto/auth-response.dto';
 import { AuthService } from './auth.service';
+import { createGenericAuthResponse } from './dto/auth-response.dto';
 import { OtpChallengeRepository } from './otp/otp.repository';
 import { OtpChallengeService } from './otp/otp.service';
 import { hashOtpCode } from './security/otp-code';
@@ -19,6 +19,7 @@ import { AccessTokenService } from './tokens/access-token.service';
 import { RefreshTokenService } from './tokens/refresh-token.service';
 import { UserRepository } from './users/user.repository';
 import { UserService } from './users/user.service';
+import { UserProfileLifecycleService } from '../profiles/profile-lifecycle.service';
 
 const VERIFIED_AT = new Date('2026-01-01T00:00:00.000Z');
 
@@ -81,6 +82,12 @@ describe('AuthService', () => {
         expiresAt: new Date('2026-01-31T00:00:00.000Z'),
       }),
     } as unknown as jest.Mocked<RefreshTokenService>;
+    const profileLifecycleService = {
+      ensureProfileForActiveUser: jest.fn().mockResolvedValue({
+        _id: 'profile-1',
+        userId: 'user-1',
+      }),
+    } as unknown as jest.Mocked<UserProfileLifecycleService>;
     const service = new AuthService(
       userRepository,
       userService,
@@ -91,11 +98,14 @@ describe('AuthService', () => {
       sessionRepository,
       accessTokenService,
       refreshTokenService,
+      undefined,
+      profileLifecycleService,
     );
 
     return {
       accessTokenService,
       otpChallengeRepository,
+      profileLifecycleService,
       refreshTokenService,
       service,
       sessionRepository,
@@ -325,6 +335,21 @@ describe('AuthService', () => {
       expect(otpChallengeRepository.markVerified).toHaveBeenCalledWith('otp-1', expect.any(Date));
       expect(otpChallengeRepository.markConsumed).toHaveBeenCalledWith('otp-1', expect.any(Date));
       expect(userRepository.markPhoneVerified).toHaveBeenCalledWith('user-1', expect.any(Date));
+    });
+
+    it('ensures profile after successful phone verification', async () => {
+      const { service, userRepository, otpChallengeRepository, profileLifecycleService } =
+        await createService();
+      otpChallengeRepository.findLatestActiveByPhoneAndPurpose.mockResolvedValue(
+        (await createChallenge()) as never,
+      );
+      userRepository.findByPhoneNormalized.mockResolvedValue(createPendingUser() as never);
+
+      await service.verifyPhone({ phone: '+989120000000', code: '123456' });
+
+      expect(profileLifecycleService.ensureProfileForActiveUser).toHaveBeenCalledWith({
+        userId: 'user-1',
+      });
     });
 
     it('does not return token or session data after valid OTP', async () => {

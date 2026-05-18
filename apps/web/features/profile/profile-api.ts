@@ -18,9 +18,7 @@ function joinUrl(baseUrl: string | undefined, path: string): string {
   return `${baseUrl.replace(/\/$/, '')}${path}`;
 }
 
-async function parseJsonResponse<TResponse>(
-  response: Response,
-): Promise<TResponse> {
+async function parseJsonResponse<TResponse>(response: Response): Promise<TResponse> {
   if (!response.ok) {
     throw new Error(`Profile request failed with ${response.status}.`);
   }
@@ -33,18 +31,13 @@ export function createProfileApi(options: ProfileApiOptions = {}) {
 
   async function get<TResponse>(path: string): Promise<TResponse> {
     const response = await fetcher(joinUrl(options.baseUrl, path), {
-      headers: options.token
-        ? { authorization: `Bearer ${options.token}` }
-        : undefined,
+      headers: options.token ? { authorization: `Bearer ${options.token}` } : undefined,
     });
 
     return parseJsonResponse<TResponse>(response);
   }
 
-  async function patch<TResponse, TBody = unknown>(
-    path: string,
-    body: TBody,
-  ): Promise<TResponse> {
+  async function patch<TResponse, TBody = unknown>(path: string, body: TBody): Promise<TResponse> {
     const response = await fetcher(joinUrl(options.baseUrl, path), {
       method: 'PATCH',
       headers: {
@@ -59,9 +52,7 @@ export function createProfileApi(options: ProfileApiOptions = {}) {
 
   return {
     getPublicProfile(username: string): Promise<PublicProfileResponseDto> {
-      return get<PublicProfileResponseDto>(
-        `/api/v1/u/${encodeURIComponent(username)}`,
-      );
+      return get<PublicProfileResponseDto>(`/api/v1/u/${encodeURIComponent(username)}`);
     },
 
     getMyProfile(): Promise<MyUserProfileDto> {
@@ -69,10 +60,7 @@ export function createProfileApi(options: ProfileApiOptions = {}) {
     },
 
     updateMyProfile(input: UpdateMyProfileDto): Promise<MyUserProfileDto> {
-      return patch<MyUserProfileDto, UpdateMyProfileDto>(
-        '/api/v1/me/profile',
-        input,
-      );
+      return patch<MyUserProfileDto, UpdateMyProfileDto>('/api/v1/me/profile', input);
     },
   };
 }

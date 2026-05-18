@@ -1,4 +1,10 @@
-import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Optional,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Types } from 'mongoose';
 import { AUTH_CONFIG } from '../config/app-config.module';
 import type { AuthConfig } from '../config/auth.config';
@@ -39,6 +45,7 @@ import { AccessTokenService } from './tokens/access-token.service';
 import { RefreshTokenService } from './tokens/refresh-token.service';
 import { UserRepository } from './users/user.repository';
 import { UserService } from './users/user.service';
+import { UserProfileLifecycleService } from '../profiles/profile-lifecycle.service';
 
 const PHONE_VERIFICATION_PURPOSE: OtpPurpose = 'phone_verification';
 const INVALID_PHONE_VERIFICATION_MESSAGE = 'Phone verification could not be completed.';
@@ -70,6 +77,8 @@ export class AuthService {
     private readonly accessTokenService: AccessTokenService,
     private readonly refreshTokenService: RefreshTokenService,
     private readonly passwordResetService?: PasswordResetService,
+    @Optional()
+    private readonly profileLifecycleService?: UserProfileLifecycleService,
   ) {}
 
   async register(
@@ -128,6 +137,9 @@ export class AuthService {
     await this.otpChallengeRepository.markVerified(challenge._id, now);
     await this.otpChallengeRepository.markConsumed(challenge._id, now);
     await this.userRepository.markPhoneVerified(user._id, now);
+    await this.profileLifecycleService?.ensureProfileForActiveUser({
+      userId: String(user._id),
+    });
 
     return createGenericAuthResponse(VERIFY_PHONE_GENERIC_MESSAGE);
   }

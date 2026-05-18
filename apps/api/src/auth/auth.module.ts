@@ -1,6 +1,5 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
-import { AuthCleanupService } from './cleanup/auth-cleanup.service';
 import { AuthService } from './auth.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AccessTokenGuard } from './guards/access-token.guard';
@@ -22,9 +21,11 @@ import { SmsService } from './sms/sms.service';
 import { UserRepository } from './users/user.repository';
 import { User, UserSchema } from './users/user.schema';
 import { UserService } from './users/user.service';
+import { ProfileModule } from '../profiles/profile.module';
 
 @Module({
   imports: [
+    forwardRef(() => ProfileModule),
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Session.name, schema: SessionSchema },
@@ -35,7 +36,6 @@ import { UserService } from './users/user.service';
   controllers: [AuthController],
   providers: [
     AuthService,
-    AuthCleanupService,
     PasswordResetService,
     AccessTokenGuard,
     AccessTokenService,
@@ -57,7 +57,6 @@ import { UserService } from './users/user.service';
   ],
   exports: [
     AuthService,
-    AuthCleanupService,
     PasswordResetService,
     AccessTokenGuard,
     AccessTokenService,

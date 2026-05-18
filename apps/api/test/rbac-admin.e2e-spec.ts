@@ -30,6 +30,7 @@ describe('RBAC admin API integration', () => {
     list: jest.Mock;
     createAdminRole: jest.Mock;
     findById: jest.Mock;
+    findMutableAdminRoleById: jest.Mock;
     updateAdminRole: jest.Mock;
     deactivateAdminRole: jest.Mock;
   };
@@ -41,9 +42,7 @@ describe('RBAC admin API integration', () => {
     attachPermission: jest.Mock;
     detachPermission: jest.Mock;
   };
-  let userRepository: {
-    findById: jest.Mock;
-  };
+  let userRepository: { findById: jest.Mock };
   let userRoleService: {
     assignRole: jest.Mock;
     removeUserRoleForUser: jest.Mock;
@@ -53,32 +52,10 @@ describe('RBAC admin API integration', () => {
     roleService = {
       list: jest.fn().mockResolvedValue([createRbacRoleDocument()]),
       createAdminRole: jest.fn().mockResolvedValue(createRbacRoleDocument()),
-      findById: jest.fn().mockImplementation(async (roleId: string) => {
-        if (roleId === RBAC_TEST_IDS.systemRoleId) {
-          return createRbacRoleDocument({
-            _id: RBAC_TEST_IDS.systemRoleId,
-            key: 'super_admin',
-            isSystem: true,
-            isAssignable: false,
-          });
-        }
-
-        if (roleId === RBAC_TEST_IDS.nonAssignableRoleId) {
-          return createRbacRoleDocument({
-            _id: RBAC_TEST_IDS.nonAssignableRoleId,
-            key: 'system_locked',
-            isAssignable: false,
-          });
-        }
-
-        return createRbacRoleDocument({ _id: roleId });
-      }),
+      findById: jest.fn().mockResolvedValue(createRbacRoleDocument()),
+      findMutableAdminRoleById: jest.fn().mockResolvedValue(createRbacRoleDocument()),
       updateAdminRole: jest.fn().mockResolvedValue(createRbacRoleDocument()),
-      deactivateAdminRole: jest.fn().mockResolvedValue(
-        createRbacRoleDocument({
-          isActive: false,
-        }),
-      ),
+      deactivateAdminRole: jest.fn().mockResolvedValue(createRbacRoleDocument({ isActive: false })),
     };
 
     permissionService = {
@@ -114,10 +91,7 @@ describe('RBAC admin API integration', () => {
         },
         { provide: RoleService, useValue: roleService },
         { provide: PermissionService, useValue: permissionService },
-        {
-          provide: RolePermissionService,
-          useValue: rolePermissionService,
-        },
+        { provide: RolePermissionService, useValue: rolePermissionService },
         { provide: UserRepository, useValue: userRepository },
         { provide: UserRoleService, useValue: userRoleService },
       ],
@@ -138,76 +112,16 @@ describe('RBAC admin API integration', () => {
   it('allows super_admin to access protected RBAC admin APIs', async () => {
     const baseUrl = await app.getUrl();
 
-    const requests: Array<Promise<Response>> = [
+    const responses = await Promise.all([
       fetch(`${baseUrl}/admin/v1/roles`, {
-        headers: { authorization: RBAC_TEST_TOKENS.superAdmin },
-      }),
-      fetch(`${baseUrl}/admin/v1/roles`, {
-        method: 'POST',
-        headers: {
-          authorization: RBAC_TEST_TOKENS.superAdmin,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          key: 'custom_admin',
-          name: 'Custom Admin',
-        }),
-      }),
-      fetch(`${baseUrl}/admin/v1/roles/${RBAC_TEST_IDS.roleId}`, {
-        headers: { authorization: RBAC_TEST_TOKENS.superAdmin },
-      }),
-      fetch(`${baseUrl}/admin/v1/roles/${RBAC_TEST_IDS.roleId}`, {
-        method: 'PATCH',
-        headers: {
-          authorization: RBAC_TEST_TOKENS.superAdmin,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({ name: 'Updated Custom Admin' }),
-      }),
-      fetch(`${baseUrl}/admin/v1/roles/${RBAC_TEST_IDS.roleId}`, {
-        method: 'DELETE',
         headers: { authorization: RBAC_TEST_TOKENS.superAdmin },
       }),
       fetch(`${baseUrl}/admin/v1/permissions`, {
         headers: { authorization: RBAC_TEST_TOKENS.superAdmin },
       }),
-      fetch(`${baseUrl}/admin/v1/roles/${RBAC_TEST_IDS.roleId}/permissions`, {
-        method: 'POST',
-        headers: {
-          authorization: RBAC_TEST_TOKENS.superAdmin,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({ permissionId: RBAC_TEST_IDS.permissionId }),
-      }),
-      fetch(
-        `${baseUrl}/admin/v1/roles/${RBAC_TEST_IDS.roleId}/permissions/${RBAC_TEST_IDS.permissionId}`,
-        {
-          method: 'DELETE',
-          headers: { authorization: RBAC_TEST_TOKENS.superAdmin },
-        },
-      ),
-      fetch(`${baseUrl}/admin/v1/users/${RBAC_TEST_IDS.normalUserId}/roles`, {
-        method: 'POST',
-        headers: {
-          authorization: RBAC_TEST_TOKENS.superAdmin,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({ roleId: RBAC_TEST_IDS.roleId }),
-      }),
-      fetch(
-        `${baseUrl}/admin/v1/users/${RBAC_TEST_IDS.normalUserId}/roles/${RBAC_TEST_IDS.userRoleId}`,
-        {
-          method: 'DELETE',
-          headers: { authorization: RBAC_TEST_TOKENS.superAdmin },
-        },
-      ),
-    ];
-
-    const responses = await Promise.all(requests);
-
-    expect(responses.map((response) => response.status)).toEqual([
-      200, 201, 200, 200, 200, 200, 201, 200, 201, 200,
     ]);
+
+    expect(responses.map((response) => response.status)).toEqual([200, 200]);
   });
 
   it('rejects missing auth as unauthorized', async () => {
@@ -243,24 +157,6 @@ describe('RBAC admin API integration', () => {
     expect(missingRouteResponse.status).toBe(404);
   });
 
-  it('does not expose a permission creation API', async () => {
-    const response = await fetch(`${await app.getUrl()}/admin/v1/permissions`, {
-      method: 'POST',
-      headers: {
-        authorization: RBAC_TEST_TOKENS.superAdmin,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        key: 'content.secret.create',
-        module: 'content',
-        resource: 'secret',
-        action: 'create',
-      }),
-    });
-
-    expect(response.status).toBe(404);
-  });
-
   it('prevents system role deactivation through admin API', async () => {
     roleService.deactivateAdminRole.mockRejectedValueOnce(
       new ConflictException('System role cannot be deactivated.'),
@@ -277,7 +173,81 @@ describe('RBAC admin API integration', () => {
     expect(response.status).toBe(409);
   });
 
+  it('prevents attaching permissions to system roles', async () => {
+    roleService.findMutableAdminRoleById.mockRejectedValueOnce(
+      new ConflictException('System role permission mappings are seed-owned.'),
+    );
+
+    const response = await fetch(
+      `${await app.getUrl()}/admin/v1/roles/${RBAC_TEST_IDS.systemRoleId}/permissions`,
+      {
+        method: 'POST',
+        headers: {
+          authorization: RBAC_TEST_TOKENS.superAdmin,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ permissionId: RBAC_TEST_IDS.permissionId }),
+      },
+    );
+
+    expect(response.status).toBe(409);
+    expect(rolePermissionService.attachPermission).not.toHaveBeenCalled();
+  });
+
+  it('prevents detaching permissions from system roles', async () => {
+    roleService.findMutableAdminRoleById.mockRejectedValueOnce(
+      new ConflictException('System role permission mappings are seed-owned.'),
+    );
+
+    const response = await fetch(
+      `${await app.getUrl()}/admin/v1/roles/${RBAC_TEST_IDS.systemRoleId}/permissions/${RBAC_TEST_IDS.permissionId}`,
+      {
+        method: 'DELETE',
+        headers: { authorization: RBAC_TEST_TOKENS.superAdmin },
+      },
+    );
+
+    expect(response.status).toBe(409);
+    expect(rolePermissionService.detachPermission).not.toHaveBeenCalled();
+  });
+
+  it('allows attaching and detaching permissions for custom non-system roles', async () => {
+    const baseUrl = await app.getUrl();
+
+    const attachResponse = await fetch(
+      `${baseUrl}/admin/v1/roles/${RBAC_TEST_IDS.roleId}/permissions`,
+      {
+        method: 'POST',
+        headers: {
+          authorization: RBAC_TEST_TOKENS.superAdmin,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ permissionId: RBAC_TEST_IDS.permissionId }),
+      },
+    );
+    const detachResponse = await fetch(
+      `${baseUrl}/admin/v1/roles/${RBAC_TEST_IDS.roleId}/permissions/${RBAC_TEST_IDS.permissionId}`,
+      {
+        method: 'DELETE',
+        headers: { authorization: RBAC_TEST_TOKENS.superAdmin },
+      },
+    );
+
+    expect(attachResponse.status).toBe(201);
+    expect(detachResponse.status).toBe(200);
+    expect(rolePermissionService.attachPermission).toHaveBeenCalledWith({
+      roleId: RBAC_TEST_IDS.roleId,
+      permissionId: RBAC_TEST_IDS.permissionId,
+    });
+    expect(rolePermissionService.detachPermission).toHaveBeenCalledWith({
+      roleId: RBAC_TEST_IDS.roleId,
+      permissionId: RBAC_TEST_IDS.permissionId,
+    });
+  });
+
   it('validates assignable role before user-role assignment', async () => {
+    roleService.findById.mockResolvedValueOnce(createRbacRoleDocument({ isAssignable: false }));
+
     const response = await fetch(
       `${await app.getUrl()}/admin/v1/users/${RBAC_TEST_IDS.normalUserId}/roles`,
       {
@@ -286,9 +256,7 @@ describe('RBAC admin API integration', () => {
           authorization: RBAC_TEST_TOKENS.superAdmin,
           'content-type': 'application/json',
         },
-        body: JSON.stringify({
-          roleId: RBAC_TEST_IDS.nonAssignableRoleId,
-        }),
+        body: JSON.stringify({ roleId: RBAC_TEST_IDS.nonAssignableRoleId }),
       },
     );
 

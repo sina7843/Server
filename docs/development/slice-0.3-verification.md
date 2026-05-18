@@ -26,7 +26,7 @@ pnpm format:check
 ## 2. Required RBAC fixes
 
 - [ ] PermissionResolver returns permission keys, not permission ids.
-- [ ] `super_admin` grants all registered permission keys.
+- [ ] `super_admin` grants all registered permission keys from `PermissionKeys`.
 - [ ] RBAC controllers resolve `AccessTokenGuard` dependencies through `AuthModule`.
 - [ ] DTO validation is real and tested.
 - [ ] System roles are protected.
@@ -41,9 +41,22 @@ pnpm format:check
 - [ ] `GET /admin/v1/permissions` is protected.
 - [ ] `POST /admin/v1/permissions` does not exist.
 - [ ] System role cannot be deactivated.
+- [ ] System role permission attach is rejected.
+- [ ] System role permission detach is rejected.
+- [ ] Custom role permission attach works.
+- [ ] Custom role permission detach works.
 - [ ] Role assignment validates assignable role.
 
-## 4. Scope exclusions
+## 4. Seed verification
+
+- [ ] `apps/api/package.json` includes `seed:rbac`.
+- [ ] `apps/api/src/rbac/seeds/run-rbac-seed.ts` exists.
+- [ ] Build-before-seed workflow is documented.
+- [ ] `RBAC_BOOTSTRAP_SUPER_ADMIN_PHONE` behavior is documented.
+- [ ] Seed runner prints safe summary only.
+- [ ] Seed service can still attach mappings for system roles.
+
+## 5. Scope exclusions
 
 Confirm absence of:
 

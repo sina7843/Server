@@ -101,10 +101,10 @@ export class AdminRolesController {
   ): Promise<RbacGenericResponse> {
     const validRoleId = validateObjectId(roleId, 'id');
     const input = validateAttachPermissionDto(body as unknown as Record<string, unknown>);
-    const role = await this.roleService.findById(validRoleId);
+    await this.roleService.findMutableAdminRoleById(validRoleId);
     const permission = await this.permissionService.findById(input.permissionId);
 
-    if (!role || !role.isActive || !permission) {
+    if (!permission) {
       throw new NotFoundException('Role or permission not found.');
     }
 
@@ -122,9 +122,18 @@ export class AdminRolesController {
     @Param('id') roleId: string,
     @Param('permissionId') permissionId: string,
   ): Promise<RbacGenericResponse> {
+    const validRoleId = validateObjectId(roleId, 'id');
+    const validPermissionId = validateObjectId(permissionId, 'permissionId');
+    await this.roleService.findMutableAdminRoleById(validRoleId);
+    const permission = await this.permissionService.findById(validPermissionId);
+
+    if (!permission) {
+      throw new NotFoundException('Role or permission not found.');
+    }
+
     await this.rolePermissionService.detachPermission({
-      roleId: validateObjectId(roleId, 'id'),
-      permissionId: validateObjectId(permissionId, 'permissionId'),
+      roleId: validRoleId,
+      permissionId: validPermissionId,
     });
 
     return createRbacGenericResponse('Permission detached from role.');

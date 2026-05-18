@@ -1,3 +1,4 @@
+import { RolePermissionRegistryMap } from '../registry/role-permission-registry';
 import { RbacSeedService } from './rbac-seed.service';
 
 describe('RbacSeedService', () => {
@@ -94,15 +95,19 @@ describe('RbacSeedService', () => {
     };
   };
 
-  it('seeds permissions, roles, and role-permissions idempotently', async () => {
-    const repositories = createRepositoryMock();
-    const service = new RbacSeedService(
+  const createService = (repositories = createRepositoryMock()) => ({
+    repositories,
+    service: new RbacSeedService(
       repositories.permissionRepository as never,
       repositories.roleRepository as never,
       repositories.rolePermissionRepository as never,
       repositories.userRoleRepository as never,
       repositories.userRepository as never,
-    );
+    ),
+  });
+
+  it('seeds permissions, roles, and role-permissions idempotently', async () => {
+    const { repositories, service } = createService();
 
     const first = await service.runRbacSeed();
     const second = await service.runRbacSeed();
@@ -116,17 +121,22 @@ describe('RbacSeedService', () => {
     expect(second.rolesCreated).toBe(0);
     expect(second.rolesUpdated).toBe(5);
     expect(second.rolePermissionsAttached).toBe(0);
+    expect(repositories.rolePermissionRepository.attachPermissionForSeed).toHaveBeenCalled();
+  });
+
+  it('can still attach permissions to system roles through seed-owned methods', async () => {
+    const { repositories, service } = createService();
+
+    await service.runRbacSeed();
+
+    expect(RolePermissionRegistryMap.super_admin.length).toBeGreaterThan(0);
+    expect(repositories.rolePermissionRepository.attachPermissionForSeed).toHaveBeenCalledWith(
+      expect.objectContaining({ roleId: 'role-1' }),
+    );
   });
 
   it('does not create users during optional bootstrap assignment', async () => {
-    const repositories = createRepositoryMock();
-    const service = new RbacSeedService(
-      repositories.permissionRepository as never,
-      repositories.roleRepository as never,
-      repositories.rolePermissionRepository as never,
-      repositories.userRoleRepository as never,
-      repositories.userRepository as never,
-    );
+    const { repositories, service } = createService();
 
     const result = await service.runRbacSeed({
       bootstrapSuperAdminPhone: '+98 912 123 4567',
@@ -140,14 +150,7 @@ describe('RbacSeedService', () => {
   });
 
   it('skips optional bootstrap assignment for missing or non-active users', async () => {
-    const repositories = createRepositoryMock();
-    const service = new RbacSeedService(
-      repositories.permissionRepository as never,
-      repositories.roleRepository as never,
-      repositories.rolePermissionRepository as never,
-      repositories.userRoleRepository as never,
-      repositories.userRepository as never,
-    );
+    const { repositories, service } = createService();
 
     const result = await service.runRbacSeed({
       bootstrapSuperAdminPhone: '+98 912 000 0000',
@@ -159,14 +162,7 @@ describe('RbacSeedService', () => {
   });
 
   it('returns counts and skipped keys only', async () => {
-    const repositories = createRepositoryMock();
-    const service = new RbacSeedService(
-      repositories.permissionRepository as never,
-      repositories.roleRepository as never,
-      repositories.rolePermissionRepository as never,
-      repositories.userRoleRepository as never,
-      repositories.userRepository as never,
-    );
+    const { service } = createService();
 
     const result = await service.runRbacSeed();
 

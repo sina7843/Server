@@ -1,1 +1,1 @@
-apps/api/test/rbac-authorization.e2e-spec.ts
+apps/api/package.json

@@ -1,5 +1,15 @@
-# RBAC Permissions Foundation
+# RBAC Permissions
 
-This directory contains the Slice 0.3 Permission persistence foundation.
+Permissions are code/seed-owned.
 
-Permissions are system-defined persistence records for later seed/code registration. This task does not add a permission registry, permission seeds, guards, decorators, controllers, or Admin APIs.
+- Permission registry entries live under `apps/api/src/rbac/registry/`.
+- `RbacSeedService` upserts permissions idempotently.
+- `GET /admin/v1/permissions` lists seeded permissions.
+- There is no API for creating, updating, or deleting permissions.
+
+Run the seed after building the API:
+
+```bash
+pnpm --filter @dragon/api build
+pnpm --filter @dragon/api seed:rbac
+```

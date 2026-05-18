@@ -100,6 +100,20 @@ export class RoleService {
     return deactivated;
   }
 
+  async findMutableAdminRoleById(roleId: RoleId): Promise<RoleDocument> {
+    const role = await this.roleRepository.findById(roleId);
+
+    if (!role || !role.isActive) {
+      throw new NotFoundException('Role not found.');
+    }
+
+    if (role.isSystem) {
+      throw new ConflictException('System role permission mappings are seed-owned.');
+    }
+
+    return role;
+  }
+
   upsertRoleForSeed(input: Parameters<RoleRepository['upsertRoleForSeed']>[0]) {
     return this.roleRepository.upsertRoleForSeed(input);
   }

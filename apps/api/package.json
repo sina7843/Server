@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "jest",
     "build": "tsc -p tsconfig.build.json",
+    "seed:rbac": "node dist/rbac/seeds/run-rbac-seed.js",
     "start": "node dist/main.js",
     "dev": "tsc --watch -p tsconfig.build.json"
   },

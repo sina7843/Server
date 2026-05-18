@@ -1,5 +1,7 @@
-# Dragon Documentation
+# Dragon Ecosystem Docs
 
-- [RBAC architecture](architecture/rbac.md)
-- [RBAC security checklist](security/rbac-checklist.md)
-- [Slice 0.3 verification checklist](development/slice-0.3-verification.md)
+Useful docs:
+
+- [Profile architecture](./architecture/profile.md)
+- [Profile privacy checklist](./security/profile-privacy-checklist.md)
+- [Slice 0.4 verification](./development/slice-0.4-verification.md)

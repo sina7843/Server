@@ -1,7 +1,7 @@
 # @dragon/types
 
-Shared Dragon contracts and constants.
+Shared neutral contracts for Dragon Ecosystem packages.
 
-Slice 0.3 includes neutral RBAC API contracts and code-owned permission constants.
-It does not include Admin UI contracts, Profile DTOs, Content/Media DTOs, or
-token/session internals.
+Profile contracts expose only safe DTOs for public and authenticated profile
+responses. They do not expose database entities, Mongoose types, Auth
+credentials, sessions, password hashes, tokens, phone, or email.

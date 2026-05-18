@@ -1,6 +1,13 @@
 # @dragon/sdk
 
-Framework-agnostic Dragon SDK foundation.
+SDK helpers for Dragon Ecosystem.
 
-Slice 0.3 exports RBAC API types only. It does not include endpoint methods,
-token storage, Nuxt/Vue logic, or an RBAC client.
+Profile support is intentionally thin:
+
+- `createProfilesClient(client)`
+- `getPublicProfile(username)`
+- `getMyProfile()`
+- `updateMyProfile(input)`
+
+The SDK does not add token storage, does not include Nuxt composables, and does
+not hardcode environment-specific base URLs.

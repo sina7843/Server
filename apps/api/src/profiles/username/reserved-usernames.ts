@@ -1,0 +1,46 @@
+export const RESERVED_USERNAMES = [
+  'admin',
+  'api',
+  'auth',
+  'login',
+  'register',
+  'logout',
+  'dashboard',
+  'system',
+  'settings',
+  'account',
+  'profile',
+  'users',
+  'roles',
+  'permissions',
+  'content',
+  'media',
+  'audit',
+  'search',
+  'analytics',
+  'health',
+  'support',
+  'help',
+  'about',
+  'contact',
+  'news',
+  'articles',
+  'announcements',
+  'guides',
+  'rules',
+  'pages',
+  'categories',
+  'tags',
+  'shop',
+  'academy',
+  'streaming',
+  'robotics',
+  'boardgame',
+  'tournament',
+] as const;
+
+const RESERVED_USERNAME_SET: ReadonlySet<string> = new Set(RESERVED_USERNAMES);
+
+export function isReservedUsername(usernameNormalized: string): boolean {
+  return RESERVED_USERNAME_SET.has(usernameNormalized.toLowerCase());
+}

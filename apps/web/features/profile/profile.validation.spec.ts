@@ -1,3 +1,23 @@
+type WebTestFn = () => void | Promise<void>;
+
+interface WebExpectMatchers {
+  readonly not: WebExpectMatchers;
+  readonly resolves: {
+    toEqual(expected: unknown): Promise<void>;
+  };
+  readonly rejects: {
+    toThrow(expected?: string): Promise<void>;
+  };
+  toBeNull(): void;
+  toContain(expected: string): void;
+  toEqual(expected: unknown): void;
+  toHaveBeenCalledWith(...expected: readonly unknown[]): void;
+  toHaveProperty(propertyName: string): void;
+}
+
+declare const describe: (name: string, fn: WebTestFn) => void;
+declare const it: (name: string, fn: WebTestFn) => void;
+declare const expect: (actual: unknown) => WebExpectMatchers;
 import {
   validateBio,
   validateDisplayName,

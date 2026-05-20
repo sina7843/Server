@@ -1,3 +1,33 @@
+type WebTestFn = () => void | Promise<void>;
+
+interface WebExpectMatchers {
+  readonly not: WebExpectMatchers;
+  readonly resolves: {
+    toEqual(expected: unknown): Promise<void>;
+  };
+  readonly rejects: {
+    toThrow(expected?: string): Promise<void>;
+  };
+  toBeNull(): void;
+  toContain(expected: string): void;
+  toEqual(expected: unknown): void;
+  toHaveBeenCalledWith(...expected: readonly unknown[]): void;
+  toHaveProperty(propertyName: string): void;
+}
+
+interface WebMockFunction {
+  (...args: readonly unknown[]): unknown;
+  mockResolvedValue(value: unknown): WebMockFunction;
+  mockResolvedValueOnce(value: unknown): WebMockFunction;
+}
+
+declare const describe: (name: string, fn: WebTestFn) => void;
+declare const it: (name: string, fn: WebTestFn) => void;
+declare const expect: (actual: unknown) => WebExpectMatchers;
+declare const jest: {
+  fn(): WebMockFunction;
+};
+
 import { createProfileApi } from './profile-api';
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -18,7 +48,7 @@ describe('profile API helper', () => {
         publicUrl: '/u/dragon',
       }),
     );
-    const api = createProfileApi({ fetcher });
+    const api = createProfileApi({ fetcher: fetcher as never });
 
     await api.getPublicProfile('Dragon User');
 
@@ -33,7 +63,7 @@ describe('profile API helper', () => {
       .fn()
       .mockResolvedValueOnce(jsonResponse({ state: 'private' }))
       .mockResolvedValueOnce(jsonResponse({ state: 'not_found' }));
-    const api = createProfileApi({ fetcher });
+    const api = createProfileApi({ fetcher: fetcher as never });
 
     await expect(api.getPublicProfile('private-user')).resolves.toEqual({
       state: 'private',
@@ -45,11 +75,11 @@ describe('profile API helper', () => {
 
   it('handles errors safely', async () => {
     const api = createProfileApi({
-      fetcher: jest.fn().mockResolvedValue(jsonResponse({}, 500)),
+      fetcher: jest.fn().mockResolvedValue(jsonResponse({}, 500)) as never,
     });
 
     await expect(api.getPublicProfile('dragon')).rejects.toThrow(
-      'Request failed with status 500',
+      'Request failed with status 500.',
     );
   });
 
@@ -62,15 +92,15 @@ describe('profile API helper', () => {
         publicUrl: '/u/dragon',
       }),
     );
-    const api = createProfileApi({ fetcher, token: 'access-token' });
+    const api = createProfileApi({ fetcher: fetcher as never, token: 'access-token' });
 
     await api.updateMyProfile({ visibility: 'private' });
 
     expect(fetcher).toHaveBeenCalledWith('/api/v1/me/profile', {
       method: 'PATCH',
       headers: {
-        authorization: 'Bearer access-token',
         'content-type': 'application/json',
+        authorization: 'Bearer access-token',
       },
       body: JSON.stringify({ visibility: 'private' }),
     });

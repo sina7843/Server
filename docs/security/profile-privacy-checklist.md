@@ -2,64 +2,64 @@
 
 ## Public profile
 
-- [ ] Public route exists at `/u/:username`.
-- [ ] Public response contains only safe profile fields.
-- [ ] Private profile state does not render display name, bio, or avatar data.
-- [ ] Pending verification users are not public.
-- [ ] Suspended users are not public.
-- [ ] Banned/deleted users resolve to safe not-found-like state.
+- [x] Public route exists at `/u/:username`.
+- [x] Public response contains only safe profile fields.
+- [x] Private profile state does not render display name, bio, or avatar data.
+- [x] Pending verification users are not public.
+- [x] Suspended users are not public.
+- [x] Banned/deleted users resolve to safe not-found-like state.
 
 ## Lifecycle
 
-- [ ] Successful phone verification ensures a profile for the active verified user.
-- [ ] Lifecycle creation is idempotent.
-- [ ] Lifecycle does not create profiles for pending/suspended/banned/deleted users.
-- [ ] Generated default username does not use phone or email.
+- [x] Successful phone verification ensures a profile for the active verified user.
+- [x] Lifecycle creation is idempotent.
+- [x] Lifecycle does not create profiles for pending/suspended/banned/deleted users.
+- [x] Generated default username does not use phone or email.
 
 ## Auth token handling
 
-- [ ] Slice 0.4 does not store access tokens in readable cookies.
-- [ ] `useAuthToken` is memory-only placeholder state.
-- [ ] No login UI or refresh flow is added in this profile slice.
+- [x] Slice 0.4 does not store access tokens in readable cookies.
+- [x] `useAuthToken` is memory-only placeholder state.
+- [x] No login UI or refresh flow is added in this profile slice.
 
 ## SDK usage
 
-- [ ] apps/web uses `@dragon/sdk` for profile API calls.
-- [ ] profile API paths are not duplicated in frontend pages.
-- [ ] frontend profile tests are runnable through the web package test script.
+- [x] apps/web uses `@dragon/sdk` for profile API calls.
+- [x] profile API paths are not duplicated in frontend pages.
+- [x] frontend profile tests are runnable through the web package test script.
 
 ## Avatar and media
 
-- [ ] Avatar UI is display/fallback only.
-- [ ] Manual avatarMediaId editing is not exposed.
-- [ ] Backend rejects invalid avatarMediaId with 400.
-- [ ] No upload input exists.
-- [ ] No media picker exists.
+- [x] Avatar UI is display/fallback only.
+- [x] Manual avatarMediaId editing is not exposed.
+- [x] Backend rejects invalid avatarMediaId with 400.
+- [x] No upload input exists.
+- [x] No media picker exists.
 
 ## Auth dependency safety
 
-- [ ] ProfileModule imports AuthModule for `AccessTokenGuard` dependencies.
-- [ ] AuthModule imports ProfileModule with `forwardRef`.
-- [ ] No auth bypass exists for profile account routes.
+- [x] ProfileModule imports AuthModule for `AccessTokenGuard` dependencies.
+- [x] AuthModule imports ProfileModule with `forwardRef`.
+- [x] No auth bypass exists for profile account routes.
 
 ## SEO and indexing
 
-- [ ] Public active profile can be indexable.
-- [ ] Private state is `noindex`.
-- [ ] Not-found state is `noindex`.
-- [ ] Error state is `noindex`.
-- [ ] Hidden private data is not used in page title or meta description.
+- [x] Public active profile can be indexable.
+- [x] Private state is `noindex`.
+- [x] Not-found state is `noindex`.
+- [x] Error state is `noindex`.
+- [x] Hidden private data is not used in page title or meta description.
 
 ## Account profile
 
-- [ ] `/account/profile` requires authentication.
-- [ ] Update payload excludes phone, email, password, tokens, roles, and status.
-- [ ] Avatar media field is reference-only and backend-safe.
+- [x] `/account/profile` requires authentication.
+- [x] Update payload excludes phone, email, password, tokens, roles, and status.
+- [x] Avatar media field is reference-only and backend-safe.
 
 ## Out of scope
 
-- [ ] No Admin profile UI.
-- [ ] No avatar upload.
-- [ ] No media picker.
-- [ ] No follow/feed/wall.
-- [ ] No profile customization/cosmetic UI.
+- [x] No Admin profile UI.
+- [x] No avatar upload.
+- [x] No media picker.
+- [x] No follow/feed/wall.
+- [x] No profile customization/cosmetic UI.

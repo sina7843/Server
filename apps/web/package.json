@@ -33,8 +33,13 @@
     "rootDir": ".",
     "testRegex": "features/profile/.*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(t|j)s$": ["ts-jest", {
+        "tsconfig": { "module": "CommonJS", "moduleResolution": "Node" }
+      }]
     },
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^@dragon/sdk$": "<rootDir>/../../packages/sdk/src/index.ts"
+    }
   }
 }

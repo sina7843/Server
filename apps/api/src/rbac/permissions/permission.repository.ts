@@ -23,6 +23,13 @@ export class PermissionRepository {
     return this.permissionModel.find({ key: { $in: [...keys] } }).exec();
   }
 
+  findByIds(permissionIds: readonly string[]): Promise<PermissionDocument[]> {
+    return this.permissionModel
+      .find({ _id: { $in: [...permissionIds] } })
+      .sort({ key: 1 })
+      .exec();
+  }
+
   list(): Promise<PermissionDocument[]> {
     return this.permissionModel.find().sort({ key: 1 }).exec();
   }

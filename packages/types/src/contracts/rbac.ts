@@ -69,3 +69,15 @@ export interface RbacGenericResponse {
   readonly success: true;
   readonly message: string;
 }
+
+export interface RolesListResponse {
+  readonly roles: readonly RoleResponse[];
+}
+
+export interface PermissionsListResponse {
+  readonly permissions: readonly PermissionResponse[];
+}
+
+export interface RolePermissionsResponse {
+  readonly permissions: readonly PermissionResponse[];
+}

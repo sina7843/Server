@@ -7,3 +7,5 @@ export * from './admin-auth-types';
 export * from './admin-auth';
 export * from './admin-users-types';
 export * from './admin-users';
+export * from './admin-rbac-types';
+export * from './admin-rbac';

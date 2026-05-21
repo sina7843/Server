@@ -19,6 +19,10 @@ export class PermissionService {
     return this.permissionRepository.findByKeys(keys);
   }
 
+  findByIds(permissionIds: readonly string[]): Promise<PermissionDocument[]> {
+    return this.permissionRepository.findByIds(permissionIds);
+  }
+
   list(): Promise<PermissionDocument[]> {
     return this.permissionRepository.list();
   }

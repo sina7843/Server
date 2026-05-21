@@ -13,6 +13,7 @@ import { AccessTokenGuard } from '../../auth/guards/access-token.guard';
 import { RequirePermission } from '../decorators/require-permission.decorator';
 import { AttachPermissionDto } from '../dto/attach-permission.dto';
 import { CreateRoleDto } from '../dto/create-role.dto';
+import { PermissionsResponse, toPermissionResponse } from '../dto/permission-response.dto';
 import { RbacGenericResponse, createRbacGenericResponse } from '../dto/rbac-response.dto';
 import { RoleResponse, RolesResponse, toRoleResponse } from '../dto/role-response.dto';
 import { UpdateRoleDto } from '../dto/update-role.dto';
@@ -65,6 +66,23 @@ export class AdminRolesController {
     }
 
     return toRoleResponse(role);
+  }
+
+  @Get(':id/permissions')
+  @RequirePermission(Permissions.RBAC_ROLE_READ)
+  async listRolePermissions(@Param('id') roleId: string): Promise<PermissionsResponse> {
+    const validRoleId = validateObjectId(roleId, 'id');
+    const role = await this.roleService.findById(validRoleId);
+
+    if (!role) {
+      throw new NotFoundException('Role not found.');
+    }
+
+    const rolePerms = await this.rolePermissionService.findByRoleId(validRoleId);
+    const permissionIds = rolePerms.map((rp) => String(rp.permissionId));
+    const permissions = await this.permissionService.findByIds(permissionIds);
+
+    return { permissions: permissions.map(toPermissionResponse) };
   }
 
   @Patch(':id')

@@ -5,3 +5,5 @@ export * from './profile-types';
 export * from './profiles';
 export * from './admin-auth-types';
 export * from './admin-auth';
+export * from './admin-users-types';
+export * from './admin-users';

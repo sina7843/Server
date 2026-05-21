@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { User, type UserDocument } from './user.schema';
-import type { CreatePendingUserInput } from './user.types';
+import type { CreatePendingUserInput, UserStatus } from './user.types';
 
 @Injectable()
 export class UserRepository {
@@ -170,6 +170,49 @@ export class UserRepository {
       .exec();
 
     return result?.modifiedCount ?? 0;
+  }
+
+  async findManyForAdmin(params: {
+    status?: UserStatus;
+    userIds?: string[];
+    page: number;
+    limit: number;
+  }): Promise<{ users: UserDocument[]; total: number }> {
+    const filter: Record<string, unknown> = {};
+
+    if (params.status) {
+      filter.status = params.status;
+    }
+
+    if (params.userIds !== undefined) {
+      filter._id = { $in: params.userIds.map((id) => new Types.ObjectId(id)) };
+    }
+
+    const skip = (params.page - 1) * params.limit;
+    const [users, total] = await Promise.all([
+      this.userModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(params.limit).exec(),
+      this.userModel.countDocuments(filter).exec(),
+    ]);
+
+    return { users, total };
+  }
+
+  updateStatus(
+    userId: Types.ObjectId | string,
+    status: UserStatus,
+    statusReason?: string,
+  ): Promise<UserDocument | null> {
+    const update: Record<string, unknown> = { status };
+
+    if (statusReason !== undefined && statusReason.trim().length > 0) {
+      update.statusReason = statusReason.trim();
+    }
+
+    if (status === 'deleted') {
+      update.deletedAt = new Date();
+    }
+
+    return this.userModel.findByIdAndUpdate(userId, { $set: update }, { new: true }).exec();
   }
 
   softDelete(

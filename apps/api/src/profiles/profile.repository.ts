@@ -102,6 +102,19 @@ export class UserProfileRepository {
       .exec();
   }
 
+  findManyByUserIds(userIds: string[]): Promise<UserProfileDocument[]> {
+    return this.profileModel.find({ userId: { $in: userIds } }).exec();
+  }
+
+  findByUsernamePrefix(prefix: string, limit = 20): Promise<UserProfileDocument[]> {
+    const safe = prefix.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    return this.profileModel
+      .find({ usernameNormalized: { $regex: `^${safe}` } })
+      .limit(limit)
+      .exec();
+  }
+
   async isUsernameTaken(
     usernameNormalized: string,
     excludeUserId?: Types.ObjectId | string,

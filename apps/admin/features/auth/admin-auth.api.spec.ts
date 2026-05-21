@@ -17,11 +17,13 @@ function mockLoginSuccess() {
   });
 }
 
-function mockGetMeSuccess() {
+function mockGetMeSuccess(overrides: { permissions?: string[]; isSuperAdmin?: boolean } = {}) {
   mockFetch.mockResolvedValueOnce({
     ok: true,
     json: async () => ({
       user: { id: 'admin-1', phoneVerified: true, status: 'active', phoneMasked: '***00' },
+      permissions: overrides.permissions ?? ['admin.dashboard.view'],
+      isSuperAdmin: overrides.isSuperAdmin ?? false,
     }),
   });
 }
@@ -50,6 +52,26 @@ describe('adminLogin', () => {
     expect(result.identity.user.status).toBe('active');
   });
 
+  it('identity includes permissions array', async () => {
+    mockLoginSuccess();
+    mockGetMeSuccess({ permissions: ['admin.dashboard.view', 'user.user.read'] });
+
+    const result = await adminLogin('+1234567890', 'secure-pass');
+
+    expect(Array.isArray(result.identity.permissions)).toBe(true);
+    expect(result.identity.permissions).toContain('admin.dashboard.view');
+    expect(result.identity.permissions).toContain('user.user.read');
+  });
+
+  it('identity includes isSuperAdmin flag', async () => {
+    mockLoginSuccess();
+    mockGetMeSuccess({ isSuperAdmin: true });
+
+    const result = await adminLogin('+1234567890', 'secure-pass');
+
+    expect(result.identity.isSuperAdmin).toBe(true);
+  });
+
   it('throws on invalid credentials', async () => {
     mockLoginUnauthorized();
 
@@ -75,6 +97,7 @@ describe('adminLogin', () => {
     expect(serialized).not.toContain('passwordHash');
     expect(serialized).not.toContain('refreshTokenHash');
     expect(serialized).not.toContain('statusReason');
+    expect(serialized).not.toContain('roleKeys');
   });
 });
 
@@ -91,6 +114,23 @@ describe('fetchAdminIdentity', () => {
         headers: expect.objectContaining({ Authorization: 'Bearer test-token' }),
       }),
     );
+  });
+
+  it('returns permissions from identity', async () => {
+    mockGetMeSuccess({ permissions: ['admin.dashboard.view', 'rbac.role.read'] });
+
+    const identity = await fetchAdminIdentity('test-token');
+
+    expect(identity.permissions).toContain('admin.dashboard.view');
+    expect(identity.permissions).toContain('rbac.role.read');
+  });
+
+  it('returns isSuperAdmin flag from identity', async () => {
+    mockGetMeSuccess({ isSuperAdmin: false });
+
+    const identity = await fetchAdminIdentity('test-token');
+
+    expect(identity.isSuperAdmin).toBe(false);
   });
 
   it('throws ApiClientError on 403', async () => {

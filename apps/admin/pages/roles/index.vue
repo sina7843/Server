@@ -60,7 +60,11 @@
 <script setup lang="ts">
 import { DragonPermissions as Permissions } from '@dragon/sdk';
 
-definePageMeta({ layout: 'admin', middleware: ['admin-auth-required'] });
+definePageMeta({
+  layout: 'admin',
+  middleware: ['admin-auth-required', 'admin-permission-required'],
+  requiredPermission: 'rbac.role.read',
+});
 useHead({ title: 'نقش‌ها — Dragon Admin' });
 
 const { hasPermission } = useAdminPermissions();

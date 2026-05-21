@@ -75,7 +75,11 @@
 import { DragonPermissions as Permissions, ADMIN_USER_STATUSES } from '@dragon/sdk';
 import type { AdminUserStatus } from '@dragon/sdk';
 
-definePageMeta({ layout: 'admin', middleware: ['admin-auth-required'] });
+definePageMeta({
+  layout: 'admin',
+  middleware: ['admin-auth-required', 'admin-permission-required'],
+  requiredPermission: 'user.user.read',
+});
 useHead({ title: 'کاربران — Dragon Admin' });
 
 const { hasPermission } = useAdminPermissions();

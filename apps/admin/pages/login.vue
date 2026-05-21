@@ -37,10 +37,12 @@ import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { adminLogin } from '~/features/auth/admin-auth.api';
 import { useAdminAuthState } from '~/composables/useAdminAuthState';
+import { useAdminPermissions } from '~/composables/useAdminPermissions';
 
 const router = useRouter();
 const route = useRoute();
 const { setAuth } = useAdminAuthState();
+const { setPermissions } = useAdminPermissions();
 
 const phone = ref('');
 const password = ref('');
@@ -56,6 +58,7 @@ async function handleSubmit() {
   try {
     const { token, identity } = await adminLogin(phone.value, password.value);
     setAuth(token, identity);
+    setPermissions(identity.permissions, identity.isSuperAdmin);
 
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/dashboard';
     await router.push(redirect);

@@ -78,6 +78,12 @@ export interface AuthIdentity {
 export interface MeResponse {
   readonly user: AuthIdentity;
 }
+
+export interface AdminMeResponse {
+  readonly user: AuthIdentity;
+  readonly permissions: readonly string[];
+  readonly isSuperAdmin: boolean;
+}
 export interface AuthSessionSummary {
   readonly id: string;
   readonly deviceId?: string;

@@ -43,7 +43,11 @@
 <script setup lang="ts">
 import { DragonPermissions as Permissions } from '@dragon/sdk';
 
-definePageMeta({ layout: 'admin', middleware: ['admin-auth-required'] });
+definePageMeta({
+  layout: 'admin',
+  middleware: ['admin-auth-required', 'admin-permission-required'],
+  requiredPermission: 'admin.dashboard.view',
+});
 useHead({ title: 'داشبورد — Dragon Admin' });
 
 const { hasPermission } = useAdminPermissions();

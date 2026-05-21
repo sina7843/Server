@@ -1,3 +1,1 @@
-import type { MeResponse } from './auth-types';
-
-export type AdminMeResponse = MeResponse;
+export type { AdminMeResponse } from '@dragon/types';

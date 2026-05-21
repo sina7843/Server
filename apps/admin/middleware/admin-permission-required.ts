@@ -1,10 +1,12 @@
 import { defineNuxtRouteMiddleware, navigateTo } from '#app';
-import { useAdminAuthState } from '~/composables/useAdminAuthState';
+import { useAdminPermissions } from '~/composables/useAdminPermissions';
 
-export default defineNuxtRouteMiddleware(() => {
-  const { identity } = useAdminAuthState();
+export default defineNuxtRouteMiddleware((to) => {
+  const requiredPermission = to.meta.requiredPermission as string | undefined;
+  if (!requiredPermission) return;
 
-  if (!identity.value) {
+  const { hasPermission } = useAdminPermissions();
+  if (!hasPermission(requiredPermission)) {
     return navigateTo('/forbidden');
   }
 });

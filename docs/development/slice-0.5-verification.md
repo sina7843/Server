@@ -116,13 +116,103 @@ pnpm format:check
 - [x] No fake dashboard metrics.
 - [x] No future module placeholders.
 
-## Scope exclusions
+## Task 0.5.3 — Admin users management
 
-- [x] No users management page implementation.
-- [x] No roles management page implementation.
-- [x] No permissions list implementation.
-- [x] No system health implementation.
-- [x] No Content/Media/Audit/Analytics features.
-- [x] No Backup/Jobs/Notifications nav items.
-- [x] No coming-soon routes.
+### Backend
+
+- [x] `GET /admin/v1/users` requires `user.user.read`.
+- [x] `GET /admin/v1/users/:id` requires `user.user.read`.
+- [x] `PATCH /admin/v1/users/:id/status` requires `user.status.update`.
+- [x] `GET /admin/v1/users/:id/sessions` requires `user.user.read`.
+- [x] `DELETE /admin/v1/users/:id/sessions/:sessionId` requires `user.session.revoke`.
+- [x] Phone masked (`***XX`) in all responses.
+- [x] `passwordHash`, `refreshTokenHash`, `statusReason` not returned.
+- [x] Session revoke scoped to user; cross-user revoke not possible.
+- [x] Unit tests exist for `AdminUsersController`.
+
+### SDK
+
+- [x] `AdminUsersClient` interface exported from `@dragon/sdk`.
+- [x] `createAdminUsersClient()` factory exported from `@dragon/sdk`.
+- [x] SDK spec covers all 6 methods.
+
+### Frontend
+
+- [x] `useAdminUsers` composable exists (module-level reactive state).
+- [x] `/users` page: paginated list, status filter, permission guard.
+- [x] `/users/:id` page: user detail, sessions list, session revoke.
+- [x] `/users/:id/edit` page: status update form only.
+- [x] `UserStatusBadge`, `UserListItem`, `SessionListItem`, `ConfirmDialog` components exist.
+
+---
+
+## Task 0.5.4 — Admin roles and permissions management UI
+
+### Backend
+
+- [x] `GET /admin/v1/roles/:id/permissions` added (permission: `rbac.role.read`).
+- [x] System roles reject mutation with `ConflictException`.
+- [x] No permission create/update/delete endpoints.
+
+### SDK
+
+- [x] `AdminRbacClient` interface with 9 methods exported from `@dragon/sdk`.
+- [x] `createAdminRbacClient()` factory exported from `@dragon/sdk`.
+- [x] SDK spec verifies no `createPermission`, `updatePermission`, `deletePermission` methods.
+
+### Frontend
+
+- [x] `useAdminRoles` composable exists.
+- [x] `/roles` page: role list with deactivate confirm.
+- [x] `/roles/new` page: create role form.
+- [x] `/roles/:id` page: role detail, permission attach/detach.
+- [x] `/roles/:id/edit` page: edit name/description (key is read-only).
+- [x] `/permissions` page: read-only list with module/resource filters.
+- [x] `SystemRoleBadge`, `RoleListItem`, `RolePermissionItem`, `PermissionListItem` components.
+- [x] System roles hide edit/deactivate/attach-detach actions in UI.
+
+---
+
+## Task 0.5.5 — Admin dashboard and system foundation pages
+
+### Backend
+
+- [x] `GET /admin/v1/dashboard/summary` requires `admin.dashboard.view`.
+- [x] Dashboard summary returns real user counts (total, active, pending).
+- [x] No fake or hardcoded metrics.
+- [x] `GET /admin/v1/system/health` requires `system.health.read`.
+- [x] System health returns `{ status, service, checkedAt }` only.
+- [x] `AdminDashboardModule` and `AdminSystemModule` registered in `AppModule`.
+- [x] Unit tests exist for both controllers.
+
+### SDK
+
+- [x] `AdminDashboardClient` interface + `createAdminDashboardClient()` exported from `@dragon/sdk`.
+- [x] `AdminSystemClient` interface + `createAdminSystemClient()` exported from `@dragon/sdk`.
+- [x] SDK specs cover both clients.
+
+### Frontend
+
+- [x] `useAdminDashboard` composable exists.
+- [x] `useAdminSystem` composable exists.
+- [x] `/dashboard` page: real user stats, system status badge, loading/error/forbidden states.
+- [x] `/system` page: nav links to health (no fakes, no jobs/backups/notifications).
+- [x] `/system/health` page: real health card, loading/error/forbidden states.
+- [x] Permission checked before API call in `onMounted`.
+
+### Security
+
+- [x] No fake metrics.
+- [x] No coming-soon cards.
+- [x] No future module shortcuts.
+- [x] No Content/Media/Audit/Analytics/Backup/Jobs/Notifications pages.
+
+---
+
+## Scope exclusions (all tasks)
+
 - [x] No fake dashboard data or charts.
+- [x] No Content/Media/Audit/Analytics features.
+- [x] No Backup/Jobs/Notifications pages without real API.
+- [x] No permission creation/update/delete UI.
+- [x] No coming-soon routes or future module shortcuts.

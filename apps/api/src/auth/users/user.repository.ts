@@ -197,6 +197,15 @@ export class UserRepository {
     return { users, total };
   }
 
+  async countAllByStatus(): Promise<{ total: number; active: number; pending: number }> {
+    const [total, active, pending] = await Promise.all([
+      this.userModel.countDocuments({ status: { $ne: 'deleted' } }).exec(),
+      this.userModel.countDocuments({ status: 'active' }).exec(),
+      this.userModel.countDocuments({ status: 'pending_verification' }).exec(),
+    ]);
+    return { total, active, pending };
+  }
+
   updateStatus(
     userId: Types.ObjectId | string,
     status: UserStatus,

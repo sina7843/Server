@@ -114,13 +114,69 @@ Navigation items and their required permissions:
 
 Future routes (`/users`, `/roles`, `/permissions`, `/system/health`) are linked from the navigation but have no page implementations yet.
 
-## Out of Scope (Task 0.5.1 + 0.5.2)
+## Admin Users API (Task 0.5.3)
 
-- Admin dashboard metrics or charts
-- Users management page
-- Roles management page
-- Permissions list page
-- System health implementation
-- Content, Media, Audit, Analytics features
-- Coming-soon placeholders
-- Future module shortcuts
+Backend routes under `/admin/v1/users`:
+
+| Method | Path | Permission |
+|--------|------|-----------|
+| `GET` | `/admin/v1/users` | `user.user.read` |
+| `GET` | `/admin/v1/users/:id` | `user.user.read` |
+| `PATCH` | `/admin/v1/users/:id/status` | `user.status.update` |
+| `GET` | `/admin/v1/users/:id/sessions` | `user.user.read` |
+| `DELETE` | `/admin/v1/users/:id/sessions/:sessionId` | `user.session.revoke` |
+
+Responses mask phone (`***XX` format) and never expose `passwordHash`, `refreshTokenHash`, or `statusReason`.
+
+Session revoke uses `revokeSessionForUser(sessionId, userId, 'admin_revoked')` — atomically scoped to the user, no cross-user revoke possible.
+
+## RBAC Admin API (Task 0.5.4)
+
+Backend routes under `/admin/v1/roles` and `/admin/v1/permissions`:
+
+| Method | Path | Permission |
+|--------|------|-----------|
+| `GET` | `/admin/v1/roles` | `rbac.role.read` |
+| `GET` | `/admin/v1/roles/:id` | `rbac.role.read` |
+| `POST` | `/admin/v1/roles` | `rbac.role.create` |
+| `PATCH` | `/admin/v1/roles/:id` | `rbac.role.update` |
+| `DELETE` | `/admin/v1/roles/:id` | `rbac.role.deactivate` |
+| `GET` | `/admin/v1/roles/:id/permissions` | `rbac.role.read` |
+| `POST` | `/admin/v1/roles/:id/permissions` | `rbac.permission.attach` |
+| `DELETE` | `/admin/v1/roles/:id/permissions/:permissionId` | `rbac.permission.detach` |
+| `GET` | `/admin/v1/permissions` | `rbac.permission.read` |
+
+System roles (`isSystem: true`) cannot be edited, deactivated, or have permissions changed — enforced by backend (`findMutableAdminRoleById`) and hidden in the UI.
+
+## Dashboard and System API (Task 0.5.5)
+
+| Method | Path | Permission |
+|--------|------|-----------|
+| `GET` | `/admin/v1/dashboard/summary` | `admin.dashboard.view` |
+| `GET` | `/admin/v1/system/health` | `system.health.read` |
+
+Dashboard summary returns real user counts (total, active, pending_verification). No fake metrics. System health returns `{ status, service, checkedAt }` only.
+
+## Pages (Tasks 0.5.3 – 0.5.5)
+
+| Route | Permission | Notes |
+|-------|-----------|-------|
+| `/users` | `user.user.read` | Paginated user list with status filter |
+| `/users/:id` | `user.user.read` | User detail with sessions section |
+| `/users/:id/edit` | `user.status.update` | Status update form only |
+| `/roles` | `rbac.role.read` | Role list with deactivate confirm |
+| `/roles/new` | `rbac.role.create` | Create role form |
+| `/roles/:id` | `rbac.role.read` | Role detail + permission attach/detach |
+| `/roles/:id/edit` | `rbac.role.update` | Edit role name/description |
+| `/permissions` | `rbac.permission.read` | Read-only permission list with filters |
+| `/dashboard` | `admin.dashboard.view` | Real user stats + system status |
+| `/system` | — | Links to sub-pages |
+| `/system/health` | `system.health.read` | Live health card |
+
+## Out of Scope (all Tasks)
+
+- Advanced analytics, charts, fake metrics
+- Content, Media, Audit, Analytics admin pages
+- Backup, Jobs, Notifications pages without real API
+- Permission creation/update/delete UI
+- Coming-soon placeholders or future module shortcuts

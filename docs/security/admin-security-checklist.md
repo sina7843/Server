@@ -49,11 +49,33 @@
 - [x] `apps/admin` uses `@dragon/sdk` for all admin API calls.
 - [x] Admin API endpoint paths are not duplicated in frontend feature code.
 
+## Users management (Task 0.5.3)
+
+- [x] All user admin routes require `AccessTokenGuard` + `PermissionGuard`.
+- [x] Phone numbers are masked (`***XX`) before leaving the backend.
+- [x] `passwordHash` and `refreshTokenHash` are never returned in any user response.
+- [x] `statusReason` is never returned in any user response.
+- [x] Session revoke is scoped to the user (`revokeSessionForUser`) — no cross-user revoke.
+- [x] Users are soft-deleted only (never hard-deleted).
+
+## RBAC management (Task 0.5.4)
+
+- [x] All RBAC admin routes require `AccessTokenGuard` + `PermissionGuard`.
+- [x] System roles cannot be edited, deactivated, or have permissions changed (backend throws `ConflictException`).
+- [x] No permission creation, update, or delete endpoints exist.
+- [x] Role key is immutable after creation (no `key` field in `UpdateRoleRequest`).
+
+## Dashboard and system health (Task 0.5.5)
+
+- [x] `GET /admin/v1/dashboard/summary` requires `admin.dashboard.view` permission.
+- [x] `GET /admin/v1/system/health` requires `system.health.read` permission.
+- [x] Dashboard metrics are real counts from the database — no fake or hardcoded numbers.
+- [x] System health response does not contain secrets, tokens, or internal configuration.
+- [x] Frontend checks permission before calling the API (`hasPermission` guard in `onMounted`).
+
 ## Out of scope
 
-- [x] No admin dashboard metrics or fake data.
-- [x] No users management implementation.
-- [x] No roles management implementation.
-- [x] No permissions list implementation.
-- [x] No system health implementation.
+- [x] No fake dashboard metrics.
 - [x] No Content/Media/Audit/Analytics features.
+- [x] No Backup/Jobs/Notifications pages without real API.
+- [x] No coming-soon placeholders or future module shortcuts.

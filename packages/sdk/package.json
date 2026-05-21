@@ -35,9 +35,15 @@
     "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": ["ts-jest", {
-        "tsconfig": { "module": "CommonJS", "moduleResolution": "Node" }
-      }]
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "tsconfig": {
+            "module": "CommonJS",
+            "moduleResolution": "Node"
+          }
+        }
+      ]
     },
     "testEnvironment": "node"
   },

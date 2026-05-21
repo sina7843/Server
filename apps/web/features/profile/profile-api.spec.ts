@@ -78,9 +78,7 @@ describe('profile API helper', () => {
       fetcher: jest.fn().mockResolvedValue(jsonResponse({}, 500)) as never,
     });
 
-    await expect(api.getPublicProfile('dragon')).rejects.toThrow(
-      'Request failed with status 500.',
-    );
+    await expect(api.getPublicProfile('dragon')).rejects.toThrow('Request failed with status 500.');
   });
 
   it('sends authenticated profile update payload without token storage', async () => {

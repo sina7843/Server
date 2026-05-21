@@ -1,13 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import { PROFILE_VISIBILITIES, type ProfileVisibility } from '../profile.types';
 
-const ALLOWED_FIELDS = new Set([
-  'username',
-  'displayName',
-  'bio',
-  'visibility',
-  'avatarMediaId',
-]);
+const ALLOWED_FIELDS = new Set(['username', 'displayName', 'bio', 'visibility', 'avatarMediaId']);
 const FORBIDDEN_FIELDS = new Set([
   'userId',
   'usernameNormalized',
@@ -36,17 +30,11 @@ export class UpdateMyProfileDto {
   readonly avatarMediaId?: string | null;
 }
 
-export function validateUpdateMyProfileDto(
-  input: Record<string, unknown>,
-): UpdateMyProfileDto {
-  const unknownFields = Object.keys(input).filter(
-    (field) => !ALLOWED_FIELDS.has(field),
-  );
+export function validateUpdateMyProfileDto(input: Record<string, unknown>): UpdateMyProfileDto {
+  const unknownFields = Object.keys(input).filter((field) => !ALLOWED_FIELDS.has(field));
 
   if (unknownFields.length > 0) {
-    const containsInternalField = unknownFields.some((field) =>
-      FORBIDDEN_FIELDS.has(field),
-    );
+    const containsInternalField = unknownFields.some((field) => FORBIDDEN_FIELDS.has(field));
 
     throw new BadRequestException(
       containsInternalField
@@ -103,10 +91,7 @@ export function validateUpdateMyProfileDto(
       throw new BadRequestException('avatarMediaId must be a string or null.');
     }
 
-    if (
-      typeof input.avatarMediaId === 'string' &&
-      !OBJECT_ID_PATTERN.test(input.avatarMediaId)
-    ) {
+    if (typeof input.avatarMediaId === 'string' && !OBJECT_ID_PATTERN.test(input.avatarMediaId)) {
       throw new BadRequestException('avatarMediaId must be a valid ObjectId.');
     }
 

@@ -31,28 +31,24 @@ describe('validateUpdateMyProfileDto', () => {
   });
 
   it('validates visibility enum', () => {
-    expect(() =>
-      validateUpdateMyProfileDto({ visibility: 'friends' }),
-    ).toThrow(BadRequestException);
+    expect(() => validateUpdateMyProfileDto({ visibility: 'friends' })).toThrow(
+      BadRequestException,
+    );
   });
 
   it('accepts avatarMediaId as valid ObjectId string or null only', () => {
-    expect(
-      validateUpdateMyProfileDto({ avatarMediaId: '64f000000000000000000123' }),
-    ).toEqual({
+    expect(validateUpdateMyProfileDto({ avatarMediaId: '64f000000000000000000123' })).toEqual({
       avatarMediaId: '64f000000000000000000123',
     });
     expect(validateUpdateMyProfileDto({ avatarMediaId: null })).toEqual({
       avatarMediaId: null,
     });
-    expect(() => validateUpdateMyProfileDto({ avatarMediaId: 123 })).toThrow(
-      BadRequestException,
-    );
+    expect(() => validateUpdateMyProfileDto({ avatarMediaId: 123 })).toThrow(BadRequestException);
   });
 
   it('rejects invalid avatarMediaId safely instead of allowing a runtime ObjectId error', () => {
-    expect(() =>
-      validateUpdateMyProfileDto({ avatarMediaId: 'not-an-object-id' }),
-    ).toThrow(BadRequestException);
+    expect(() => validateUpdateMyProfileDto({ avatarMediaId: 'not-an-object-id' })).toThrow(
+      BadRequestException,
+    );
   });
 });

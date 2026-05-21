@@ -6,4 +6,9 @@ export default defineNuxtConfig({
   typescript: {
     strict: true,
   },
+  app: {
+    head: {
+      meta: [{ name: 'robots', content: 'noindex, nofollow' }],
+    },
+  },
 });

@@ -8,15 +8,9 @@ import { Types } from 'mongoose';
 import { UserRepository } from '../auth/users/user.repository';
 import type { MyUserProfileDto } from './dto/my-profile-response.dto';
 import type { PublicProfileResponseDto } from './dto/public-profile-response.dto';
-import {
-  createPrivateProfileState,
-  createProfileNotFoundState,
-} from './dto/profile-response.dto';
+import { createPrivateProfileState, createProfileNotFoundState } from './dto/profile-response.dto';
 import type { UpdateMyProfileDto } from './dto/update-my-profile.dto';
-import {
-  toMyUserProfileDto,
-  toPublicUserProfileDto,
-} from './profile.mapper';
+import { toMyUserProfileDto, toPublicUserProfileDto } from './profile.mapper';
 import { UserProfileRepository } from './profile.repository';
 import type { UserProfileDocument } from './profile.schema';
 import {
@@ -26,10 +20,7 @@ import {
   type UpdateUserProfileInput,
 } from './profile.types';
 import { UserProfileVisibilityService } from './profile-visibility.service';
-import {
-  UsernamePolicyError,
-  validateUsernamePolicy,
-} from './username/username-policy';
+import { UsernamePolicyError, validateUsernamePolicy } from './username/username-policy';
 
 const DISPLAY_NAME_MAX_LENGTH = 80;
 const BIO_MAX_LENGTH = 500;
@@ -59,9 +50,7 @@ export class UserProfileService {
     return `/u/${usernameNormalized}`;
   }
 
-  findByUserId(
-    userId: Types.ObjectId | string,
-  ): Promise<UserProfileDocument | null> {
+  findByUserId(userId: Types.ObjectId | string): Promise<UserProfileDocument | null> {
     return this.profileRepository.findByUserId(userId);
   }
 
@@ -71,16 +60,13 @@ export class UserProfileService {
     return this.profileRepository.findByUsernameNormalized(usernameNormalized);
   }
 
-  async getPublicProfileByUsername(
-    username: string,
-  ): Promise<PublicProfileResponseDto> {
+  async getPublicProfileByUsername(username: string): Promise<PublicProfileResponseDto> {
     if (!this.userRepository || !this.visibilityService) {
       throw new Error('Profile public lookup dependencies are not registered.');
     }
 
     const { usernameNormalized } = this.validateUsername(username);
-    const profile =
-      await this.profileRepository.findByUsernameNormalized(usernameNormalized);
+    const profile = await this.profileRepository.findByUsernameNormalized(usernameNormalized);
 
     if (!profile) {
       return createProfileNotFoundState();
@@ -113,19 +99,13 @@ export class UserProfileService {
     return toMyUserProfileDto(profile);
   }
 
-  async updateMyProfile(
-    userId: string,
-    input: UpdateMyProfileDto,
-  ): Promise<MyUserProfileDto> {
+  async updateMyProfile(userId: string, input: UpdateMyProfileDto): Promise<MyUserProfileDto> {
     if (this.visibilityService) {
       const existing = await this.profileRepository.findByUserId(userId);
 
       if (
         existing &&
-        !this.visibilityService.canUpdateOwnProfile(
-          userId,
-          String(existing.userId),
-        )
+        !this.visibilityService.canUpdateOwnProfile(userId, String(existing.userId))
       ) {
         throw new ForbiddenException('Cannot update this profile.');
       }
@@ -146,22 +126,15 @@ export class UserProfileService {
   ): Promise<boolean> {
     const { usernameNormalized } = this.validateUsername(username);
 
-    return !(await this.profileRepository.isUsernameTaken(
-      usernameNormalized,
-      excludeUserId,
-    ));
+    return !(await this.profileRepository.isUsernameTaken(usernameNormalized, excludeUserId));
   }
 
-  async createProfile(
-    input: CreateUserProfileInput,
-  ): Promise<UserProfileDocument> {
+  async createProfile(input: CreateUserProfileInput): Promise<UserProfileDocument> {
     const username = this.validateUsername(input.username);
     const displayName = this.validateDisplayName(input.displayName);
     const bio = this.validateOptionalBio(input.bio);
     const visibility = this.validateVisibility(input.visibility ?? 'public');
-    const usernameTaken = await this.profileRepository.isUsernameTaken(
-      username.usernameNormalized,
-    );
+    const usernameTaken = await this.profileRepository.isUsernameTaken(username.usernameNormalized);
 
     if (usernameTaken) {
       throw new ConflictException('Username is not available.');
@@ -217,9 +190,7 @@ export class UserProfileService {
 
     if (input.avatarMediaId !== undefined) {
       update.avatarMediaId =
-        input.avatarMediaId === null
-          ? null
-          : this.validateAvatarMediaId(input.avatarMediaId);
+        input.avatarMediaId === null ? null : this.validateAvatarMediaId(input.avatarMediaId);
     }
 
     if (input.bio === null) {
@@ -275,9 +246,7 @@ export class UserProfileService {
     return visibility as ProfileVisibility;
   }
 
-  private validateAvatarMediaId(
-    avatarMediaId: Types.ObjectId | string,
-  ): Types.ObjectId | string {
+  private validateAvatarMediaId(avatarMediaId: Types.ObjectId | string): Types.ObjectId | string {
     if (typeof avatarMediaId !== 'string') {
       return avatarMediaId;
     }

@@ -26,7 +26,10 @@ export class ContentRevisionService {
     snapshot: Record<string, unknown>,
     createdBy: Types.ObjectId | string,
   ): Promise<ContentRevisionDocument> {
-    const latestNumber = await this.revisionRepository.latestRevisionNumber(resourceType, resourceId);
+    const latestNumber = await this.revisionRepository.latestRevisionNumber(
+      resourceType,
+      resourceId,
+    );
     return this.revisionRepository.create({
       resourceType,
       resourceId,

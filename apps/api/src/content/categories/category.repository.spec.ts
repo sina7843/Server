@@ -38,10 +38,13 @@ describe('CategoryRepository', () => {
     expect(findById).toHaveBeenCalledWith('cat-id');
   });
 
-  it('finds by slug', async () => {
+  it('finds by slug excluding deleted', async () => {
     const { findOne, repository } = createRepository();
     await repository.findBySlug('technology');
-    expect(findOne).toHaveBeenCalledWith({ slugNormalized: 'technology' });
+    expect(findOne).toHaveBeenCalledWith({
+      slugNormalized: 'technology',
+      deletedAt: { $exists: false },
+    });
   });
 
   it('checks slug existence with excludeId', async () => {
@@ -59,10 +62,10 @@ describe('CategoryRepository', () => {
     expect(findOne).toHaveBeenCalledWith({ slugNormalized: 'technology' });
   });
 
-  it('lists categories sorted by sortOrder ascending', async () => {
+  it('lists active categories sorted by sortOrder ascending', async () => {
     const { find, sort, repository } = createRepository();
     await repository.list();
-    expect(find).toHaveBeenCalledWith({});
+    expect(find).toHaveBeenCalledWith({ deletedAt: { $exists: false } });
     expect(sort).toHaveBeenCalledWith({ sortOrder: 1 });
   });
 

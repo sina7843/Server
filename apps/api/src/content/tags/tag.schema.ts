@@ -16,6 +16,9 @@ export class Tag {
 
   declare createdAt: Date;
   declare updatedAt: Date;
+
+  @Prop()
+  declare deletedAt?: Date;
 }
 
 export type TagDocument = HydratedDocument<Tag>;

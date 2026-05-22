@@ -1,0 +1,138 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { validateObjectId } from '../../rbac/dto/rbac-validation';
+import { PageService } from '../../content/pages/page.service';
+import type { PageDocument } from '../../content/pages/page.schema';
+import { ContentRevisionService } from '../../content/revisions/content-revision.service';
+import type { ContentRevisionDocument } from '../../content/revisions/content-revision.schema';
+import type { AdminPageListQueryDto } from './dto/admin-content-query';
+import type { AdminCreatePageBodyDto, AdminUpdatePageBodyDto } from './dto/admin-page-body';
+
+function toPageSnapshot(page: PageDocument): Record<string, unknown> {
+  return {
+    title: page.title,
+    slug: page.slug,
+    bodyJson: page.bodyJson,
+    bodyHtml: page.bodyHtml,
+    status: page.status,
+    seo: page.seo,
+  };
+}
+
+@Injectable()
+export class AdminContentPagesService {
+  constructor(
+    private readonly pageService: PageService,
+    private readonly revisionService: ContentRevisionService,
+  ) {}
+
+  async listPages(query: AdminPageListQueryDto): Promise<{ items: PageDocument[]; total: number }> {
+    return this.pageService.list(
+      {
+        ...(query.status !== undefined ? { status: query.status } : {}),
+        includeDeleted: query.includeDeleted,
+      },
+      query.page,
+      query.limit,
+    );
+  }
+
+  async createPage(input: AdminCreatePageBodyDto, authorId: string): Promise<PageDocument> {
+    const page = await this.pageService.create({
+      title: input.title,
+      slug: input.slug,
+      slugNormalized: input.slug,
+      bodyJson: input.bodyJson,
+      bodyHtml: input.bodyHtml,
+      createdBy: authorId,
+      seo: input.seo,
+    });
+
+    await this.revisionService.snapshot('page', String(page._id), toPageSnapshot(page), authorId);
+
+    return page;
+  }
+
+  async getPage(rawId: string): Promise<PageDocument> {
+    const id = validateObjectId(rawId, 'id');
+    const page = await this.pageService.findById(id);
+    if (!page) throw new NotFoundException('Page not found.');
+    return page;
+  }
+
+  async updatePage(
+    rawId: string,
+    input: AdminUpdatePageBodyDto,
+    editorId: string,
+  ): Promise<PageDocument> {
+    const id = validateObjectId(rawId, 'id');
+
+    if (input.slug !== undefined) {
+      const updated = await this.pageService.updateSlug(id, {
+        slug: input.slug,
+        slugNormalized: input.slug,
+      });
+      const { slug: omittedSlug, ...rest } = input;
+      const hasOtherFields = omittedSlug !== undefined && Object.keys(rest).length > 0;
+
+      const result = hasOtherFields
+        ? await this.pageService.update(id, { ...rest, updatedBy: editorId })
+        : updated;
+
+      const page = result ?? updated;
+      await this.revisionService.snapshot('page', id, toPageSnapshot(page), editorId);
+      return page;
+    }
+
+    const updated = await this.pageService.update(id, { ...input, updatedBy: editorId });
+    if (!updated) throw new NotFoundException('Page not found.');
+    await this.revisionService.snapshot('page', id, toPageSnapshot(updated), editorId);
+    return updated;
+  }
+
+  async previewPage(rawId: string): Promise<PageDocument> {
+    return this.getPage(rawId);
+  }
+
+  async publishPage(rawId: string, editorId: string): Promise<PageDocument> {
+    const id = validateObjectId(rawId, 'id');
+    const page = await this.pageService.markPublished(id);
+    await this.revisionService.snapshot('page', id, toPageSnapshot(page), editorId);
+    return page;
+  }
+
+  async archivePage(rawId: string, editorId: string): Promise<PageDocument> {
+    const id = validateObjectId(rawId, 'id');
+    const page = await this.pageService.markArchived(id);
+    await this.revisionService.snapshot('page', id, toPageSnapshot(page), editorId);
+    return page;
+  }
+
+  async softDeletePage(rawId: string): Promise<PageDocument> {
+    const id = validateObjectId(rawId, 'id');
+    return this.pageService.softDelete(id);
+  }
+
+  async listPageRevisions(rawId: string): Promise<ContentRevisionDocument[]> {
+    const id = validateObjectId(rawId, 'id');
+    const page = await this.pageService.findById(id);
+    if (!page) throw new NotFoundException('Page not found.');
+    return this.revisionService.listByResource('page', id);
+  }
+
+  async getPageRevision(
+    rawPageId: string,
+    rawRevisionId: string,
+  ): Promise<ContentRevisionDocument> {
+    const pageId = validateObjectId(rawPageId, 'id');
+    const revisionId = validateObjectId(rawRevisionId, 'revisionId');
+
+    const page = await this.pageService.findById(pageId);
+    if (!page) throw new NotFoundException('Page not found.');
+
+    const revision = await this.revisionService.findById(revisionId);
+    if (!revision || String(revision.resourceId) !== pageId || revision.resourceType !== 'page') {
+      throw new NotFoundException('Revision not found.');
+    }
+    return revision;
+  }
+}

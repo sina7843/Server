@@ -39,6 +39,16 @@ export const RolePermissionRegistryMap = {
     Permissions.CONTENT_PAGE_PUBLISH,
     Permissions.CONTENT_PAGE_ARCHIVE,
 
+    Permissions.CONTENT_CATEGORY_READ,
+    Permissions.CONTENT_CATEGORY_CREATE,
+    Permissions.CONTENT_CATEGORY_UPDATE,
+    Permissions.CONTENT_CATEGORY_DELETE,
+
+    Permissions.CONTENT_TAG_READ,
+    Permissions.CONTENT_TAG_CREATE,
+    Permissions.CONTENT_TAG_UPDATE,
+    Permissions.CONTENT_TAG_DELETE,
+
     Permissions.MEDIA_ASSET_READ,
     Permissions.MEDIA_ASSET_UPLOAD,
     Permissions.MEDIA_ASSET_UPDATE,

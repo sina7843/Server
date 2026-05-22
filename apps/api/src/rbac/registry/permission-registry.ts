@@ -128,6 +128,40 @@ export const PermissionRegistry = [
     'Archive content pages',
   ),
 
+  permission(
+    Permissions.CONTENT_CATEGORY_READ,
+    'content',
+    'category',
+    'read',
+    'Read content categories',
+  ),
+  permission(
+    Permissions.CONTENT_CATEGORY_CREATE,
+    'content',
+    'category',
+    'create',
+    'Create content categories',
+  ),
+  permission(
+    Permissions.CONTENT_CATEGORY_UPDATE,
+    'content',
+    'category',
+    'update',
+    'Update content categories',
+  ),
+  permission(
+    Permissions.CONTENT_CATEGORY_DELETE,
+    'content',
+    'category',
+    'delete',
+    'Delete content categories',
+  ),
+
+  permission(Permissions.CONTENT_TAG_READ, 'content', 'tag', 'read', 'Read content tags'),
+  permission(Permissions.CONTENT_TAG_CREATE, 'content', 'tag', 'create', 'Create content tags'),
+  permission(Permissions.CONTENT_TAG_UPDATE, 'content', 'tag', 'update', 'Update content tags'),
+  permission(Permissions.CONTENT_TAG_DELETE, 'content', 'tag', 'delete', 'Delete content tags'),
+
   permission(Permissions.MEDIA_ASSET_READ, 'media', 'asset', 'read', 'Read media asset metadata'),
   permission(Permissions.MEDIA_ASSET_UPLOAD, 'media', 'asset', 'upload', 'Upload media assets'),
   permission(

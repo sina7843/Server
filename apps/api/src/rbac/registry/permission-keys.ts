@@ -31,6 +31,16 @@ export const Permissions = {
   CONTENT_PAGE_PUBLISH: 'content.page.publish',
   CONTENT_PAGE_ARCHIVE: 'content.page.archive',
 
+  CONTENT_CATEGORY_READ: 'content.category.read',
+  CONTENT_CATEGORY_CREATE: 'content.category.create',
+  CONTENT_CATEGORY_UPDATE: 'content.category.update',
+  CONTENT_CATEGORY_DELETE: 'content.category.delete',
+
+  CONTENT_TAG_READ: 'content.tag.read',
+  CONTENT_TAG_CREATE: 'content.tag.create',
+  CONTENT_TAG_UPDATE: 'content.tag.update',
+  CONTENT_TAG_DELETE: 'content.tag.delete',
+
   MEDIA_ASSET_READ: 'media.asset.read',
   MEDIA_ASSET_UPLOAD: 'media.asset.upload',
   MEDIA_ASSET_UPDATE: 'media.asset.update',

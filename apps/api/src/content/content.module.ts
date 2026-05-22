@@ -15,6 +15,15 @@ import { PageService } from './pages/page.service';
 import { ContentRevision, ContentRevisionSchema } from './revisions/content-revision.schema';
 import { ContentRevisionRepository } from './revisions/content-revision.repository';
 import { ContentRevisionService } from './revisions/content-revision.service';
+import { PublicPostsService } from './public/public-posts.service';
+import { PublicNewsController } from './public/public-news.controller';
+import { PublicArticlesController } from './public/public-articles.controller';
+import { PublicAnnouncementsController } from './public/public-announcements.controller';
+import { PublicGuidesController } from './public/public-guides.controller';
+import { PublicRulesController } from './public/public-rules.controller';
+import { PublicPagesController } from './public/public-pages.controller';
+import { PublicCategoriesController } from './public/public-categories.controller';
+import { PublicTagsController } from './public/public-tags.controller';
 
 @Module({
   imports: [
@@ -25,6 +34,16 @@ import { ContentRevisionService } from './revisions/content-revision.service';
       { name: Page.name, schema: PageSchema },
       { name: ContentRevision.name, schema: ContentRevisionSchema },
     ]),
+  ],
+  controllers: [
+    PublicNewsController,
+    PublicArticlesController,
+    PublicAnnouncementsController,
+    PublicGuidesController,
+    PublicRulesController,
+    PublicPagesController,
+    PublicCategoriesController,
+    PublicTagsController,
   ],
   providers: [
     CategoryRepository,
@@ -37,13 +56,8 @@ import { ContentRevisionService } from './revisions/content-revision.service';
     PageService,
     ContentRevisionRepository,
     ContentRevisionService,
+    PublicPostsService,
   ],
-  exports: [
-    CategoryService,
-    TagService,
-    PostService,
-    PageService,
-    ContentRevisionService,
-  ],
+  exports: [CategoryService, TagService, PostService, PageService, ContentRevisionService],
 })
 export class ContentModule {}

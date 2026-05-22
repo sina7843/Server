@@ -1,8 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import type { ContentStatus } from '@dragon/types';
 import { Page, type PageDocument } from './page.schema';
 import type { CreatePageInput, PageId, UpdatePageInput, UpdatePageSlugInput } from './page.types';
+
+export interface PageListFilter {
+  readonly status?: ContentStatus;
+  readonly includeDeleted?: boolean;
+}
 
 @Injectable()
 export class PageRepository {
@@ -16,12 +22,35 @@ export class PageRepository {
     return this.pageModel.findOne({ slugNormalized, deletedAt: { $exists: false } }).exec();
   }
 
+  findPublishedBySlug(slugNormalized: string): Promise<PageDocument | null> {
+    return this.pageModel
+      .findOne({ slugNormalized, status: 'published', deletedAt: { $exists: false } })
+      .exec();
+  }
+
   existsBySlug(slugNormalized: string, excludeId?: PageId): Promise<PageDocument | null> {
     const filter: Record<string, unknown> = { slugNormalized };
     if (excludeId !== undefined) {
       filter._id = { $ne: excludeId };
     }
     return this.pageModel.findOne(filter).exec();
+  }
+
+  async list(
+    filter: PageListFilter,
+    page: number,
+    limit: number,
+  ): Promise<{ items: PageDocument[]; total: number }> {
+    const query: Record<string, unknown> = {};
+    if (filter.status !== undefined) query.status = filter.status;
+    if (!filter.includeDeleted) query.deletedAt = { $exists: false };
+
+    const skip = (page - 1) * limit;
+    const [items, total] = await Promise.all([
+      this.pageModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
+      this.pageModel.countDocuments(query).exec(),
+    ]);
+    return { items, total };
   }
 
   async create(input: CreatePageInput): Promise<PageDocument> {
@@ -55,7 +84,11 @@ export class PageRepository {
     return this.pageModel.findByIdAndUpdate(id, { $set: set }, { new: true }).exec();
   }
 
-  updateSlug(id: PageId, input: UpdatePageSlugInput, oldSlugNormalized: string): Promise<PageDocument | null> {
+  updateSlug(
+    id: PageId,
+    input: UpdatePageSlugInput,
+    oldSlugNormalized: string,
+  ): Promise<PageDocument | null> {
     return this.pageModel
       .findByIdAndUpdate(
         id,
@@ -70,11 +103,7 @@ export class PageRepository {
 
   markPublished(id: PageId, publishedAt: Date): Promise<PageDocument | null> {
     return this.pageModel
-      .findByIdAndUpdate(
-        id,
-        { $set: { status: 'published', publishedAt } },
-        { new: true },
-      )
+      .findByIdAndUpdate(id, { $set: { status: 'published', publishedAt } }, { new: true })
       .exec();
   }
 

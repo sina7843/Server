@@ -18,9 +18,7 @@ describe('Tag schema — index declarations', () => {
   it('declares unique index on slugNormalized', () => {
     const indexes = TagSchema.indexes();
     expect(indexes).toEqual(
-      expect.arrayContaining([
-        [{ slugNormalized: 1 }, expect.objectContaining({ unique: true })],
-      ]),
+      expect.arrayContaining([[{ slugNormalized: 1 }, expect.objectContaining({ unique: true })]]),
     );
   });
 });

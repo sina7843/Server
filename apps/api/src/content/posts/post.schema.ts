@@ -1,6 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, SchemaTypes, Types } from 'mongoose';
-import { CONTENT_POST_TYPES, CONTENT_STATUSES, type ContentPostType, type ContentStatus } from '@dragon/types';
+import {
+  CONTENT_POST_TYPES,
+  CONTENT_STATUSES,
+  type ContentPostType,
+  type ContentStatus,
+} from '@dragon/types';
 import type { PostMediaRefData, PostSeoData } from './post.types';
 
 @Schema({ collection: 'posts', timestamps: true })

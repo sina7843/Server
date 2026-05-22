@@ -1,8 +1,16 @@
 # Content Security Checklist
 
-This checklist covers the security properties of the content persistence layer (Task 0.6.1). Verify before exposing any content endpoint.
+> **RELEASE BLOCK — Task 0.6.2:** Public content APIs exist but Slice 0.6 is **not release-ready** after Task 0.6.2. Content rendering must not be considered safe until **Task 0.6.3 completes `bodyHtml` sanitization and TipTap validation**. Do not serve `bodyHtml` to end users before 0.6.3 is approved.
 
-## Slug Injection
+This checklist covers the security properties of the content subsystem. Tasks 0.6.1 and 0.6.2 cover persistence and API surface. Task 0.6.3 covers sanitization.
+
+## XSS / bodyHtml (Task 0.6.3 — NOT YET COMPLETE)
+
+- [ ] **`bodyHtml` is NOT sanitized** — Task 0.6.3 must add DOMPurify/server-side sanitization before any public rendering
+- [ ] TipTap schema validation must be applied to `bodyJson` before storage
+- [ ] `PublicPostDto.bodyHtml` carries a warning comment in the type: do not render in untrusted contexts before 0.6.3
+
+## Slug Injection (Task 0.6.1 ✓)
 
 - [x] `normalizeSlug()` rejects all unsafe URL characters (`/?#[]@!$&'()*+,;=<>{}|\^\`"`)
 - [x] Slug is lowercased and validated against `/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/`
@@ -10,42 +18,52 @@ This checklist covers the security properties of the content persistence layer (
 - [x] Maximum slug length is 200 characters
 - [x] `SlugPolicyError` is caught in services and re-thrown as `ConflictException` (400) — never leaks as 500
 
-## Hard Delete Prevention
+## Hard Delete Prevention (Task 0.6.1 ✓)
 
 - [x] Post repository has no `deleteOne`, `findByIdAndDelete`, or `hardDelete` method
 - [x] Page repository has no hard-delete method
 - [x] ContentRevision repository has no hard-delete method
-- [x] Soft delete via `deletedAt` field only (Posts, Pages)
+- [x] Category repository has no hard-delete method (soft delete via `deletedAt` added Task 0.6.2)
+- [x] Tag repository has no hard-delete method (soft delete via `deletedAt` added Task 0.6.2)
+- [x] Soft delete via `deletedAt` field only
 - [x] Unit tests assert absence of hard-delete methods
 
-## Revision Integrity
+## Revision Integrity (Task 0.6.1 ✓)
 
 - [x] `ContentRevision` has no `updatedAt` field (immutable records)
 - [x] `ContentRevisionService` has no `restore` method
 - [x] `ContentRevisionRepository` has no `restore` method
+- [x] No `POST .../revisions/:id/restore` route exists — returns 404
+- [x] No `restoreRevision` method in `packages/sdk`
 - [x] Revision numbers are unique per resource — enforced by MongoDB unique index
 - [x] Unit tests assert absence of restore methods
+- [x] Revisions are created on every create, update, publish, archive
 
-## Status Lifecycle
+## Status Lifecycle (Task 0.6.1 ✓)
 
 - [x] Only `draft | published | archived` are valid statuses — backed by `CONTENT_STATUSES` constant
 - [x] `assertValidContentStatus` throws on any unknown status string
 - [x] Status defaults to `draft` at schema level — no content is accidentally published
+- [x] Public routes filter `status = 'published'` and `deletedAt $exists false`
 
-## Data Exposure (Future — enforce when adding controllers)
+## Data Exposure (Task 0.6.2 ✓)
 
-- [ ] `deletedAt` documents must be excluded from all public read endpoints
-- [ ] `slugHistory` must not be exposed in public list endpoints
-- [ ] `bodyJson` (raw editor state) must not be exposed in public endpoints — only `bodyHtml`
-- [ ] `createdBy` / `updatedBy` user IDs must not be exposed without authorization
-- [ ] Revision snapshots must never be served without admin permission
+- [x] `deletedAt` documents are excluded from all public read endpoints
+- [x] `slugHistory` is not exposed in public list endpoints (not in `PublicPostDto`)
+- [x] `bodyJson` (raw editor state) is not exposed in public endpoints — only `bodyHtml`
+- [x] `authorId` / `createdBy` user IDs are not in public DTOs
+- [x] Revision snapshots are only served on admin routes with `content.post.read` / `content.page.read` permissions
+- [x] No generic `/api/v1/posts` or `/api/v1/posts/:slug` route exists
 
-## Input Validation (Future — enforce when adding DTOs)
+## Input Validation (Task 0.6.2 ✓ — partial)
 
-- [ ] All string inputs must be trimmed and length-bounded in DTO validators
-- [ ] `categoryIds` and `tagIds` must be validated as existing ObjectIds before write
-- [ ] SEO `canonicalUrl` must be validated as a valid HTTPS URL
-- [ ] `bodyHtml` must be sanitized before storage (DOMPurify or equivalent) to prevent stored XSS
+- [x] Admin DTOs use allowlists — unknown fields are rejected, internal fields cannot be injected
+- [x] Post type is validated against `CONTENT_POST_TYPES` constant
+- [x] Status is validated against `CONTENT_STATUSES` constant
+- [x] ObjectId validation via `validateObjectId()` on all `:id` params
+- [ ] `categoryIds` and `tagIds` are NOT yet validated as existing ObjectIds (future task)
+- [ ] SEO `canonicalUrl` is NOT yet validated as HTTPS URL (future task)
+- [ ] `bodyHtml` is NOT yet sanitized — Task 0.6.3 required
 
 ## MongoDB
 

@@ -2,59 +2,150 @@
 
 ## Overview
 
-The content subsystem provides persistence for Posts, Pages, Categories, Tags, and ContentRevisions. It lives entirely within `apps/api/src/content/` and is registered as `ContentModule` in `AppModule`. There are no controllers, routes, or HTTP surface in Task 0.6.1 — this is the persistence foundation only.
+The content subsystem provides persistence, public APIs, and admin APIs for Posts, Pages, Categories, Tags, and ContentRevisions. It lives in:
+
+- `apps/api/src/content/` — core domain (schemas, repositories, services, public routes)
+- `apps/api/src/admin/content/` — admin routes and services
+
+> **Release block:** Task 0.6.2 may expose public content API structure. However, Slice 0.6 is **not** security-release-ready after Task 0.6.2. Content rendering must not be considered safe until **Task 0.6.3 completes backend `bodyHtml` sanitization and TipTap validation.**
 
 ## Module Layout
 
 ```
 apps/api/src/content/
-  content.module.ts           — MongooseModule registrations, providers, exports
+  content.module.ts                  — MongooseModule, providers, exports, public controllers
   slug/
-    slug-policy.ts            — normalizeSlug(), SlugPolicyError (pure, no NestJS)
+    slug-policy.ts                   — normalizeSlug(), SlugPolicyError (pure, no NestJS)
     slug-policy.spec.ts
   shared/
-    content-status.ts         — isValidContentStatus(), assertValidContentStatus()
+    content-status.ts                — isValidContentStatus(), assertValidContentStatus()
   posts/
-    post.types.ts             — PostId, CreatePostInput, UpdatePostInput, ...
-    post.schema.ts            — Mongoose schema, PostDocument, PostSchema
-    post.repository.ts        — Data access (no hard delete)
-    post.service.ts           — Business rules (slug policy, status lifecycle)
+    post.schema.ts                   — Mongoose schema, PostDocument, PostSchema
+    post.repository.ts               — Data access (no hard delete); list(), findPublishedByTypeAndSlug()
+    post.service.ts                  — Business rules (slug policy, status lifecycle)
     post.*.spec.ts
   pages/
-    page.types.ts
     page.schema.ts
-    page.repository.ts
+    page.repository.ts               — list(), findPublishedBySlug()
     page.service.ts
     page.*.spec.ts
   categories/
-    category.types.ts
-    category.schema.ts
-    category.repository.ts
+    category.schema.ts               — includes deletedAt for soft delete
+    category.repository.ts           — list(includeDeleted), softDelete()
     category.service.ts
     category.*.spec.ts
   tags/
-    tag.types.ts
-    tag.schema.ts
-    tag.repository.ts
+    tag.schema.ts                    — includes deletedAt for soft delete
+    tag.repository.ts                — list(includeDeleted), softDelete()
     tag.service.ts
     tag.*.spec.ts
   revisions/
-    content-revision.types.ts
     content-revision.schema.ts
     content-revision.repository.ts
-    content-revision.service.ts
+    content-revision.service.ts      — snapshot() creates immutable revision on every change
     content-revision.*.spec.ts
+  public/
+    public-posts.service.ts          — listPublished(type, query), getPublished(type, slug)
+    public-news.controller.ts        — GET /api/v1/news, GET /api/v1/news/:slug
+    public-articles.controller.ts    — GET /api/v1/articles, GET /api/v1/articles/:slug
+    public-announcements.controller.ts
+    public-guides.controller.ts
+    public-rules.controller.ts
+    public-pages.controller.ts       — GET /api/v1/pages/:slug
+    public-categories.controller.ts  — GET /api/v1/categories, GET /api/v1/categories/:slug
+    public-tags.controller.ts        — GET /api/v1/tags, GET /api/v1/tags/:slug
+    dto/
+      public-post-response.ts
+      public-page-response.ts
+      public-category-response.ts
+      public-tag-response.ts
+
+apps/api/src/admin/content/
+  admin-content.module.ts            — imports AuthModule, RbacModule, ContentModule
+  admin-content-posts.service.ts     — CRUD + publish/archive/softDelete + revisions
+  admin-content-posts.controller.ts  — POST /admin/v1/content/posts (CRUD + lifecycle)
+  admin-content-pages.service.ts
+  admin-content-pages.controller.ts  — POST /admin/v1/content/pages (CRUD + lifecycle)
+  admin-content-categories.controller.ts — /admin/v1/content/categories
+  admin-content-tags.controller.ts   — /admin/v1/content/tags
+  dto/
+    admin-content-query.ts
+    admin-post-body.ts / admin-post-response.ts
+    admin-page-body.ts  / admin-page-response.ts
+    admin-category-body.ts / admin-category-response.ts
+    admin-tag-body.ts  / admin-tag-response.ts
 ```
+
+## Public API Routes (Task 0.6.2)
+
+All public routes return only `status = 'published'` and `deletedAt` not set. No auth required.
+
+| Method | Path                          | Description                  |
+| ------ | ----------------------------- | ---------------------------- |
+| GET    | `/api/v1/news`                | List published news          |
+| GET    | `/api/v1/news/:slug`          | Get news by slug             |
+| GET    | `/api/v1/articles`            | List published articles      |
+| GET    | `/api/v1/articles/:slug`      | Get article by slug          |
+| GET    | `/api/v1/announcements`       | List published announcements |
+| GET    | `/api/v1/announcements/:slug` | Get announcement by slug     |
+| GET    | `/api/v1/guides`              | List published guides        |
+| GET    | `/api/v1/guides/:slug`        | Get guide by slug            |
+| GET    | `/api/v1/rules`               | List published rules         |
+| GET    | `/api/v1/rules/:slug`         | Get rule by slug             |
+| GET    | `/api/v1/pages/:slug`         | Get page by slug             |
+| GET    | `/api/v1/categories`          | List public categories       |
+| GET    | `/api/v1/categories/:slug`    | Get category by slug         |
+| GET    | `/api/v1/tags`                | List public tags             |
+| GET    | `/api/v1/tags/:slug`          | Get tag by slug              |
+
+**No generic `/api/v1/posts` or `/api/v1/posts/:slug` route exists.**
+
+## Admin API Routes (Task 0.6.2)
+
+All admin routes require `AccessTokenGuard + PermissionGuard`.
+
+| Method | Path                                         | Permission              |
+| ------ | -------------------------------------------- | ----------------------- |
+| GET    | `/admin/v1/content/posts`                    | content.post.read       |
+| POST   | `/admin/v1/content/posts`                    | content.post.create     |
+| GET    | `/admin/v1/content/posts/:id`                | content.post.read       |
+| PATCH  | `/admin/v1/content/posts/:id`                | content.post.update     |
+| POST   | `/admin/v1/content/posts/:id/preview`        | content.post.read       |
+| POST   | `/admin/v1/content/posts/:id/publish`        | content.post.publish    |
+| POST   | `/admin/v1/content/posts/:id/archive`        | content.post.archive    |
+| DELETE | `/admin/v1/content/posts/:id`                | content.post.update     |
+| GET    | `/admin/v1/content/posts/:id/revisions`      | content.post.read       |
+| GET    | `/admin/v1/content/posts/:id/revisions/:rid` | content.post.read       |
+| GET    | `/admin/v1/content/pages`                    | content.page.read       |
+| POST   | `/admin/v1/content/pages`                    | content.page.create     |
+| GET    | `/admin/v1/content/pages/:id`                | content.page.read       |
+| PATCH  | `/admin/v1/content/pages/:id`                | content.page.update     |
+| POST   | `/admin/v1/content/pages/:id/preview`        | content.page.read       |
+| POST   | `/admin/v1/content/pages/:id/publish`        | content.page.publish    |
+| POST   | `/admin/v1/content/pages/:id/archive`        | content.page.archive    |
+| DELETE | `/admin/v1/content/pages/:id`                | content.page.update     |
+| GET    | `/admin/v1/content/pages/:id/revisions`      | content.page.read       |
+| GET    | `/admin/v1/content/pages/:id/revisions/:rid` | content.page.read       |
+| GET    | `/admin/v1/content/categories`               | content.category.read   |
+| POST   | `/admin/v1/content/categories`               | content.category.create |
+| PATCH  | `/admin/v1/content/categories/:id`           | content.category.update |
+| DELETE | `/admin/v1/content/categories/:id`           | content.category.delete |
+| GET    | `/admin/v1/content/tags`                     | content.tag.read        |
+| POST   | `/admin/v1/content/tags`                     | content.tag.create      |
+| PATCH  | `/admin/v1/content/tags/:id`                 | content.tag.update      |
+| DELETE | `/admin/v1/content/tags/:id`                 | content.tag.delete      |
+
+**Revision restore does not exist. `POST .../revisions/:rid/restore` → 404. This is documented as Later (Task TBD).**
 
 ## Collections
 
-| Collection            | Description                          |
-|-----------------------|--------------------------------------|
-| `posts`               | News, articles, guides, rules, etc.  |
-| `pages`               | Static/standalone pages              |
-| `content_categories`  | Hierarchical categories (parentId)   |
-| `content_tags`        | Flat tags                            |
-| `content_revisions`   | Immutable point-in-time snapshots    |
+| Collection           | Description                         |
+| -------------------- | ----------------------------------- |
+| `posts`              | News, articles, guides, rules, etc. |
+| `pages`              | Static/standalone pages             |
+| `content_categories` | Hierarchical categories (parentId)  |
+| `content_tags`       | Flat tags                           |
+| `content_revisions`  | Immutable point-in-time snapshots   |
 
 ## Slug Strategy
 
@@ -70,11 +161,11 @@ apps/api/src/content/
 - Validates against `/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/` (must start/end with letter or number)
 - Rejects inputs exceeding 200 characters
 
-Throws `SlugPolicyError` (not a NestJS exception) for any violation. Services catch this and re-throw as `ConflictException`.
+Throws `SlugPolicyError` (not a NestJS exception) for any violation. Admin services catch this and re-throw as `ConflictException`. Public controllers map `SlugPolicyError` → `NotFoundException` (invalid slug = resource does not exist).
 
 ### Uniqueness Scoping
 
-- **Post slugs** are unique per `(type, slugNormalized)`. The same slug may exist across different post types (e.g., `my-post` can be both a `news` and an `article`).
+- **Post slugs** are unique per `(type, slugNormalized)`. The same slug may exist across different post types.
 - **Page slugs** are globally unique by `slugNormalized`.
 - **Category slugs** are globally unique by `slugNormalized`.
 - **Tag slugs** are globally unique by `slugNormalized`.
@@ -91,9 +182,9 @@ Valid statuses: `draft | published | archived` (from `@dragon/types` `CONTENT_ST
 
 ## Soft Delete
 
-Posts and Pages support soft delete via `deletedAt?: Date`. Setting `deletedAt` logically removes the document. `findBySlug` and similar read methods filter `{ deletedAt: { $exists: false } }`.
+Posts and Pages support soft delete via `deletedAt?: Date`. Setting `deletedAt` logically removes the document.
 
-Categories and Tags have no soft delete — they are referenced objects and are deleted by admins explicitly if unused (future task).
+Categories and Tags also support soft delete via `deletedAt?: Date` (added Task 0.6.2). Admin DELETE soft-deletes; public list always excludes deleted.
 
 **Hard delete is not implemented anywhere in the content subsystem.**
 
@@ -104,11 +195,13 @@ Revisions are **immutable point-in-time snapshots** of any content resource.
 - `timestamps: { createdAt: true, updatedAt: false }` — no `updatedAt` field.
 - Revision numbers are monotonically increasing per `(resourceType, resourceId)`.
 - `ContentRevisionService.snapshot()` fetches the current `latestRevisionNumber` and creates `revisionNumber + 1`.
-- There is no restore endpoint and no `restore` method anywhere in the revision subsystem.
+- Revisions are created on every create, update, publish, and archive operation.
+- **There is no restore endpoint and no `restore` method anywhere in the revision subsystem. This is Later.**
 
 ## Indexes
 
 ### Posts
+
 - `{ type, slugNormalized }` UNIQUE
 - `{ type, status, publishedAt }`
 - `{ categoryIds }`
@@ -119,18 +212,22 @@ Revisions are **immutable point-in-time snapshots** of any content resource.
 - Text index: `title`, `excerpt`, `bodyHtml`
 
 ### Pages
+
 - `{ slugNormalized }` UNIQUE
 - `{ status }`
 - `{ createdAt }`
 - Text index: `title`, `bodyHtml`
 
 ### Categories
+
 - `{ slugNormalized }` UNIQUE
 
 ### Tags
+
 - `{ slugNormalized }` UNIQUE
 
 ### ContentRevisions
+
 - `{ resourceType, resourceId, revisionNumber }` UNIQUE
 - `{ resourceType, resourceId, createdAt }`
 
@@ -146,7 +243,24 @@ Revisions are **immutable point-in-time snapshots** of any content resource.
 
 `packages/types/src/contracts/content.ts` exports:
 
-- `ContentSeoDto`, `ContentMediaRefDto`
-- `ContentPostSummary`, `ContentPageSummary`
-- `ContentCategorySummary`, `ContentTagSummary`
-- `ContentRevisionSummary`
+**Public DTOs:** `PublicPostDto`, `PublicPageDto`, `PublicCategoryDto`, `PublicTagDto`
+
+**Public responses:** `PublicPostListResponse`, `PublicPostResponse`, `PublicPageResponse`, `PublicCategoryListResponse`, `PublicCategoryResponse`, `PublicTagListResponse`, `PublicTagResponse`
+
+**Admin DTOs:** `AdminPostSummaryDto`, `AdminPostDetailDto`, `AdminPageSummaryDto`, `AdminPageDetailDto`, `AdminCategoryDto`, `AdminTagDto`
+
+**Admin responses:** `AdminPostListResponse`, `AdminPostResponse`, `AdminPageListResponse`, `AdminPageResponse`, `AdminCategoryListResponse`, `AdminCategoryResponse`, `AdminTagListResponse`, `AdminTagResponse`
+
+**Revision DTOs:** `ContentRevisionSummary`, `ContentRevisionDetailDto`, `ContentRevisionListResponse`, `ContentRevisionResponse`
+
+**Request types:** `CreatePostRequest`, `UpdatePostRequest`, `CreatePageRequest`, `UpdatePageRequest`, `CreateCategoryRequest`, `UpdateCategoryRequest`, `CreateTagRequest`, `UpdateTagRequest`, `ContentSeoInput`
+
+**Generic:** `ContentGenericResponse`
+
+## packages/sdk Client Methods
+
+**Public (`createContentClient`):** `listNews`, `getNewsPost`, `listArticles`, `getArticle`, `listAnnouncements`, `getAnnouncement`, `listGuides`, `getGuide`, `listRules`, `getRule`, `getPage`, `listCategories`, `getCategory`, `listTags`, `getTag`
+
+**Admin (`createAdminContentClient`):** `listPosts`, `createPost`, `getPost`, `updatePost`, `previewPost`, `publishPost`, `archivePost`, `softDeletePost`, `listPostRevisions`, `getPostRevision`, `listPages`, `createPage`, `getPage`, `updatePage`, `previewPage`, `publishPage`, `archivePage`, `softDeletePage`, `listPageRevisions`, `getPageRevision`, `listCategories`, `createCategory`, `updateCategory`, `deleteCategory`, `listTags`, `createTag`, `updateTag`, `deleteTag`
+
+**No `restoreRevision` method exists in the SDK.**

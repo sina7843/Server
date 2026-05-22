@@ -27,5 +27,8 @@ export class ContentRevision {
 export type ContentRevisionDocument = HydratedDocument<ContentRevision>;
 export const ContentRevisionSchema = SchemaFactory.createForClass(ContentRevision);
 
-ContentRevisionSchema.index({ resourceType: 1, resourceId: 1, revisionNumber: 1 }, { unique: true });
+ContentRevisionSchema.index(
+  { resourceType: 1, resourceId: 1, revisionNumber: 1 },
+  { unique: true },
+);
 ContentRevisionSchema.index({ resourceType: 1, resourceId: 1, createdAt: -1 });

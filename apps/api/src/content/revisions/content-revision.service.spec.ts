@@ -29,9 +29,7 @@ describe('ContentRevisionService — snapshot creation', () => {
     } as never);
 
     await service.snapshot('post', 'resource-id', { title: 'Updated' }, 'user-id');
-    expect(create).toHaveBeenCalledWith(
-      expect.objectContaining({ revisionNumber: 4 }),
-    );
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({ revisionNumber: 4 }));
   });
 
   it('revision numbers are independent per resource', async () => {

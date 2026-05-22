@@ -25,6 +25,9 @@ export class Category {
 
   declare createdAt: Date;
   declare updatedAt: Date;
+
+  @Prop()
+  declare deletedAt?: Date;
 }
 
 export type CategoryDocument = HydratedDocument<Category>;

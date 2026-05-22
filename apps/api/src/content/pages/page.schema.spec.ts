@@ -59,23 +59,17 @@ describe('Page schema — index declarations', () => {
   it('declares unique index on slugNormalized', () => {
     const indexes = PageSchema.indexes();
     expect(indexes).toEqual(
-      expect.arrayContaining([
-        [{ slugNormalized: 1 }, expect.objectContaining({ unique: true })],
-      ]),
+      expect.arrayContaining([[{ slugNormalized: 1 }, expect.objectContaining({ unique: true })]]),
     );
   });
 
   it('declares index on status', () => {
     const indexes = PageSchema.indexes();
-    expect(indexes).toEqual(
-      expect.arrayContaining([[{ status: 1 }, expect.any(Object)]]),
-    );
+    expect(indexes).toEqual(expect.arrayContaining([[{ status: 1 }, expect.any(Object)]]));
   });
 
   it('declares index on createdAt', () => {
     const indexes = PageSchema.indexes();
-    expect(indexes).toEqual(
-      expect.arrayContaining([[{ createdAt: 1 }, expect.any(Object)]]),
-    );
+    expect(indexes).toEqual(expect.arrayContaining([[{ createdAt: 1 }, expect.any(Object)]]));
   });
 });

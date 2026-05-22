@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { normalizeSlug, SlugPolicyError } from '../slug/slug-policy';
 import { CategoryRepository } from './category.repository';
 import type { CategoryDocument } from './category.schema';
@@ -16,8 +16,8 @@ export class CategoryService {
     return this.categoryRepository.findBySlug(slugNormalized);
   }
 
-  list(): Promise<CategoryDocument[]> {
-    return this.categoryRepository.list();
+  list(includeDeleted = false): Promise<CategoryDocument[]> {
+    return this.categoryRepository.list(includeDeleted);
   }
 
   async isSlugTaken(slugNormalized: string, excludeId?: CategoryId): Promise<boolean> {
@@ -47,5 +47,13 @@ export class CategoryService {
 
   update(id: CategoryId, input: UpdateCategoryInput): Promise<CategoryDocument | null> {
     return this.categoryRepository.update(id, input);
+  }
+
+  async softDelete(id: CategoryId): Promise<CategoryDocument> {
+    const updated = await this.categoryRepository.softDelete(id);
+    if (!updated) {
+      throw new NotFoundException('Category not found.');
+    }
+    return updated;
   }
 }

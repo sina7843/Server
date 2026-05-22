@@ -2,7 +2,7 @@ import { ConflictException, Injectable, NotFoundException } from '@nestjs/common
 import type { ContentPostType, ContentStatus } from '@dragon/types';
 import { isValidContentStatus } from '../shared/content-status';
 import { normalizeSlug, SlugPolicyError } from '../slug/slug-policy';
-import { PostRepository } from './post.repository';
+import { PostRepository, type PostListFilter } from './post.repository';
 import type { PostDocument } from './post.schema';
 import type { CreatePostInput, PostId, UpdatePostInput, UpdatePostSlugInput } from './post.types';
 
@@ -16,6 +16,21 @@ export class PostService {
 
   findByTypeAndSlug(type: ContentPostType, slugNormalized: string): Promise<PostDocument | null> {
     return this.postRepository.findByTypeAndSlug(type, slugNormalized);
+  }
+
+  findPublishedByTypeAndSlug(
+    type: ContentPostType,
+    slugNormalized: string,
+  ): Promise<PostDocument | null> {
+    return this.postRepository.findPublishedByTypeAndSlug(type, slugNormalized);
+  }
+
+  list(
+    filter: PostListFilter,
+    page: number,
+    limit: number,
+  ): Promise<{ items: PostDocument[]; total: number }> {
+    return this.postRepository.list(filter, page, limit);
   }
 
   async isSlugTaken(

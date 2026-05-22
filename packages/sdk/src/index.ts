@@ -11,3 +11,7 @@ export * from './admin-rbac-types';
 export * from './admin-rbac';
 export * from './admin-dashboard-types';
 export * from './admin-dashboard';
+export * from './content-types';
+export * from './content';
+export * from './admin-content-types';
+export * from './admin-content';

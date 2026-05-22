@@ -1,4 +1,5 @@
 import { AdminDashboardController } from './admin-dashboard.controller';
+import type { AdminDashboardService } from './admin-dashboard.service';
 
 function createController(overrides: Partial<{ getSummary: jest.Mock }> = {}) {
   const service = {
@@ -8,7 +9,10 @@ function createController(overrides: Partial<{ getSummary: jest.Mock }> = {}) {
     }),
     ...overrides,
   };
-  return { controller: new AdminDashboardController(service as any), service };
+  return {
+    controller: new AdminDashboardController(service as unknown as AdminDashboardService),
+    service,
+  };
 }
 
 describe('AdminDashboardController', () => {

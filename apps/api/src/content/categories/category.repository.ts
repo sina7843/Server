@@ -6,14 +6,16 @@ import type { CategoryId, CreateCategoryInput, UpdateCategoryInput } from './cat
 
 @Injectable()
 export class CategoryRepository {
-  constructor(@InjectModel(Category.name) private readonly categoryModel: Model<CategoryDocument>) {}
+  constructor(
+    @InjectModel(Category.name) private readonly categoryModel: Model<CategoryDocument>,
+  ) {}
 
   findById(id: CategoryId): Promise<CategoryDocument | null> {
     return this.categoryModel.findById(id).exec();
   }
 
   findBySlug(slugNormalized: string): Promise<CategoryDocument | null> {
-    return this.categoryModel.findOne({ slugNormalized }).exec();
+    return this.categoryModel.findOne({ slugNormalized, deletedAt: { $exists: false } }).exec();
   }
 
   existsBySlug(slugNormalized: string, excludeId?: CategoryId): Promise<CategoryDocument | null> {
@@ -24,8 +26,9 @@ export class CategoryRepository {
     return this.categoryModel.findOne(filter).exec();
   }
 
-  list(): Promise<CategoryDocument[]> {
-    return this.categoryModel.find({}).sort({ sortOrder: 1 }).exec();
+  list(includeDeleted = false): Promise<CategoryDocument[]> {
+    const filter = includeDeleted ? {} : { deletedAt: { $exists: false } };
+    return this.categoryModel.find(filter).sort({ sortOrder: 1 }).exec();
   }
 
   async create(input: CreateCategoryInput): Promise<CategoryDocument> {
@@ -52,5 +55,11 @@ export class CategoryRepository {
     if (input.sortOrder !== undefined) set.sortOrder = input.sortOrder;
 
     return this.categoryModel.findByIdAndUpdate(id, { $set: set }, { new: true }).exec();
+  }
+
+  softDelete(id: CategoryId): Promise<CategoryDocument | null> {
+    return this.categoryModel
+      .findByIdAndUpdate(id, { $set: { deletedAt: new Date() } }, { new: true })
+      .exec();
   }
 }

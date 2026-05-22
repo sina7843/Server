@@ -13,7 +13,7 @@ export class TagRepository {
   }
 
   findBySlug(slugNormalized: string): Promise<TagDocument | null> {
-    return this.tagModel.findOne({ slugNormalized }).exec();
+    return this.tagModel.findOne({ slugNormalized, deletedAt: { $exists: false } }).exec();
   }
 
   existsBySlug(slugNormalized: string, excludeId?: TagId): Promise<TagDocument | null> {
@@ -24,8 +24,9 @@ export class TagRepository {
     return this.tagModel.findOne(filter).exec();
   }
 
-  list(): Promise<TagDocument[]> {
-    return this.tagModel.find({}).exec();
+  list(includeDeleted = false): Promise<TagDocument[]> {
+    const filter = includeDeleted ? {} : { deletedAt: { $exists: false } };
+    return this.tagModel.find(filter).exec();
   }
 
   async create(input: CreateTagInput): Promise<TagDocument> {
@@ -41,5 +42,11 @@ export class TagRepository {
     const set: Record<string, unknown> = {};
     if (input.name !== undefined) set.name = input.name;
     return this.tagModel.findByIdAndUpdate(id, { $set: set }, { new: true }).exec();
+  }
+
+  softDelete(id: TagId): Promise<TagDocument | null> {
+    return this.tagModel
+      .findByIdAndUpdate(id, { $set: { deletedAt: new Date() } }, { new: true })
+      .exec();
   }
 }

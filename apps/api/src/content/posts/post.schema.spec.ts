@@ -98,44 +98,32 @@ describe('Post schema — index declarations', () => {
   it('declares compound index on type + status + publishedAt', () => {
     const indexes = PostSchema.indexes();
     expect(indexes).toEqual(
-      expect.arrayContaining([
-        [{ type: 1, status: 1, publishedAt: -1 }, expect.any(Object)],
-      ]),
+      expect.arrayContaining([[{ type: 1, status: 1, publishedAt: -1 }, expect.any(Object)]]),
     );
   });
 
   it('declares index on categoryIds', () => {
     const indexes = PostSchema.indexes();
-    expect(indexes).toEqual(
-      expect.arrayContaining([[{ categoryIds: 1 }, expect.any(Object)]]),
-    );
+    expect(indexes).toEqual(expect.arrayContaining([[{ categoryIds: 1 }, expect.any(Object)]]));
   });
 
   it('declares index on tagIds', () => {
     const indexes = PostSchema.indexes();
-    expect(indexes).toEqual(
-      expect.arrayContaining([[{ tagIds: 1 }, expect.any(Object)]]),
-    );
+    expect(indexes).toEqual(expect.arrayContaining([[{ tagIds: 1 }, expect.any(Object)]]));
   });
 
   it('declares index on authorId', () => {
     const indexes = PostSchema.indexes();
-    expect(indexes).toEqual(
-      expect.arrayContaining([[{ authorId: 1 }, expect.any(Object)]]),
-    );
+    expect(indexes).toEqual(expect.arrayContaining([[{ authorId: 1 }, expect.any(Object)]]));
   });
 
   it('declares index on createdAt', () => {
     const indexes = PostSchema.indexes();
-    expect(indexes).toEqual(
-      expect.arrayContaining([[{ createdAt: 1 }, expect.any(Object)]]),
-    );
+    expect(indexes).toEqual(expect.arrayContaining([[{ createdAt: 1 }, expect.any(Object)]]));
   });
 
   it('declares index on updatedAt', () => {
     const indexes = PostSchema.indexes();
-    expect(indexes).toEqual(
-      expect.arrayContaining([[{ updatedAt: 1 }, expect.any(Object)]]),
-    );
+    expect(indexes).toEqual(expect.arrayContaining([[{ updatedAt: 1 }, expect.any(Object)]]));
   });
 });

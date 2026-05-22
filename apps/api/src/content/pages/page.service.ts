@@ -2,7 +2,7 @@ import { ConflictException, Injectable, NotFoundException } from '@nestjs/common
 import type { ContentStatus } from '@dragon/types';
 import { isValidContentStatus } from '../shared/content-status';
 import { normalizeSlug, SlugPolicyError } from '../slug/slug-policy';
-import { PageRepository } from './page.repository';
+import { PageRepository, type PageListFilter } from './page.repository';
 import type { PageDocument } from './page.schema';
 import type { CreatePageInput, PageId, UpdatePageInput, UpdatePageSlugInput } from './page.types';
 
@@ -16,6 +16,18 @@ export class PageService {
 
   findBySlug(slugNormalized: string): Promise<PageDocument | null> {
     return this.pageRepository.findBySlug(slugNormalized);
+  }
+
+  findPublishedBySlug(slugNormalized: string): Promise<PageDocument | null> {
+    return this.pageRepository.findPublishedBySlug(slugNormalized);
+  }
+
+  list(
+    filter: PageListFilter,
+    page: number,
+    limit: number,
+  ): Promise<{ items: PageDocument[]; total: number }> {
+    return this.pageRepository.list(filter, page, limit);
   }
 
   async isSlugTaken(slugNormalized: string, excludeId?: PageId): Promise<boolean> {

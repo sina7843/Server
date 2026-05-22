@@ -36,10 +36,13 @@ describe('TagRepository', () => {
     expect(findById).toHaveBeenCalledWith('tag-id');
   });
 
-  it('finds by slug', async () => {
+  it('finds by slug excluding deleted', async () => {
     const { findOne, repository } = createRepository();
     await repository.findBySlug('typescript');
-    expect(findOne).toHaveBeenCalledWith({ slugNormalized: 'typescript' });
+    expect(findOne).toHaveBeenCalledWith({
+      slugNormalized: 'typescript',
+      deletedAt: { $exists: false },
+    });
   });
 
   it('checks slug existence with excludeId', async () => {
@@ -57,10 +60,10 @@ describe('TagRepository', () => {
     expect(findOne).toHaveBeenCalledWith({ slugNormalized: 'typescript' });
   });
 
-  it('lists all tags', async () => {
+  it('lists active tags by default', async () => {
     const { find, repository } = createRepository();
     await repository.list();
-    expect(find).toHaveBeenCalledWith({});
+    expect(find).toHaveBeenCalledWith({ deletedAt: { $exists: false } });
   });
 
   it('creates tag with required fields', async () => {

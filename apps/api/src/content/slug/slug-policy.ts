@@ -24,10 +24,7 @@ export function normalizeSlug(raw: string): string {
     throw new SlugPolicyError('Slug contains unsafe characters.');
   }
 
-  const normalized = trimmed
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/-{2,}/g, '-');
+  const normalized = trimmed.toLowerCase().replace(/\s+/g, '-').replace(/-{2,}/g, '-');
 
   if (normalized.length === 0) {
     throw new SlugPolicyError('Slug must not be empty after normalization.');

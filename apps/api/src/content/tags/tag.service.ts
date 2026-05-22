@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { normalizeSlug, SlugPolicyError } from '../slug/slug-policy';
 import { TagRepository } from './tag.repository';
 import type { TagDocument } from './tag.schema';
@@ -16,8 +16,8 @@ export class TagService {
     return this.tagRepository.findBySlug(slugNormalized);
   }
 
-  list(): Promise<TagDocument[]> {
-    return this.tagRepository.list();
+  list(includeDeleted = false): Promise<TagDocument[]> {
+    return this.tagRepository.list(includeDeleted);
   }
 
   async isSlugTaken(slugNormalized: string, excludeId?: TagId): Promise<boolean> {
@@ -47,5 +47,13 @@ export class TagService {
 
   update(id: TagId, input: UpdateTagInput): Promise<TagDocument | null> {
     return this.tagRepository.update(id, input);
+  }
+
+  async softDelete(id: TagId): Promise<TagDocument> {
+    const updated = await this.tagRepository.softDelete(id);
+    if (!updated) {
+      throw new NotFoundException('Tag not found.');
+    }
+    return updated;
   }
 }

@@ -22,11 +22,13 @@
     "mongoose": "8.16.0",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2",
-    "@dragon/types": "workspace:*"
+    "@dragon/types": "workspace:*",
+    "sanitize-html": "^2.13.0"
   },
   "devDependencies": {
     "@types/jest": "29.5.14",
     "@types/node": "20.14.10",
+    "@types/sanitize-html": "^2.13.0",
     "jest": "29.7.0",
     "ts-jest": "29.2.6",
     "@nestjs/testing": "10.4.20"
@@ -45,7 +47,8 @@
         {
           "tsconfig": {
             "module": "CommonJS",
-            "moduleResolution": "Node"
+            "moduleResolution": "Node",
+            "esModuleInterop": true
           }
         }
       ]

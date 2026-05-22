@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { validateObjectId } from '../../rbac/dto/rbac-validation';
 import { PostService } from '../../content/posts/post.service';
 import type { PostDocument } from '../../content/posts/post.schema';
 import { ContentRevisionService } from '../../content/revisions/content-revision.service';
 import type { ContentRevisionDocument } from '../../content/revisions/content-revision.schema';
+import { RichTextValidator } from '../../content/rich-text/rich-text-validator';
+import { HtmlSanitizer } from '../../content/rich-text/html-sanitizer';
 import type { AdminContentListQueryDto } from './dto/admin-content-query';
 import type { AdminCreatePostBodyDto, AdminUpdatePostBodyDto } from './dto/admin-post-body';
 
@@ -27,6 +29,8 @@ export class AdminContentPostsService {
   constructor(
     private readonly postService: PostService,
     private readonly revisionService: ContentRevisionService,
+    private readonly richTextValidator: RichTextValidator,
+    private readonly htmlSanitizer: HtmlSanitizer,
   ) {}
 
   async listPosts(
@@ -44,6 +48,17 @@ export class AdminContentPostsService {
   }
 
   async createPost(input: AdminCreatePostBodyDto, authorId: string): Promise<PostDocument> {
+    if (input.bodyJson !== undefined && typeof input.bodyJson.type === 'string') {
+      const validation = this.richTextValidator.validate(input.bodyJson);
+      if (!validation.valid) {
+        throw new BadRequestException(
+          `Invalid bodyJson: ${validation.errors.map((e) => e.message).join('; ')}`,
+        );
+      }
+    }
+
+    const safeBodyHtml = this.htmlSanitizer.sanitize(input.bodyHtml);
+
     const post = await this.postService.create({
       type: input.type,
       title: input.title,
@@ -51,7 +66,7 @@ export class AdminContentPostsService {
       slugNormalized: input.slug,
       ...(input.excerpt !== undefined ? { excerpt: input.excerpt } : {}),
       bodyJson: input.bodyJson,
-      bodyHtml: input.bodyHtml,
+      bodyHtml: safeBodyHtml,
       authorId,
       categoryIds: input.categoryIds,
       tagIds: input.tagIds,
@@ -77,12 +92,29 @@ export class AdminContentPostsService {
   ): Promise<PostDocument> {
     const id = validateObjectId(rawId, 'id');
 
-    if (input.slug !== undefined) {
+    if (input.bodyJson !== undefined && typeof input.bodyJson.type === 'string') {
+      const validation = this.richTextValidator.validate(input.bodyJson);
+      if (!validation.valid) {
+        throw new BadRequestException(
+          `Invalid bodyJson: ${validation.errors.map((e) => e.message).join('; ')}`,
+        );
+      }
+    }
+
+    const safeInput: AdminUpdatePostBodyDto =
+      input.bodyHtml !== undefined
+        ? ({
+            ...input,
+            bodyHtml: this.htmlSanitizer.sanitize(input.bodyHtml),
+          } as AdminUpdatePostBodyDto)
+        : input;
+
+    if (safeInput.slug !== undefined) {
       const updated = await this.postService.updateSlug(id, {
-        slug: input.slug,
-        slugNormalized: input.slug,
+        slug: safeInput.slug,
+        slugNormalized: safeInput.slug,
       });
-      const { slug: omittedSlug, ...rest } = input;
+      const { slug: omittedSlug, ...rest } = safeInput;
       const hasOtherFields = omittedSlug !== undefined && Object.keys(rest).length > 0;
 
       const result = hasOtherFields ? await this.postService.update(id, rest) : updated;
@@ -92,7 +124,7 @@ export class AdminContentPostsService {
       return post;
     }
 
-    const updated = await this.postService.update(id, input);
+    const updated = await this.postService.update(id, safeInput);
     if (!updated) throw new NotFoundException('Post not found.');
     await this.revisionService.snapshot('post', id, toPostSnapshot(updated), editorId);
     return updated;

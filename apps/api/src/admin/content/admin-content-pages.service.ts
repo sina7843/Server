@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { validateObjectId } from '../../rbac/dto/rbac-validation';
 import { PageService } from '../../content/pages/page.service';
 import type { PageDocument } from '../../content/pages/page.schema';
 import { ContentRevisionService } from '../../content/revisions/content-revision.service';
 import type { ContentRevisionDocument } from '../../content/revisions/content-revision.schema';
+import { RichTextValidator } from '../../content/rich-text/rich-text-validator';
+import { HtmlSanitizer } from '../../content/rich-text/html-sanitizer';
 import type { AdminPageListQueryDto } from './dto/admin-content-query';
 import type { AdminCreatePageBodyDto, AdminUpdatePageBodyDto } from './dto/admin-page-body';
 
@@ -23,6 +25,8 @@ export class AdminContentPagesService {
   constructor(
     private readonly pageService: PageService,
     private readonly revisionService: ContentRevisionService,
+    private readonly richTextValidator: RichTextValidator,
+    private readonly htmlSanitizer: HtmlSanitizer,
   ) {}
 
   async listPages(query: AdminPageListQueryDto): Promise<{ items: PageDocument[]; total: number }> {
@@ -37,12 +41,23 @@ export class AdminContentPagesService {
   }
 
   async createPage(input: AdminCreatePageBodyDto, authorId: string): Promise<PageDocument> {
+    if (input.bodyJson !== undefined && typeof input.bodyJson.type === 'string') {
+      const validation = this.richTextValidator.validate(input.bodyJson);
+      if (!validation.valid) {
+        throw new BadRequestException(
+          `Invalid bodyJson: ${validation.errors.map((e) => e.message).join('; ')}`,
+        );
+      }
+    }
+
+    const safeBodyHtml = this.htmlSanitizer.sanitize(input.bodyHtml);
+
     const page = await this.pageService.create({
       title: input.title,
       slug: input.slug,
       slugNormalized: input.slug,
       bodyJson: input.bodyJson,
-      bodyHtml: input.bodyHtml,
+      bodyHtml: safeBodyHtml,
       createdBy: authorId,
       seo: input.seo,
     });
@@ -66,12 +81,29 @@ export class AdminContentPagesService {
   ): Promise<PageDocument> {
     const id = validateObjectId(rawId, 'id');
 
-    if (input.slug !== undefined) {
+    if (input.bodyJson !== undefined && typeof input.bodyJson.type === 'string') {
+      const validation = this.richTextValidator.validate(input.bodyJson);
+      if (!validation.valid) {
+        throw new BadRequestException(
+          `Invalid bodyJson: ${validation.errors.map((e) => e.message).join('; ')}`,
+        );
+      }
+    }
+
+    const safeInput: AdminUpdatePageBodyDto =
+      input.bodyHtml !== undefined
+        ? ({
+            ...input,
+            bodyHtml: this.htmlSanitizer.sanitize(input.bodyHtml),
+          } as AdminUpdatePageBodyDto)
+        : input;
+
+    if (safeInput.slug !== undefined) {
       const updated = await this.pageService.updateSlug(id, {
-        slug: input.slug,
-        slugNormalized: input.slug,
+        slug: safeInput.slug,
+        slugNormalized: safeInput.slug,
       });
-      const { slug: omittedSlug, ...rest } = input;
+      const { slug: omittedSlug, ...rest } = safeInput;
       const hasOtherFields = omittedSlug !== undefined && Object.keys(rest).length > 0;
 
       const result = hasOtherFields
@@ -83,7 +115,7 @@ export class AdminContentPagesService {
       return page;
     }
 
-    const updated = await this.pageService.update(id, { ...input, updatedBy: editorId });
+    const updated = await this.pageService.update(id, { ...safeInput, updatedBy: editorId });
     if (!updated) throw new NotFoundException('Page not found.');
     await this.revisionService.snapshot('page', id, toPageSnapshot(updated), editorId);
     return updated;

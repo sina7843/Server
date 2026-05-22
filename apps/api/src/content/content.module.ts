@@ -15,6 +15,8 @@ import { PageService } from './pages/page.service';
 import { ContentRevision, ContentRevisionSchema } from './revisions/content-revision.schema';
 import { ContentRevisionRepository } from './revisions/content-revision.repository';
 import { ContentRevisionService } from './revisions/content-revision.service';
+import { RichTextValidator } from './rich-text/rich-text-validator';
+import { HtmlSanitizer } from './rich-text/html-sanitizer';
 import { PublicPostsService } from './public/public-posts.service';
 import { PublicNewsController } from './public/public-news.controller';
 import { PublicArticlesController } from './public/public-articles.controller';
@@ -57,7 +59,17 @@ import { PublicTagsController } from './public/public-tags.controller';
     ContentRevisionRepository,
     ContentRevisionService,
     PublicPostsService,
+    RichTextValidator,
+    HtmlSanitizer,
   ],
-  exports: [CategoryService, TagService, PostService, PageService, ContentRevisionService],
+  exports: [
+    CategoryService,
+    TagService,
+    PostService,
+    PageService,
+    ContentRevisionService,
+    RichTextValidator,
+    HtmlSanitizer,
+  ],
 })
 export class ContentModule {}

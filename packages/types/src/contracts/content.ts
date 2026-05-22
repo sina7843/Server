@@ -27,8 +27,8 @@ export interface ContentMediaRefDto {
 // ─── Public response DTOs ────────────────────────────────────────────────────
 
 /**
- * WARNING: bodyHtml is NOT sanitized until Task 0.6.3.
- * Do not render this field in untrusted contexts before 0.6.3 is complete.
+ * bodyHtml is sanitized server-side (Task 0.6.3). Safe to render.
+ * Images are not yet supported — bodyHtml will not contain <img> tags until Media API is available.
  */
 export interface PublicPostDto {
   readonly id: string;
@@ -45,7 +45,8 @@ export interface PublicPostDto {
 }
 
 /**
- * WARNING: bodyHtml is NOT sanitized until Task 0.6.3.
+ * bodyHtml is sanitized server-side (Task 0.6.3). Safe to render.
+ * Images are not yet supported — bodyHtml will not contain <img> tags until Media API is available.
  */
 export interface PublicPageDto {
   readonly id: string;

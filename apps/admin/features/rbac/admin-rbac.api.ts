@@ -34,10 +34,7 @@ export async function updateRole(
   return createAdminRbacClient(client).updateRole(id, input);
 }
 
-export async function deactivateRole(
-  client: ApiClient,
-  id: string,
-): Promise<RbacGenericResponse> {
+export async function deactivateRole(client: ApiClient, id: string): Promise<RbacGenericResponse> {
   return createAdminRbacClient(client).deactivateRole(id);
 }
 

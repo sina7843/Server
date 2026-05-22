@@ -169,19 +169,19 @@ Expected: **83 test suites, 648 tests, 0 failures** (as of Task 0.6.3 completion
 
 ### Key Invariants to Verify
 
-| Invariant                                                   | How to verify                                                                              |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `bodyHtml` is sanitized before storage, never raw           | `admin-content-posts.service.spec.ts` — "never stores raw unsafe HTML"                     |
-| Revision snapshot contains sanitized `bodyHtml`             | `admin-content-posts.service.spec.ts` — "revision snapshot has sanitized bodyHtml"         |
-| `script` tags are stripped from `bodyHtml`                  | `html-sanitizer.spec.ts` — "removes script tags and their content"                         |
-| `javascript:` hrefs are converted to `<span>`               | `html-sanitizer.spec.ts` — "blocks javascript: links — converts to span"                   |
-| `target="_blank"` gets `rel="noopener noreferrer"`          | `html-sanitizer.spec.ts` — "adds rel noopener noreferrer when target=_blank"               |
-| Unknown `bodyJson` node types are rejected                  | `rich-text-validator.spec.ts` — "rejects unknown node types"                               |
-| `image` nodes in `bodyJson` are rejected                    | `rich-text-validator.spec.ts` — "rejects image nodes (no safe image policy yet)"           |
-| `javascript:` link hrefs in `bodyJson` are rejected         | `rich-text-validator.spec.ts` — "rejects javascript: link href"                            |
-| `PublicPostDto` does not expose `bodyJson` or `authorId`    | `public-post-response.spec.ts` — "does not expose bodyJson/authorId"                       |
-| `previewPost` returns stored (already-sanitized) `bodyHtml` | `admin-content-posts.service.spec.ts` — "previewPost returns stored sanitized bodyHtml"    |
-| No `restoreRevision` in admin posts service                 | `admin-content-posts.service.spec.ts` — "does not expose a restoreRevision method"         |
+| Invariant                                                   | How to verify                                                                           |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `bodyHtml` is sanitized before storage, never raw           | `admin-content-posts.service.spec.ts` — "never stores raw unsafe HTML"                  |
+| Revision snapshot contains sanitized `bodyHtml`             | `admin-content-posts.service.spec.ts` — "revision snapshot has sanitized bodyHtml"      |
+| `script` tags are stripped from `bodyHtml`                  | `html-sanitizer.spec.ts` — "removes script tags and their content"                      |
+| `javascript:` hrefs are converted to `<span>`               | `html-sanitizer.spec.ts` — "blocks javascript: links — converts to span"                |
+| `target="_blank"` gets `rel="noopener noreferrer"`          | `html-sanitizer.spec.ts` — "adds rel noopener noreferrer when target=\_blank"           |
+| Unknown `bodyJson` node types are rejected                  | `rich-text-validator.spec.ts` — "rejects unknown node types"                            |
+| `image` nodes in `bodyJson` are rejected                    | `rich-text-validator.spec.ts` — "rejects image nodes (no safe image policy yet)"        |
+| `javascript:` link hrefs in `bodyJson` are rejected         | `rich-text-validator.spec.ts` — "rejects javascript: link href"                         |
+| `PublicPostDto` does not expose `bodyJson` or `authorId`    | `public-post-response.spec.ts` — "does not expose bodyJson/authorId"                    |
+| `previewPost` returns stored (already-sanitized) `bodyHtml` | `admin-content-posts.service.spec.ts` — "previewPost returns stored sanitized bodyHtml" |
+| No `restoreRevision` in admin posts service                 | `admin-content-posts.service.spec.ts` — "does not expose a restoreRevision method"      |
 
 ### Collections Created
 
@@ -194,3 +194,79 @@ MongoDB collections that will be created on first connection:
 - `content_revisions`
 
 Unique indexes on these collections are declared in the schemas and will be applied by Mongoose on startup.
+
+---
+
+## Task 0.6.4 — Admin Content Management Frontend
+
+### What was built
+
+- **Admin navigation** — Content nav item at `/content`, gated by `content.post.read`. No Media/Audit/Analytics navigation added.
+- **`packages/types`** — Added `CONTENT_CATEGORY_READ/CREATE/UPDATE/DELETE` and `CONTENT_TAG_READ/CREATE/UPDATE/DELETE` to `DragonPermissions` (alignment with API permission keys from Task 0.6.2).
+- **Feature API** — `apps/admin/features/content/admin-content.api.ts` — wraps `createAdminContentClient` for all 28 admin content operations.
+- **Composable** — `apps/admin/composables/useAdminContent.ts` — module-level refs for posts, pages, categories, tags, revisions; all load/create/update/delete/lifecycle actions.
+- **Shared view components** (10 total):
+  - `ContentStatusBadge` — draft/published/archived badge
+  - `ContentPostListView` — status filter, table, publish/archive/soft-delete with ConfirmDialog
+  - `ContentPostFormView` — title, slug, excerpt, body textarea, categoryIds, tagIds, SEO fields
+  - `ContentPostPreviewView` — calls preview endpoint, renders sanitized `bodyHtml`
+  - `ContentPageListView` — page list with lifecycle actions
+  - `ContentPageFormView` — title, slug, body textarea, SEO fields
+  - `ContentPagePreviewView` — calls page preview endpoint
+  - `CategoryManageView` — inline CRUD with parentId hierarchy and ConfirmDialog
+  - `TagManageView` — inline CRUD with card grid and ConfirmDialog
+  - `ContentRevisionListView` — revision table with expandable snapshot JSON, **no restore button**
+- **Thin page files** (28 total): content hub, 5 post types × 4 routes (list/new/edit/preview), pages section × 4 routes, categories, tags, revisions
+- **Admin navigation spec** updated: `ALLOWED_KEYS` includes 'content'; assertions verify content nav item and its permission.
+- **Feature API spec** — `apps/admin/features/content/admin-content.api.spec.ts` — full coverage of all operations including security assertions (no restoreRevision).
+
+### What was NOT built (intentionally out of scope)
+
+- No TipTap editor (Task 0.6.5)
+- No public content frontend pages
+- No media upload, media picker, or media controls of any kind
+- No revision restore (no button, no route, no method)
+- No Media/Audit/Analytics navigation
+- No search, analytics, comments, newsletter, localization, approval workflow, AI tooling
+
+### Verification Commands
+
+```bash
+pnpm install
+
+pnpm --filter @dragon/admin lint
+pnpm --filter @dragon/admin test
+pnpm --filter @dragon/admin build
+
+pnpm --filter @dragon/sdk lint
+pnpm --filter @dragon/sdk typecheck
+pnpm --filter @dragon/sdk test
+pnpm --filter @dragon/sdk build
+
+pnpm --filter @dragon/types lint
+pnpm --filter @dragon/types typecheck
+pnpm --filter @dragon/types test
+pnpm --filter @dragon/types build
+
+pnpm lint
+pnpm test
+pnpm build
+pnpm format:check
+```
+
+Expected: **83 test suites (API) + 7 admin feature suites = 90 total, 0 failures** (as of Task 0.6.4 completion).
+
+Note: `pnpm typecheck` (workspace-wide) fails on `@dragon/admin` due to pre-existing Nuxt/Vue TypeScript errors unrelated to Slice 0.6. All other packages typecheck clean.
+
+### Key Invariants to Verify
+
+| Invariant | How to verify |
+| --- | --- |
+| Content nav uses `content.post.read` | `admin-navigation.spec.ts` — "content nav item uses content.post.read permission" |
+| Content nav hidden without permission | `admin-navigation.spec.ts` — "does not show Content nav without content.post.read permission" |
+| No Media/Audit/Analytics nav items | `admin-navigation.spec.ts` — "does not contain Media, Audit, or Analytics nav items" |
+| SDK has no restoreRevision method | `admin-content.api.spec.ts` — "has no restoreRevision method" |
+| SDK has no restorePostRevision method | `admin-content.api.spec.ts` — "has no restorePostRevision method" |
+| No generic `/posts/slug/` path in SDK | `admin-content.api.spec.ts` — "no generic /posts/:slug route" |
+| Preview calls the preview endpoint | `ContentPostPreviewView` — uses `previewPost()` not `getPost()` |
+| Revision view has no restore button | `ContentRevisionListView` — no restore button; shows "بازیابی نسخه‌ها در این مرحله پشتیبانی نمی‌شود." |

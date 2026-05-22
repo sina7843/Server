@@ -16,10 +16,7 @@ export async function listUsers(
   return createAdminUsersClient(client).listUsers(params);
 }
 
-export async function getUser(
-  client: ApiClient,
-  id: string,
-): Promise<AdminUserDetailResponse> {
+export async function getUser(client: ApiClient, id: string): Promise<AdminUserDetailResponse> {
   return createAdminUsersClient(client).getUser(id);
 }
 

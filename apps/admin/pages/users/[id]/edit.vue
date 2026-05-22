@@ -77,10 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  DragonPermissions as Permissions,
-  ADMIN_USER_STATUS_UPDATE_TARGETS,
-} from '@dragon/sdk';
+import { DragonPermissions as Permissions, ADMIN_USER_STATUS_UPDATE_TARGETS } from '@dragon/sdk';
 import type { AdminUserStatus, AdminUserStatusUpdateTarget } from '@dragon/sdk';
 
 definePageMeta({
@@ -106,7 +103,11 @@ const STATUS_LABELS: Record<AdminUserStatusUpdateTarget, string> = {
   deleted: 'حذف‌شده',
 };
 
-const DESTRUCTIVE_STATUSES: readonly AdminUserStatusUpdateTarget[] = ['suspended', 'banned', 'deleted'];
+const DESTRUCTIVE_STATUSES: readonly AdminUserStatusUpdateTarget[] = [
+  'suspended',
+  'banned',
+  'deleted',
+];
 
 const selectedStatus = ref<AdminUserStatusUpdateTarget>('active');
 const reason = ref('');

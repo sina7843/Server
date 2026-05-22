@@ -302,3 +302,63 @@ Revisions are **immutable point-in-time snapshots** of any content resource.
 **Admin (`createAdminContentClient`):** `listPosts`, `createPost`, `getPost`, `updatePost`, `previewPost`, `publishPost`, `archivePost`, `softDeletePost`, `listPostRevisions`, `getPostRevision`, `listPages`, `createPage`, `getPage`, `updatePage`, `previewPage`, `publishPage`, `archivePage`, `softDeletePage`, `listPageRevisions`, `getPageRevision`, `listCategories`, `createCategory`, `updateCategory`, `deleteCategory`, `listTags`, `createTag`, `updateTag`, `deleteTag`
 
 **No `restoreRevision` method exists in the SDK.**
+
+## Admin Frontend (Task 0.6.4)
+
+The admin frontend (`apps/admin`) provides a full content management UI. All pages are gated by the existing admin auth middleware stack.
+
+### Navigation
+
+A **Content** nav item (`/content`) is visible to users with `content.post.read` permission. No Media, Audit, or Analytics nav items exist.
+
+### Admin Routes
+
+| Route | Description | Permission |
+| --- | --- | --- |
+| `/content` | Hub page — links to all content sections | `content.post.read` |
+| `/content/news` | News list | `content.post.read` |
+| `/content/news/new` | Create news | `content.post.create` |
+| `/content/news/:id/edit` | Edit news | `content.post.update` |
+| `/content/news/:id/preview` | Preview news | `content.post.read` |
+| `/content/articles/*` | Article CRUD | (same pattern) |
+| `/content/announcements/*` | Announcement CRUD | (same pattern) |
+| `/content/guides/*` | Guide CRUD | (same pattern) |
+| `/content/rules/*` | Rule CRUD | (same pattern) |
+| `/content/pages` | Page list | `content.page.read` |
+| `/content/pages/new` | Create page | `content.page.create` |
+| `/content/pages/:id/edit` | Edit page | `content.page.update` |
+| `/content/pages/:id/preview` | Preview page | `content.page.read` |
+| `/content/categories` | Category CRUD (inline) | `content.category.read` |
+| `/content/tags` | Tag CRUD (inline) | `content.tag.read` |
+| `/content/revisions/:resourceId` | Revision history | `content.post.read` or `content.page.read` |
+
+### Component Architecture
+
+Thin page files (~15 lines each) delegate to shared view components:
+
+- **`ContentPostListView`** — status filter, paginated table, publish/archive/soft-delete actions
+- **`ContentPostFormView`** — title, slug, excerpt, body (textarea), categoryIds, tagIds, SEO fields
+- **`ContentPostPreviewView`** — calls preview endpoint, renders sanitized `bodyHtml` via `v-html`
+- **`ContentPageListView`** — page list with lifecycle actions
+- **`ContentPageFormView`** — title, slug, body (textarea), SEO fields
+- **`ContentPagePreviewView`** — calls page preview endpoint
+- **`CategoryManageView`** — inline CRUD with parentId hierarchy support
+- **`TagManageView`** — inline CRUD with card grid display
+- **`ContentRevisionListView`** — revision table with expandable snapshot JSON; **no restore button**
+- **`ContentStatusBadge`** — draft/published/archived colored badge
+
+### Body Field
+
+Posts and pages use a simple `<textarea>` for body input (no TipTap — Task 0.6.5). `buildBodyHtml()` splits on double-newlines and wraps paragraphs in `<p>` tags. The backend sanitizer processes the result.
+
+### Preview
+
+Preview pages call the backend `POST .../preview` endpoint (not the GET endpoint) and render the returned `bodyHtml` using `v-html`. Content is sanitized server-side (Task 0.6.3). An admin-only notice banner is displayed above the preview.
+
+### Permission-Aware Actions
+
+All create/edit/delete/publish/archive buttons are hidden or disabled when the user lacks the required permission. Destructive actions show a `ConfirmDialog` with soft-delete language (never "permanently delete").
+
+### Revision Restore
+
+**Revision restore is not supported.** No restore button exists anywhere. The revision detail view displays a notice: "بازیابی نسخه‌ها در این مرحله پشتیبانی نمی‌شود." (Revision restore is not supported at this stage.)

@@ -38,6 +38,13 @@ export const ADMIN_NAV_ITEMS: readonly AdminNavItem[] = [
     permission: DragonPermissions.RBAC_PERMISSION_READ,
   },
   {
+    key: 'content',
+    label: 'محتوا',
+    labelEn: 'Content',
+    path: '/content',
+    permission: DragonPermissions.CONTENT_POST_READ,
+  },
+  {
     key: 'system-health',
     label: 'سلامت سیستم',
     labelEn: 'System Health',

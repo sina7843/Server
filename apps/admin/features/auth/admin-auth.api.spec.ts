@@ -75,7 +75,9 @@ describe('adminLogin', () => {
   it('throws on invalid credentials', async () => {
     mockLoginUnauthorized();
 
-    await expect(adminLogin('+1234567890', 'wrong-pass', '/')).rejects.toThrow('Invalid credentials.');
+    await expect(adminLogin('+1234567890', 'wrong-pass', '/')).rejects.toThrow(
+      'Invalid credentials.',
+    );
   });
 
   it('throws on insufficient admin permissions', async () => {

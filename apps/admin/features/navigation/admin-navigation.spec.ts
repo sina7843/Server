@@ -1,17 +1,35 @@
 import { DragonPermissions } from '@dragon/sdk';
 import { ADMIN_NAV_ITEMS, filterNavByPermissions } from './admin-navigation';
 
-const ALLOWED_KEYS = ['dashboard', 'users', 'roles', 'permissions', 'system-health'];
+const ALLOWED_KEYS = ['dashboard', 'users', 'roles', 'permissions', 'content', 'system-health'];
 
 describe('ADMIN_NAV_ITEMS', () => {
-  it('contains exactly the allowed Slice 0.5 navigation items', () => {
+  it('contains exactly the allowed Slice 0.5 + 0.6 navigation items', () => {
     expect(ADMIN_NAV_ITEMS.map((i) => i.key)).toEqual(ALLOWED_KEYS);
   });
 
-  it('does not contain Content, Media, Audit, or Analytics nav items', () => {
+  it('contains content nav item added in Task 0.6.4', () => {
     const keys = ADMIN_NAV_ITEMS.map((i) => i.key);
 
-    expect(keys).not.toContain('content');
+    expect(keys).toContain('content');
+  });
+
+  it('content nav item points to /content', () => {
+    const contentItem = ADMIN_NAV_ITEMS.find((i) => i.key === 'content');
+
+    expect(contentItem).toBeDefined();
+    expect(contentItem!.path).toBe('/content');
+  });
+
+  it('content nav item uses content.post.read permission as gate', () => {
+    const contentItem = ADMIN_NAV_ITEMS.find((i) => i.key === 'content');
+
+    expect(contentItem!.permission).toBe(DragonPermissions.CONTENT_POST_READ);
+  });
+
+  it('does not contain Media, Audit, or Analytics nav items', () => {
+    const keys = ADMIN_NAV_ITEMS.map((i) => i.key);
+
     expect(keys).not.toContain('media');
     expect(keys).not.toContain('audit');
     expect(keys).not.toContain('analytics');
@@ -75,6 +93,22 @@ describe('filterNavByPermissions', () => {
     expect(result[0]!.key).toBe('permissions');
   });
 
+  it('shows Content nav with content.post.read permission', () => {
+    const permissions = new Set([DragonPermissions.CONTENT_POST_READ]);
+    const result = filterNavByPermissions(ADMIN_NAV_ITEMS, permissions, false);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]!.key).toBe('content');
+  });
+
+  it('does not show Content nav without content.post.read permission', () => {
+    const permissions = new Set([DragonPermissions.USER_READ, DragonPermissions.RBAC_ROLE_READ]);
+    const result = filterNavByPermissions(ADMIN_NAV_ITEMS, permissions, false);
+
+    const keys = result.map((i) => i.key);
+    expect(keys).not.toContain('content');
+  });
+
   it('shows only System Health with system.health.read permission', () => {
     const permissions = new Set([DragonPermissions.SYSTEM_HEALTH_READ]);
     const result = filterNavByPermissions(ADMIN_NAV_ITEMS, permissions, false);
@@ -100,12 +134,12 @@ describe('filterNavByPermissions', () => {
   it('shows multiple items when multiple permissions are granted', () => {
     const permissions = new Set([
       DragonPermissions.ADMIN_DASHBOARD_VIEW,
-      DragonPermissions.RBAC_ROLE_READ,
+      DragonPermissions.CONTENT_POST_READ,
     ]);
     const result = filterNavByPermissions(ADMIN_NAV_ITEMS, permissions, false);
 
     expect(result).toHaveLength(2);
     expect(result.map((i) => i.key)).toContain('dashboard');
-    expect(result.map((i) => i.key)).toContain('roles');
+    expect(result.map((i) => i.key)).toContain('content');
   });
 });

@@ -43,7 +43,9 @@ const router = useRouter();
 const route = useRoute();
 const { setAuth } = useAdminAuthState();
 const { setPermissions } = useAdminPermissions();
-const { public: { apiBaseUrl } } = useRuntimeConfig();
+const {
+  public: { apiBaseUrl },
+} = useRuntimeConfig();
 
 const phone = ref('');
 const password = ref('');

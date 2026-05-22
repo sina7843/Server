@@ -2,7 +2,9 @@ import { createApiClient } from '@dragon/sdk';
 import type { ApiClient } from '@dragon/sdk';
 
 export function useAdminApiClient(): ApiClient {
-  const { public: { apiBaseUrl } } = useRuntimeConfig();
+  const {
+    public: { apiBaseUrl },
+  } = useRuntimeConfig();
   const { accessToken } = useAdminAuthState();
 
   return createApiClient({

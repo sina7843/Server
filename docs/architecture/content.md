@@ -7,7 +7,45 @@ The content subsystem provides persistence, public APIs, and admin APIs for Post
 - `apps/api/src/content/` — core domain (schemas, repositories, services, public routes)
 - `apps/api/src/admin/content/` — admin routes and services
 
-> **Release block:** Task 0.6.2 may expose public content API structure. However, Slice 0.6 is **not** security-release-ready after Task 0.6.2. Content rendering must not be considered safe until **Task 0.6.3 completes backend `bodyHtml` sanitization and TipTap validation.**
+> **Security release:** Slice 0.6 is eligible for content rendering security review. Task 0.6.3 is complete. `bodyHtml` is sanitized server-side before storage. Public DTOs return sanitized content only.
+
+## Rich Text Pipeline (Task 0.6.3)
+
+All `bodyHtml` is sanitized server-side before storage. Clients never store raw HTML.
+
+### RichTextValidator (`content/rich-text/rich-text-validator.ts`)
+
+Validates TipTap-compatible `bodyJson` documents before persistence. Rejects unknown nodes, unknown marks, unsafe link hrefs, and disallowed embed types.
+
+**Allowed node types:** `doc`, `paragraph`, `heading` (levels 1–6), `text`, `bulletList`, `orderedList`, `listItem`, `blockquote`, `codeBlock`, `horizontalRule`, `hardBreak`, `table`, `tableRow`, `tableHeader`, `tableCell`
+
+**Allowed mark types:** `bold`, `italic`, `underline`, `strike`, `code`, `link`
+
+**Explicitly rejected:** `image`, `embed`, `iframe`, `video` — rejected with `BadRequestException` until a safe Media API is available.
+
+**Link href safety:** allowed: `https://`, `http://`, `mailto:`, root-relative `/`, anchor `#`. Rejected: `javascript:`, `data:`, `vbscript:`, protocol-relative `//`.
+
+Limits: MAX_DEPTH=12, MAX_NODES=2000.
+
+### HtmlSanitizer (`content/rich-text/html-sanitizer.ts`)
+
+Wraps [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) v2.x. Applied to `bodyHtml` at create and update time in the admin services.
+
+- Removes `<script>`, `<style>`, `<noscript>` and strips their content (not just the tags)
+- Removes all event handler attributes (`onclick`, `onerror`, `onload`, etc.)
+- Converts `javascript:` and `data:` hrefs to `<span>` (belt-and-suspenders on top of scheme allowlist)
+- Blocks protocol-relative `//` URLs (`allowProtocolRelative: false`)
+- Strips `<img>`, `<iframe>`, `<object>`, `<embed>` — image insertion disabled until Media API
+- Adds `rel="noopener noreferrer"` to `target="_blank"` links
+- Allowed schemes for `<a>`: `http`, `https`, `mailto` only
+
+### Integration
+
+Validation and sanitization happen in `AdminContentPostsService` and `AdminContentPagesService` before calling `postService.create/update`. The Mongoose document is written with already-sanitized `bodyHtml`. Revision snapshots (`toPostSnapshot`) read `post.bodyHtml` from the saved document, so revisions always contain sanitized content.
+
+`PublicPostDto.bodyHtml` and `PublicPageDto.bodyHtml` are marked safe to render (Task 0.6.3).
+
+**`mediaRefs` extraction is not implemented.** Deferred until Media Library is available.
 
 ## Module Layout
 

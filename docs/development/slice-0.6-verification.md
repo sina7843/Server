@@ -114,6 +114,75 @@ Note: `pnpm typecheck` (workspace-wide) fails on `@dragon/admin` due to **pre-ex
 | ContentModule registers 8 public controllers              | `content.module.spec.ts` — "registers all 8 public controllers"                                            |
 | SDK has no restoreRevision method                         | Read `packages/sdk/src/admin-content.ts` — no `restore` method in interface or implementation              |
 
+---
+
+## Task 0.6.3 — Rich Text Processing and Sanitization
+
+### What was built
+
+- **`RichTextValidator`** (`apps/api/src/content/rich-text/rich-text-validator.ts`) — `@Injectable()` NestJS service that validates TipTap-compatible `bodyJson` documents against an allowlist of nodes and marks. Rejects unknown node/mark types, image/embed/iframe/video nodes, and unsafe link hrefs (`javascript:`, `data:`, `vbscript:`, protocol-relative `//`). MAX_DEPTH=12, MAX_NODES=2000.
+
+- **`HtmlSanitizer`** (`apps/api/src/content/rich-text/html-sanitizer.ts`) — `@Injectable()` NestJS service wrapping `sanitize-html` v2.x. Strips scripts/styles/event handlers, blocks unsafe URL schemes, adds `rel="noopener noreferrer"` to `_blank` links, removes `<img>/<iframe>/<object>`. Configured via allowlist of safe tags and attributes.
+
+- **Integration** — `AdminContentPostsService` and `AdminContentPagesService` validate `bodyJson` and sanitize `bodyHtml` before calling `postService.create/update`. The DB document always has sanitized `bodyHtml`. Revision snapshots read from the saved document, so they automatically contain sanitized content.
+
+- **Tests** — `rich-text-validator.spec.ts`, `html-sanitizer.spec.ts`, `admin-content-posts.service.spec.ts`, `admin-content-pages.service.spec.ts`, `public-post-response.spec.ts`, `public-page-response.spec.ts`
+
+- **`packages/types` contracts** — `PublicPostDto.bodyHtml` and `PublicPageDto.bodyHtml` comments updated to mark safe to render.
+
+- **`docs/security/content-security-checklist.md`** — release block removed, all XSS / bodyJson items checked ✓.
+
+- **Dependency added** — `sanitize-html@2.17.4` (runtime), `@types/sanitize-html@2.16.1` (dev). Requires `esModuleInterop: true` in ts-jest override (added to `apps/api/package.json`).
+
+### What was NOT built (intentionally out of scope)
+
+- No TipTap frontend editor
+- No admin content UI changes
+- No public content frontend pages
+- No media upload / media library / media picker
+- No `mediaRefs` extraction (deferred until Media Library)
+- No image insertion (disabled until safe Media API is available)
+- No revision restore
+
+### Verification Commands
+
+```bash
+pnpm install
+
+pnpm --filter @dragon/api lint
+pnpm --filter @dragon/api typecheck
+pnpm --filter @dragon/api test
+pnpm --filter @dragon/api build
+
+pnpm --filter @dragon/types lint
+pnpm --filter @dragon/types typecheck
+pnpm --filter @dragon/types test
+pnpm --filter @dragon/types build
+
+pnpm lint
+pnpm test
+pnpm build
+pnpm format:check
+```
+
+Expected: **83 test suites, 648 tests, 0 failures** (as of Task 0.6.3 completion).
+
+### Key Invariants to Verify
+
+| Invariant                                                   | How to verify                                                                              |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `bodyHtml` is sanitized before storage, never raw           | `admin-content-posts.service.spec.ts` — "never stores raw unsafe HTML"                     |
+| Revision snapshot contains sanitized `bodyHtml`             | `admin-content-posts.service.spec.ts` — "revision snapshot has sanitized bodyHtml"         |
+| `script` tags are stripped from `bodyHtml`                  | `html-sanitizer.spec.ts` — "removes script tags and their content"                         |
+| `javascript:` hrefs are converted to `<span>`               | `html-sanitizer.spec.ts` — "blocks javascript: links — converts to span"                   |
+| `target="_blank"` gets `rel="noopener noreferrer"`          | `html-sanitizer.spec.ts` — "adds rel noopener noreferrer when target=_blank"               |
+| Unknown `bodyJson` node types are rejected                  | `rich-text-validator.spec.ts` — "rejects unknown node types"                               |
+| `image` nodes in `bodyJson` are rejected                    | `rich-text-validator.spec.ts` — "rejects image nodes (no safe image policy yet)"           |
+| `javascript:` link hrefs in `bodyJson` are rejected         | `rich-text-validator.spec.ts` — "rejects javascript: link href"                            |
+| `PublicPostDto` does not expose `bodyJson` or `authorId`    | `public-post-response.spec.ts` — "does not expose bodyJson/authorId"                       |
+| `previewPost` returns stored (already-sanitized) `bodyHtml` | `admin-content-posts.service.spec.ts` — "previewPost returns stored sanitized bodyHtml"    |
+| No `restoreRevision` in admin posts service                 | `admin-content-posts.service.spec.ts` — "does not expose a restoreRevision method"         |
+
 ### Collections Created
 
 MongoDB collections that will be created on first connection:

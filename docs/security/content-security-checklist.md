@@ -1,14 +1,28 @@
 # Content Security Checklist
 
-> **RELEASE BLOCK — Task 0.6.2:** Public content APIs exist but Slice 0.6 is **not release-ready** after Task 0.6.2. Content rendering must not be considered safe until **Task 0.6.3 completes `bodyHtml` sanitization and TipTap validation**. Do not serve `bodyHtml` to end users before 0.6.3 is approved.
+> **Slice 0.6 is eligible for content rendering security review.** Task 0.6.3 is complete. `bodyHtml` is sanitized server-side before storage. Public DTOs return sanitized content only. Image insertion remains disabled until a safe Media API is available.
 
 This checklist covers the security properties of the content subsystem. Tasks 0.6.1 and 0.6.2 cover persistence and API surface. Task 0.6.3 covers sanitization.
 
-## XSS / bodyHtml (Task 0.6.3 — NOT YET COMPLETE)
+## XSS / bodyHtml (Task 0.6.3 ✓)
 
-- [ ] **`bodyHtml` is NOT sanitized** — Task 0.6.3 must add DOMPurify/server-side sanitization before any public rendering
-- [ ] TipTap schema validation must be applied to `bodyJson` before storage
-- [ ] `PublicPostDto.bodyHtml` carries a warning comment in the type: do not render in untrusted contexts before 0.6.3
+- [x] `bodyHtml` is sanitized server-side using `sanitize-html` before storage — no raw client HTML is ever stored
+- [x] Sanitization removes `<script>`, `<style>`, event handler attributes (`onclick`, `onerror`, etc.), and unsafe tags
+- [x] `javascript:` and `data:` URL links are blocked (converted to `<span>`)
+- [x] Protocol-relative URLs `//` are blocked
+- [x] Only approved HTML tags are allowed (paragraphs, headings, lists, blockquote, table, code, links)
+- [x] `img` tags are rejected (no safe Media API yet — documented as Later)
+- [x] `iframe`/`embed`/`object` tags are rejected
+- [x] `target="_blank"` links are supplemented with `rel="noopener noreferrer"`
+- [x] TipTap `bodyJson` is validated against an allowlist of nodes and marks on create/update
+- [x] Unknown node types are rejected with `BadRequestException`
+- [x] Unknown mark types are rejected with `BadRequestException`
+- [x] `image` nodes in `bodyJson` are rejected (image insertion disabled until Media API)
+- [x] `embed`/`iframe`/`video` nodes are rejected
+- [x] Link `href` values in `bodyJson` are validated — `javascript:`, `data:`, `vbscript:`, `//` all rejected
+- [x] `PublicPostDto.bodyHtml` comment updated — marked safe to render
+- [x] Revision snapshots store sanitized `bodyHtml` (sanitized before `postService.create/update` is called)
+- [x] `mediaRefs` extraction not implemented — deferred until Media Library is available
 
 ## Slug Injection (Task 0.6.1 ✓)
 

@@ -3,6 +3,16 @@
   "compilerOptions": {
     "types": ["node"]
   },
-  "include": ["app.vue", "nuxt.config.ts"],
+  "include": [
+    "app.vue",
+    "nuxt.config.ts",
+    "layouts/**/*.vue",
+    "pages/**/*.vue",
+    "components/**/*.vue",
+    "composables/**/*.ts",
+    "features/**/*.ts",
+    "middleware/**/*.ts",
+    "types/**/*.d.ts"
+  ],
   "exclude": ["node_modules", ".nuxt", ".output"]
 }

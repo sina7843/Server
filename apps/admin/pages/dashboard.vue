@@ -46,7 +46,7 @@ import { DragonPermissions as Permissions } from '@dragon/sdk';
 definePageMeta({
   layout: 'admin',
   middleware: ['admin-auth-required', 'admin-permission-required'],
-  requiredPermission: 'admin.dashboard.view',
+  requiredPermission: Permissions.ADMIN_DASHBOARD_VIEW,
 });
 useHead({ title: 'داشبورد — Dragon Admin' });
 

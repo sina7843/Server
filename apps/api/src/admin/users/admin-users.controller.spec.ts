@@ -139,6 +139,12 @@ describe('AdminUsersController', () => {
       );
     });
 
+    it('rejects pending_verification as an update target', () => {
+      expect(() => parseAdminUserStatusUpdate({ status: 'pending_verification' })).toThrow(
+        BadRequestException,
+      );
+    });
+
     it('accepts valid reason', () => {
       const dto = parseAdminUserStatusUpdate({ status: 'banned', reason: 'Terms violation' });
 

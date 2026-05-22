@@ -32,7 +32,7 @@ export function useAdminRoles() {
     _rolesError.value = null;
 
     try {
-      const res = await rbacApi.listRoles();
+      const res = await rbacApi.listRoles(useAdminApiClient());
       _roles.value = res.roles;
     } catch (err) {
       _rolesError.value = err instanceof Error ? err.message : 'خطا در بارگذاری نقش‌ها.';
@@ -47,7 +47,7 @@ export function useAdminRoles() {
     _roleError.value = null;
 
     try {
-      const res = await rbacApi.getRole(id);
+      const res = await rbacApi.getRole(useAdminApiClient(), id);
       _role.value = res;
     } catch (err) {
       _roleError.value = err instanceof Error ? err.message : 'خطا در بارگذاری نقش.';
@@ -62,7 +62,7 @@ export function useAdminRoles() {
     _rolePermissionsError.value = null;
 
     try {
-      const res = await rbacApi.listRolePermissions(roleId);
+      const res = await rbacApi.listRolePermissions(useAdminApiClient(), roleId);
       _rolePermissions.value = res.permissions;
     } catch (err) {
       _rolePermissionsError.value =
@@ -77,7 +77,7 @@ export function useAdminRoles() {
     _allPermissionsError.value = null;
 
     try {
-      const res = await rbacApi.listPermissions(params);
+      const res = await rbacApi.listPermissions(useAdminApiClient(), params);
       _allPermissions.value = res.permissions;
     } catch (err) {
       _allPermissionsError.value = err instanceof Error ? err.message : 'خطا در بارگذاری مجوزها.';
@@ -91,7 +91,7 @@ export function useAdminRoles() {
     _actionError.value = null;
 
     try {
-      const res = await rbacApi.createRole(input);
+      const res = await rbacApi.createRole(useAdminApiClient(), input);
       return res;
     } catch (err) {
       _actionError.value = err instanceof Error ? err.message : 'خطا در ایجاد نقش.';
@@ -106,7 +106,7 @@ export function useAdminRoles() {
     _actionError.value = null;
 
     try {
-      const res = await rbacApi.updateRole(id, input);
+      const res = await rbacApi.updateRole(useAdminApiClient(), id, input);
       _role.value = res;
       return true;
     } catch (err) {
@@ -122,7 +122,7 @@ export function useAdminRoles() {
     _actionError.value = null;
 
     try {
-      await rbacApi.deactivateRole(id);
+      await rbacApi.deactivateRole(useAdminApiClient(), id);
       _roles.value = _roles.value.map((r) => (r.id === id ? { ...r, isActive: false } : r));
       if (_role.value?.id === id) {
         _role.value = { ..._role.value, isActive: false };
@@ -141,7 +141,7 @@ export function useAdminRoles() {
     _actionError.value = null;
 
     try {
-      await rbacApi.attachPermissionToRole(roleId, { permissionId });
+      await rbacApi.attachPermissionToRole(useAdminApiClient(), roleId, { permissionId });
       await loadRolePermissions(roleId);
       return true;
     } catch (err) {
@@ -157,7 +157,7 @@ export function useAdminRoles() {
     _actionError.value = null;
 
     try {
-      await rbacApi.detachPermissionFromRole(roleId, permissionId);
+      await rbacApi.detachPermissionFromRole(useAdminApiClient(), roleId, permissionId);
       _rolePermissions.value = _rolePermissions.value.filter((p) => p.id !== permissionId);
       return true;
     } catch (err) {

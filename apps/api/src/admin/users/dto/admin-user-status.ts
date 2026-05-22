@@ -1,10 +1,12 @@
 import { BadRequestException } from '@nestjs/common';
-import { USER_STATUSES, type UserStatus } from '../../../auth/users/user.types';
+
+const ADMIN_STATUS_UPDATE_TARGETS = ['active', 'suspended', 'banned', 'deleted'] as const;
+type AdminStatusUpdateTarget = (typeof ADMIN_STATUS_UPDATE_TARGETS)[number];
 
 const MAX_REASON_LENGTH = 500;
 
 export interface AdminUserStatusUpdateDto {
-  readonly status: UserStatus;
+  readonly status: AdminStatusUpdateTarget;
   readonly reason?: string;
 }
 
@@ -15,11 +17,13 @@ export function parseAdminUserStatusUpdate(raw: unknown): AdminUserStatusUpdateD
 
   const body = raw as Record<string, unknown>;
 
-  if (!USER_STATUSES.includes(body.status as UserStatus)) {
-    throw new BadRequestException(`status must be one of: ${USER_STATUSES.join(', ')}.`);
+  if (!(ADMIN_STATUS_UPDATE_TARGETS as readonly unknown[]).includes(body.status)) {
+    throw new BadRequestException(
+      `status must be one of: ${ADMIN_STATUS_UPDATE_TARGETS.join(', ')}.`,
+    );
   }
 
-  const status = body.status as UserStatus;
+  const status = body.status as AdminStatusUpdateTarget;
   let reason: string | undefined;
 
   if (body.reason !== undefined) {

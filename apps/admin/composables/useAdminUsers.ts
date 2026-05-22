@@ -3,7 +3,7 @@ import type {
   AdminUserDetail,
   AdminUserListItem,
   AdminUserSessionSummary,
-  AdminUserStatus,
+  AdminUserStatusUpdateTarget,
   AdminUsersListParams,
 } from '@dragon/sdk';
 import * as usersApi from '~/features/users/admin-users.api';
@@ -31,7 +31,7 @@ export function useAdminUsers() {
     _usersError.value = null;
 
     try {
-      const res = await usersApi.listUsers(params);
+      const res = await usersApi.listUsers(useAdminApiClient(), params);
       _users.value = res.users;
       _usersTotal.value = res.total;
       _usersPage.value = res.page;
@@ -48,7 +48,7 @@ export function useAdminUsers() {
     _userError.value = null;
 
     try {
-      const res = await usersApi.getUser(id);
+      const res = await usersApi.getUser(useAdminApiClient(), id);
       _user.value = res.user;
     } catch (err) {
       _userError.value = err instanceof Error ? err.message : 'خطا در بارگذاری کاربر.';
@@ -63,7 +63,7 @@ export function useAdminUsers() {
     _sessionsError.value = null;
 
     try {
-      const res = await usersApi.listUserSessions(userId);
+      const res = await usersApi.listUserSessions(useAdminApiClient(), userId);
       _sessions.value = res.sessions;
     } catch (err) {
       _sessionsError.value = err instanceof Error ? err.message : 'خطا در بارگذاری نشست‌ها.';
@@ -74,14 +74,14 @@ export function useAdminUsers() {
 
   async function updateStatus(
     id: string,
-    status: AdminUserStatus,
+    status: AdminUserStatusUpdateTarget,
     reason?: string,
   ): Promise<boolean> {
     _actionLoading.value = true;
     _actionError.value = null;
 
     try {
-      const res = await usersApi.updateUserStatus(id, status, reason);
+      const res = await usersApi.updateUserStatus(useAdminApiClient(), id, status, reason);
       _user.value = res.user;
       return true;
     } catch (err) {
@@ -97,7 +97,7 @@ export function useAdminUsers() {
     _actionError.value = null;
 
     try {
-      await usersApi.revokeUserSession(userId, sessionId);
+      await usersApi.revokeUserSession(useAdminApiClient(), userId, sessionId);
       _sessions.value = _sessions.value.map((s) =>
         s.id === sessionId ? { ...s, isActive: false, revokedAt: new Date().toISOString() } : s,
       );

@@ -63,7 +63,7 @@ import { DragonPermissions as Permissions } from '@dragon/sdk';
 definePageMeta({
   layout: 'admin',
   middleware: ['admin-auth-required', 'admin-permission-required'],
-  requiredPermission: 'rbac.role.read',
+  requiredPermission: Permissions.RBAC_ROLE_READ,
 });
 useHead({ title: 'نقش‌ها — Dragon Admin' });
 

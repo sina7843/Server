@@ -12,7 +12,8 @@ export function useAdminSystem() {
     _error.value = null;
 
     try {
-      _health.value = await systemApi.getSystemHealth();
+      const client = useAdminApiClient();
+      _health.value = await systemApi.getSystemHealth(client);
     } catch (err) {
       _error.value = err instanceof Error ? err.message : 'خطا در بارگذاری وضعیت سیستم.';
     } finally {

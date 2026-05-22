@@ -13,6 +13,15 @@ export const ADMIN_USER_STATUSES: readonly AdminUserStatus[] = [
   'deleted',
 ];
 
+export type AdminUserStatusUpdateTarget = 'active' | 'suspended' | 'banned' | 'deleted';
+
+export const ADMIN_USER_STATUS_UPDATE_TARGETS: readonly AdminUserStatusUpdateTarget[] = [
+  'active',
+  'suspended',
+  'banned',
+  'deleted',
+];
+
 export type AdminProfileVisibility = 'public' | 'private';
 
 export interface AdminUserProfileSummary {
@@ -63,7 +72,7 @@ export interface AdminUserDetailResponse {
 }
 
 export interface AdminUserStatusUpdateRequest {
-  readonly status: AdminUserStatus;
+  readonly status: AdminUserStatusUpdateTarget;
   readonly reason?: string;
 }
 

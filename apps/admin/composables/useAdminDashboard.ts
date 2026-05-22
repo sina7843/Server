@@ -12,7 +12,8 @@ export function useAdminDashboard() {
     _error.value = null;
 
     try {
-      _summary.value = await dashboardApi.getDashboardSummary();
+      const client = useAdminApiClient();
+      _summary.value = await dashboardApi.getDashboardSummary(client);
     } catch (err) {
       _error.value = err instanceof Error ? err.message : 'خطا در بارگذاری داشبورد.';
     } finally {

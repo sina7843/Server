@@ -25,7 +25,7 @@
         <div class="field">
           <label for="status-select" class="field-label">وضعیت جدید</label>
           <select id="status-select" v-model="selectedStatus" class="field-select">
-            <option v-for="s in ADMIN_USER_STATUSES" :key="s" :value="s">
+            <option v-for="s in ADMIN_USER_STATUS_UPDATE_TARGETS" :key="s" :value="s">
               {{ STATUS_LABELS[s] }}
             </option>
           </select>
@@ -77,10 +77,17 @@
 </template>
 
 <script setup lang="ts">
-import { DragonPermissions as Permissions, ADMIN_USER_STATUSES } from '@dragon/sdk';
-import type { AdminUserStatus } from '@dragon/sdk';
+import {
+  DragonPermissions as Permissions,
+  ADMIN_USER_STATUS_UPDATE_TARGETS,
+} from '@dragon/sdk';
+import type { AdminUserStatus, AdminUserStatusUpdateTarget } from '@dragon/sdk';
 
-definePageMeta({ layout: 'admin', middleware: ['admin-auth-required'] });
+definePageMeta({
+  layout: 'admin',
+  middleware: ['admin-auth-required', 'admin-permission-required'],
+  requiredPermission: Permissions.USER_STATUS_UPDATE,
+});
 
 const route = useRoute();
 const router = useRouter();
@@ -92,17 +99,16 @@ const { user, userLoading, userError, actionLoading, actionError, loadUser, upda
 
 useHead({ title: 'تغییر وضعیت — Dragon Admin' });
 
-const STATUS_LABELS: Record<AdminUserStatus, string> = {
-  pending_verification: 'در انتظار تأیید',
+const STATUS_LABELS: Record<AdminUserStatusUpdateTarget, string> = {
   active: 'فعال',
   suspended: 'تعلیق',
   banned: 'مسدود',
   deleted: 'حذف‌شده',
 };
 
-const DESTRUCTIVE_STATUSES: readonly AdminUserStatus[] = ['suspended', 'banned', 'deleted'];
+const DESTRUCTIVE_STATUSES: readonly AdminUserStatusUpdateTarget[] = ['suspended', 'banned', 'deleted'];
 
-const selectedStatus = ref<AdminUserStatus>('active');
+const selectedStatus = ref<AdminUserStatusUpdateTarget>('active');
 const reason = ref('');
 const showConfirm = ref(false);
 
@@ -119,7 +125,10 @@ const confirmDescription = computed(() => {
 async function reload() {
   await loadUser(userId);
   if (user.value) {
-    selectedStatus.value = user.value.status;
+    const current = user.value.status as AdminUserStatus;
+    selectedStatus.value = (ADMIN_USER_STATUS_UPDATE_TARGETS as readonly string[]).includes(current)
+      ? (current as AdminUserStatusUpdateTarget)
+      : 'active';
   }
 }
 

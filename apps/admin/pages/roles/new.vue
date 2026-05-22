@@ -80,7 +80,11 @@
 <script setup lang="ts">
 import { DragonPermissions as Permissions } from '@dragon/sdk';
 
-definePageMeta({ layout: 'admin', middleware: ['admin-auth-required'] });
+definePageMeta({
+  layout: 'admin',
+  middleware: ['admin-auth-required', 'admin-permission-required'],
+  requiredPermission: Permissions.RBAC_ROLE_CREATE,
+});
 useHead({ title: 'ایجاد نقش — Dragon Admin' });
 
 const router = useRouter();

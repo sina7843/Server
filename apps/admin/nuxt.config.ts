@@ -7,6 +7,11 @@ export default defineNuxtConfig({
   typescript: {
     strict: true,
   },
+  runtimeConfig: {
+    public: {
+      apiBaseUrl: '/',
+    },
+  },
   app: {
     head: {
       meta: [{ name: 'robots', content: 'noindex, nofollow' }],

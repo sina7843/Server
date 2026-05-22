@@ -45,7 +45,7 @@ describe('adminLogin', () => {
     mockLoginSuccess();
     mockGetMeSuccess();
 
-    const result = await adminLogin('+1234567890', 'secure-pass');
+    const result = await adminLogin('+1234567890', 'secure-pass', '/');
 
     expect(result.token).toBe('test-token');
     expect(result.identity.user.id).toBe('admin-1');
@@ -56,7 +56,7 @@ describe('adminLogin', () => {
     mockLoginSuccess();
     mockGetMeSuccess({ permissions: ['admin.dashboard.view', 'user.user.read'] });
 
-    const result = await adminLogin('+1234567890', 'secure-pass');
+    const result = await adminLogin('+1234567890', 'secure-pass', '/');
 
     expect(Array.isArray(result.identity.permissions)).toBe(true);
     expect(result.identity.permissions).toContain('admin.dashboard.view');
@@ -67,7 +67,7 @@ describe('adminLogin', () => {
     mockLoginSuccess();
     mockGetMeSuccess({ isSuperAdmin: true });
 
-    const result = await adminLogin('+1234567890', 'secure-pass');
+    const result = await adminLogin('+1234567890', 'secure-pass', '/');
 
     expect(result.identity.isSuperAdmin).toBe(true);
   });
@@ -75,14 +75,14 @@ describe('adminLogin', () => {
   it('throws on invalid credentials', async () => {
     mockLoginUnauthorized();
 
-    await expect(adminLogin('+1234567890', 'wrong-pass')).rejects.toThrow('Invalid credentials.');
+    await expect(adminLogin('+1234567890', 'wrong-pass', '/')).rejects.toThrow('Invalid credentials.');
   });
 
   it('throws on insufficient admin permissions', async () => {
     mockLoginSuccess();
     mockGetMeForbidden();
 
-    await expect(adminLogin('+1234567890', 'secure-pass')).rejects.toThrow(
+    await expect(adminLogin('+1234567890', 'secure-pass', '/')).rejects.toThrow(
       'Access denied: insufficient admin permissions.',
     );
   });
@@ -91,7 +91,7 @@ describe('adminLogin', () => {
     mockLoginSuccess();
     mockGetMeSuccess();
 
-    const result = await adminLogin('+1234567890', 'secure-pass');
+    const result = await adminLogin('+1234567890', 'secure-pass', '/');
     const serialized = JSON.stringify(result.identity);
 
     expect(serialized).not.toContain('passwordHash');
@@ -105,7 +105,7 @@ describe('fetchAdminIdentity', () => {
   it('fetches admin identity using bearer token', async () => {
     mockGetMeSuccess();
 
-    const identity = await fetchAdminIdentity('test-token');
+    const identity = await fetchAdminIdentity('test-token', '/');
 
     expect(identity.user.id).toBe('admin-1');
     expect(mockFetch).toHaveBeenCalledWith(
@@ -119,7 +119,7 @@ describe('fetchAdminIdentity', () => {
   it('returns permissions from identity', async () => {
     mockGetMeSuccess({ permissions: ['admin.dashboard.view', 'rbac.role.read'] });
 
-    const identity = await fetchAdminIdentity('test-token');
+    const identity = await fetchAdminIdentity('test-token', '/');
 
     expect(identity.permissions).toContain('admin.dashboard.view');
     expect(identity.permissions).toContain('rbac.role.read');
@@ -128,7 +128,7 @@ describe('fetchAdminIdentity', () => {
   it('returns isSuperAdmin flag from identity', async () => {
     mockGetMeSuccess({ isSuperAdmin: false });
 
-    const identity = await fetchAdminIdentity('test-token');
+    const identity = await fetchAdminIdentity('test-token', '/');
 
     expect(identity.isSuperAdmin).toBe(false);
   });
@@ -136,6 +136,6 @@ describe('fetchAdminIdentity', () => {
   it('throws ApiClientError on 403', async () => {
     mockGetMeForbidden();
 
-    await expect(fetchAdminIdentity('expired-token')).rejects.toBeInstanceOf(ApiClientError);
+    await expect(fetchAdminIdentity('expired-token', '/')).rejects.toBeInstanceOf(ApiClientError);
   });
 });

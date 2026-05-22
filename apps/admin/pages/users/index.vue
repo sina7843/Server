@@ -78,7 +78,7 @@ import type { AdminUserStatus } from '@dragon/sdk';
 definePageMeta({
   layout: 'admin',
   middleware: ['admin-auth-required', 'admin-permission-required'],
-  requiredPermission: 'user.user.read',
+  requiredPermission: Permissions.USER_READ,
 });
 useHead({ title: 'کاربران — Dragon Admin' });
 

@@ -1,13 +1,12 @@
 import { ApiClientError, createAdminAuthClient, createApiClient } from '@dragon/sdk';
 import type { AdminMeResponse, TokenResponse } from '@dragon/sdk';
 
-const API_BASE_URL = '/';
-
 export async function adminLogin(
   phone: string,
   password: string,
+  apiBaseUrl: string,
 ): Promise<{ token: string; identity: AdminMeResponse }> {
-  const unauthenticatedClient = createApiClient({ baseUrl: API_BASE_URL });
+  const unauthenticatedClient = createApiClient({ baseUrl: apiBaseUrl });
   const unauthenticatedAdminAuth = createAdminAuthClient(unauthenticatedClient);
 
   let tokenResponse: TokenResponse;
@@ -23,7 +22,7 @@ export async function adminLogin(
   }
 
   const authenticatedClient = createApiClient({
-    baseUrl: API_BASE_URL,
+    baseUrl: apiBaseUrl,
     headers: { Authorization: `Bearer ${tokenResponse.accessToken}` },
   });
   const authenticatedAdminAuth = createAdminAuthClient(authenticatedClient);
@@ -43,9 +42,12 @@ export async function adminLogin(
   return { token: tokenResponse.accessToken, identity };
 }
 
-export async function fetchAdminIdentity(accessToken: string): Promise<AdminMeResponse> {
+export async function fetchAdminIdentity(
+  accessToken: string,
+  apiBaseUrl: string,
+): Promise<AdminMeResponse> {
   const client = createApiClient({
-    baseUrl: API_BASE_URL,
+    baseUrl: apiBaseUrl,
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   const adminAuth = createAdminAuthClient(client);

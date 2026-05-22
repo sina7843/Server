@@ -43,6 +43,7 @@ const router = useRouter();
 const route = useRoute();
 const { setAuth } = useAdminAuthState();
 const { setPermissions } = useAdminPermissions();
+const { public: { apiBaseUrl } } = useRuntimeConfig();
 
 const phone = ref('');
 const password = ref('');
@@ -56,7 +57,7 @@ async function handleSubmit() {
   errorMessage.value = '';
 
   try {
-    const { token, identity } = await adminLogin(phone.value, password.value);
+    const { token, identity } = await adminLogin(phone.value, password.value, String(apiBaseUrl));
     setAuth(token, identity);
     setPermissions(identity.permissions, identity.isSuperAdmin);
 

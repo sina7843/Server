@@ -1,55 +1,51 @@
-import { ApiClientError, createAdminUsersClient, createApiClient } from '@dragon/sdk';
+import { createAdminUsersClient } from '@dragon/sdk';
 import type {
+  ApiClient,
   AdminGenericResponse,
   AdminUserDetailResponse,
   AdminUserSessionsResponse,
-  AdminUserStatus,
   AdminUsersListParams,
   AdminUsersListResponse,
 } from '@dragon/sdk';
-import { useAdminAuthState } from '~/composables/useAdminAuthState';
+import type { AdminUserStatusUpdateTarget } from '@dragon/types';
 
-function getAdminUsersClient() {
-  const { accessToken } = useAdminAuthState();
-
-  if (!accessToken.value) {
-    throw new ApiClientError('Not authenticated.', 401);
-  }
-
-  const client = createApiClient({
-    baseUrl: '/',
-    headers: { Authorization: `Bearer ${accessToken.value}` },
-  });
-
-  return createAdminUsersClient(client);
+export async function listUsers(
+  client: ApiClient,
+  params?: AdminUsersListParams,
+): Promise<AdminUsersListResponse> {
+  return createAdminUsersClient(client).listUsers(params);
 }
 
-export async function listUsers(params?: AdminUsersListParams): Promise<AdminUsersListResponse> {
-  return getAdminUsersClient().listUsers(params);
-}
-
-export async function getUser(id: string): Promise<AdminUserDetailResponse> {
-  return getAdminUsersClient().getUser(id);
+export async function getUser(
+  client: ApiClient,
+  id: string,
+): Promise<AdminUserDetailResponse> {
+  return createAdminUsersClient(client).getUser(id);
 }
 
 export async function updateUserStatus(
+  client: ApiClient,
   id: string,
-  status: AdminUserStatus,
+  status: AdminUserStatusUpdateTarget,
   reason?: string,
 ): Promise<AdminUserDetailResponse> {
-  return getAdminUsersClient().updateUserStatus(id, {
+  return createAdminUsersClient(client).updateUserStatus(id, {
     status,
     ...(reason !== undefined && reason.trim().length > 0 ? { reason: reason.trim() } : {}),
   });
 }
 
-export async function listUserSessions(id: string): Promise<AdminUserSessionsResponse> {
-  return getAdminUsersClient().listUserSessions(id);
+export async function listUserSessions(
+  client: ApiClient,
+  id: string,
+): Promise<AdminUserSessionsResponse> {
+  return createAdminUsersClient(client).listUserSessions(id);
 }
 
 export async function revokeUserSession(
+  client: ApiClient,
   userId: string,
   sessionId: string,
 ): Promise<AdminGenericResponse> {
-  return getAdminUsersClient().revokeUserSession(userId, sessionId);
+  return createAdminUsersClient(client).revokeUserSession(userId, sessionId);
 }

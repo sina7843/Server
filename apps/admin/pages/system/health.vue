@@ -48,7 +48,7 @@ import { DragonPermissions as Permissions } from '@dragon/sdk';
 definePageMeta({
   layout: 'admin',
   middleware: ['admin-auth-required', 'admin-permission-required'],
-  requiredPermission: 'system.health.read',
+  requiredPermission: Permissions.SYSTEM_HEALTH_READ,
 });
 useHead({ title: 'سلامت سیستم — Dragon Admin' });
 

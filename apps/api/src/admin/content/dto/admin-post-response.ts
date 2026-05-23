@@ -47,6 +47,7 @@ export function toAdminPostDetail(post: PostDocument): AdminPostDetailDto {
       ...(post.seo?.noIndex !== undefined ? { noIndex: post.seo.noIndex } : {}),
     },
     viewCount: post.viewCount ?? 0,
+    ...(post.coverMediaId ? { coverMediaId: String(post.coverMediaId) } : {}),
     ...(post.publishedAt ? { publishedAt: post.publishedAt.toISOString() } : {}),
     ...(post.deletedAt ? { deletedAt: post.deletedAt.toISOString() } : {}),
     createdAt: post.createdAt.toISOString(),

@@ -102,6 +102,48 @@
           </div>
         </div>
 
+        <div v-if="isEdit && hasPermission(Permissions.MEDIA_ASSET_READ)" class="field">
+          <label class="field-label">
+            تصویر کاور
+            <span class="field-hint">(اختیاری)</span>
+          </label>
+          <div class="cover-row">
+            <img v-if="coverAssetUrl" :src="coverAssetUrl" alt="تصویر کاور" class="cover-thumb" />
+            <span v-else-if="form.coverMediaId" class="cover-id"
+              >شناسه: {{ form.coverMediaId }}</span
+            >
+            <span v-else class="cover-empty">انتخاب نشده</span>
+            <div class="cover-btns">
+              <button type="button" class="cover-btn" @click="coverPickerOpen = true">
+                {{ form.coverMediaId ? 'تغییر' : 'انتخاب' }}
+              </button>
+              <button
+                v-if="form.coverMediaId"
+                type="button"
+                class="cover-btn cover-btn--clear"
+                @click="
+                  form.coverMediaId = null;
+                  coverAssetUrl = null;
+                "
+              >
+                حذف
+              </button>
+            </div>
+          </div>
+
+          <MediaPickerDialog
+            :open="coverPickerOpen"
+            @select="
+              (a) => {
+                form.coverMediaId = a.id;
+                coverAssetUrl = a.url ?? null;
+                coverPickerOpen = false;
+              }
+            "
+            @cancel="coverPickerOpen = false"
+          />
+        </div>
+
         <fieldset class="fieldset">
           <legend class="fieldset-legend">تنظیمات SEO</legend>
 
@@ -294,7 +336,11 @@ const form = reactive({
   seoDescription: '',
   canonicalUrl: '',
   noIndex: false,
+  coverMediaId: null as string | null,
 });
+
+const coverPickerOpen = ref(false);
+const coverAssetUrl = ref<string | null>(null);
 
 const errors = reactive({
   title: '',
@@ -359,6 +405,9 @@ async function onSubmit() {
       categoryIds: form.categoryIds,
       tagIds: form.tagIds,
       seo,
+      ...(form.coverMediaId !== null
+        ? { coverMediaId: form.coverMediaId }
+        : { coverMediaId: null }),
     });
 
     if (updated) {
@@ -421,6 +470,7 @@ onMounted(async () => {
       form.seoDescription = post.value.seo?.description ?? '';
       form.canonicalUrl = post.value.seo?.canonicalUrl ?? '';
       form.noIndex = post.value.seo?.noIndex ?? false;
+      form.coverMediaId = post.value.coverMediaId ?? null;
     }
   }
 });
@@ -688,5 +738,54 @@ onMounted(async () => {
 .lifecycle-btn--delete {
   background: #fee2e2;
   color: #991b1b;
+}
+
+.cover-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.cover-thumb {
+  width: 80px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 0.25rem;
+  border: 1px solid #e5e7eb;
+}
+
+.cover-empty,
+.cover-id {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.cover-btns {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.cover-btn {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background: #fff;
+  color: #374151;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.cover-btn:hover {
+  background: #f3f4f6;
+}
+
+.cover-btn--clear {
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+.cover-btn--clear:hover {
+  background: #fee2e2;
 }
 </style>

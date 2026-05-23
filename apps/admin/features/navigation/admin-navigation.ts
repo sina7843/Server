@@ -45,6 +45,13 @@ export const ADMIN_NAV_ITEMS: readonly AdminNavItem[] = [
     permission: DragonPermissions.CONTENT_POST_READ,
   },
   {
+    key: 'media',
+    label: 'رسانه',
+    labelEn: 'Media',
+    path: '/media',
+    permission: DragonPermissions.MEDIA_ASSET_READ,
+  },
+  {
     key: 'system-health',
     label: 'سلامت سیستم',
     labelEn: 'System Health',

@@ -98,7 +98,17 @@ export class PostRepository {
     if (input.categoryIds !== undefined) set.categoryIds = input.categoryIds;
     if (input.tagIds !== undefined) set.tagIds = input.tagIds;
 
-    return this.postModel.findByIdAndUpdate(id, { $set: set }, { new: true }).exec();
+    const unset: Record<string, 1> = {};
+    if (input.coverMediaId === null) {
+      unset.coverMediaId = 1;
+    } else if (input.coverMediaId !== undefined) {
+      set.coverMediaId = input.coverMediaId;
+    }
+
+    const op: Record<string, unknown> = { $set: set };
+    if (Object.keys(unset).length > 0) op.$unset = unset;
+
+    return this.postModel.findByIdAndUpdate(id, op, { new: true }).exec();
   }
 
   updateSlug(

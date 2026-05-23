@@ -36,6 +36,7 @@ export interface AdminUpdatePostBodyDto {
     readonly canonicalUrl?: string;
     readonly noIndex?: boolean;
   };
+  readonly coverMediaId?: string | null;
 }
 
 const KNOWN_CREATE_FIELDS = new Set([
@@ -59,6 +60,7 @@ const KNOWN_UPDATE_FIELDS = new Set([
   'categoryIds',
   'tagIds',
   'seo',
+  'coverMediaId',
 ]);
 
 const KNOWN_SEO_FIELDS = new Set(['title', 'description', 'canonicalUrl', 'noIndex']);
@@ -255,6 +257,13 @@ export function parseAdminUpdatePostBody(raw: unknown): AdminUpdatePostBodyDto {
 
   if (body.seo !== undefined) {
     result.seo = validateSeoInput(body.seo);
+  }
+
+  if (body.coverMediaId !== undefined) {
+    if (body.coverMediaId !== null && typeof body.coverMediaId !== 'string') {
+      throw new BadRequestException('coverMediaId must be a string or null.');
+    }
+    result.coverMediaId = body.coverMediaId === '' ? null : (body.coverMediaId as string | null);
   }
 
   return result as AdminUpdatePostBodyDto;

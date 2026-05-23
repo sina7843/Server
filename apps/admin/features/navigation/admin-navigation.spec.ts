@@ -1,10 +1,18 @@
 import { DragonPermissions } from '@dragon/sdk';
 import { ADMIN_NAV_ITEMS, filterNavByPermissions } from './admin-navigation';
 
-const ALLOWED_KEYS = ['dashboard', 'users', 'roles', 'permissions', 'content', 'system-health'];
+const ALLOWED_KEYS = [
+  'dashboard',
+  'users',
+  'roles',
+  'permissions',
+  'content',
+  'media',
+  'system-health',
+];
 
 describe('ADMIN_NAV_ITEMS', () => {
-  it('contains exactly the allowed Slice 0.5 + 0.6 navigation items', () => {
+  it('contains exactly the allowed Slice 0.5 + 0.6 + 0.7 navigation items', () => {
     expect(ADMIN_NAV_ITEMS.map((i) => i.key)).toEqual(ALLOWED_KEYS);
   });
 
@@ -27,10 +35,23 @@ describe('ADMIN_NAV_ITEMS', () => {
     expect(contentItem!.permission).toBe(DragonPermissions.CONTENT_POST_READ);
   });
 
-  it('does not contain Media, Audit, or Analytics nav items', () => {
+  it('contains media nav item added in Task 0.7.4', () => {
     const keys = ADMIN_NAV_ITEMS.map((i) => i.key);
 
-    expect(keys).not.toContain('media');
+    expect(keys).toContain('media');
+  });
+
+  it('media nav item uses media.asset.read permission as gate', () => {
+    const mediaItem = ADMIN_NAV_ITEMS.find((i) => i.key === 'media');
+
+    expect(mediaItem).toBeDefined();
+    expect(mediaItem!.permission).toBe(DragonPermissions.MEDIA_ASSET_READ);
+    expect(mediaItem!.path).toBe('/media');
+  });
+
+  it('does not contain Audit or Analytics nav items', () => {
+    const keys = ADMIN_NAV_ITEMS.map((i) => i.key);
+
     expect(keys).not.toContain('audit');
     expect(keys).not.toContain('analytics');
   });
@@ -122,6 +143,14 @@ describe('filterNavByPermissions', () => {
 
     expect(result).toHaveLength(ALLOWED_KEYS.length);
     expect(result.map((i) => i.key)).toEqual(ALLOWED_KEYS);
+  });
+
+  it('shows Media nav with media.asset.read permission', () => {
+    const permissions = new Set([DragonPermissions.MEDIA_ASSET_READ]);
+    const result = filterNavByPermissions(ADMIN_NAV_ITEMS, permissions, false);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]!.key).toBe('media');
   });
 
   it('shows all allowed items when user has all effective permissions', () => {

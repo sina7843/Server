@@ -136,6 +136,7 @@ export interface UpdatePostRequest {
   readonly categoryIds?: readonly string[];
   readonly tagIds?: readonly string[];
   readonly seo?: ContentSeoInput;
+  readonly coverMediaId?: string | null;
 }
 
 export interface CreatePageRequest {
@@ -209,6 +210,7 @@ export interface AdminPostDetailDto {
   readonly tagIds: readonly string[];
   readonly seo: ContentSeoDto;
   readonly viewCount: number;
+  readonly coverMediaId?: string;
   readonly publishedAt?: string;
   readonly deletedAt?: string;
   readonly createdAt: string;

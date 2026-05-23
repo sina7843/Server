@@ -489,3 +489,35 @@ Expected: **83 API test suites, 652 API tests** (4 new tests added), 98 admin te
 | `{ unknown: "bad" }` rejected on page update        | `admin-content-pages.service.spec.ts` — "rejects bodyJson without type field on update"                       |
 | Toolbar has no underline/strike/inline-code/hr      | `ContentEditorToolbar.vue` — no `toggleUnderline`, `toggleStrike`, `toggleCode`, `setHorizontalRule` calls    |
 | No Underline extension in editor                    | `ContentRichTextEditor.vue` — no `import Underline` and not in extensions array                               |
+
+---
+
+## Main HQ Checkpoint — Nuxt Config Regression Fix
+
+### What was fixed
+
+- **`apps/admin/nuxt.config.ts`**: Added `ssr: false` (restores SPA behavior); added `runtimeConfig.public` with `apiBaseUrl`, `adminUrl`, `appEnv`.
+- **`apps/web/nuxt.config.ts`**: Added `runtimeConfig` with `apiInternalBaseUrl` (server-only) and `public.apiBaseUrl`, `public.siteUrl`, `public.appEnv`. `ssr: true` unchanged.
+- **`apps/admin/app.vue`**: Added `useHead` with `robots: noindex,nofollow,noarchive` meta at app level.
+
+### Verification Commands
+
+```bash
+pnpm --filter @dragon/admin typecheck   # ✓ clean
+pnpm --filter @dragon/admin build       # ✓ Build complete (1.97 MB)
+pnpm --filter @dragon/web typecheck     # ✓ clean
+pnpm --filter @dragon/web build         # ✓ Build complete (2.52 MB)
+pnpm typecheck                          # ✓ 9 tasks, all successful
+pnpm build                              # ✓ 9 tasks, all successful
+```
+
+### Key Invariants
+
+| Invariant                                              | How to verify                                                                |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| `apps/admin` is SPA (`ssr: false`)                     | `apps/admin/nuxt.config.ts` — `ssr: false` present                          |
+| `apps/web` remains SSR (`ssr: true`)                   | `apps/web/nuxt.config.ts` — `ssr: true` present                             |
+| Admin `runtimeConfig.public.apiBaseUrl` defined        | `apps/admin/nuxt.config.ts` — `runtimeConfig.public.apiBaseUrl`             |
+| Web `runtimeConfig.public.apiBaseUrl` defined          | `apps/web/nuxt.config.ts` — `runtimeConfig.public.apiBaseUrl`               |
+| Web `runtimeConfig.public.siteUrl` defined             | `apps/web/nuxt.config.ts` — `runtimeConfig.public.siteUrl`                  |
+| Admin app-level noindex meta set                       | `apps/admin/app.vue` — `useHead` with `robots: noindex,nofollow,noarchive`  |

@@ -6,6 +6,8 @@ const adminRoot = fileURLToPath(new URL('.', import.meta.url));
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
 
+  ssr: false,
+
   srcDir: '.',
 
   alias: {
@@ -26,6 +28,14 @@ export default defineNuxtConfig({
       pathPrefix: false,
     },
   ],
+
+  runtimeConfig: {
+    public: {
+      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3000',
+      adminUrl: process.env.NUXT_PUBLIC_ADMIN_URL ?? 'http://localhost:3001',
+      appEnv: process.env.NUXT_PUBLIC_APP_ENV ?? process.env.APP_ENV ?? 'development',
+    },
+  },
 
   typescript: {
     strict: true,

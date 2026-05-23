@@ -37,7 +37,9 @@ Module: `AdminAuthModule` → `AdminAuthController`
 
 - No admin bypass: every admin route requires `AccessTokenGuard` + `PermissionGuard`.
 - Access token is memory-only: cleared on page close.
-- Admin app has blanket `noindex, nofollow` meta — not indexed by search engines.
+- Admin app has blanket `noindex, nofollow, noarchive` meta set in `app.vue` via `useHead` — not indexed by search engines.
+- `ssr: false` in `nuxt.config.ts` — admin is a pure SPA in Phase 0.
+- `runtimeConfig.public.apiBaseUrl` (default `http://localhost:3000`) controls the API origin; override with `NUXT_PUBLIC_API_BASE_URL`.
 - Backend responses never contain: `passwordHash`, `refreshTokenHash`, `statusReason`, raw phone, session internals.
 - `super_admin` users are handled transparently by `PermissionResolverService.isSuperAdmin`.
 

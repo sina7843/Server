@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "eslint \"nuxt.config.ts\" \"eslint.config.js\" \"composables/**/*.ts\" \"features/**/*.ts\" \"middleware/**/*.ts\" --no-error-on-unmatched-pattern",
     "typecheck": "nuxt typecheck",
-    "test": "jest --runInBand features/profile",
+    "test": "jest --runInBand features",
     "build": "nuxt build",
     "dev": "nuxt dev",
     "start": "node .output/server/index.mjs"
@@ -31,7 +31,7 @@
       "ts"
     ],
     "rootDir": ".",
-    "testRegex": "features/profile/.*\\.spec\\.ts$",
+    "testRegex": "features/[^/]+/.*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": [
         "ts-jest",
@@ -45,7 +45,8 @@
     },
     "testEnvironment": "node",
     "moduleNameMapper": {
-      "^@dragon/sdk$": "<rootDir>/../../packages/sdk/src/index.ts"
+      "^@dragon/sdk$": "<rootDir>/../../packages/sdk/src/index.ts",
+      "^@dragon/types$": "<rootDir>/../../packages/types/src/index.ts"
     }
   }
 }

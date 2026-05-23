@@ -338,3 +338,95 @@ Note: `pnpm typecheck` (workspace-wide) fails on `@dragon/admin` due to pre-exis
 | Revision restore does not exist                   | `ContentRevisionListView.vue` — no restore button; restore-notice text present            |
 | No generic `/posts/:slug` route                   | `admin-content.api.spec.ts` — "no generic /posts/:slug route"                             |
 | No public content pages added                     | `apps/admin/pages/` — no new top-level routes outside `/content/`                         |
+
+---
+
+## Task 0.6.6 — Public Content Rendering and SEO
+
+### What was built
+
+- **`apps/web/features/content/content-api.ts`** — `createContentApi()` factory wrapping SDK's `createContentClient`; the single integration point for all public content API calls
+- **`apps/web/features/content/content-seo.ts`** — `buildContentSeoHead()` pure helper; builds `useHead` config from `ContentSeoDto`; applies title, description, OG tags, canonical link, and noindex
+- **`apps/web/composables/usePublicContent.ts`** — Nuxt composable; creates the content client using `runtimeConfig.public.apiBaseUrl`; consumed by every content page
+- **`apps/web/components/content/ContentHtmlRenderer.vue`** — the only `v-html` boundary in the public frontend; accepts only `string html` (server-sanitized bodyHtml); styled for rich text output
+- **`apps/web/components/content/ContentStateMessage.vue`** — loading / error / empty / not-found states with `role="status"`
+- **`apps/web/components/content/ContentCard.vue`** — list-item card with title link, excerpt, and formatted date
+- **`apps/web/components/content/ContentList.vue`** — renders an accessible `<ul>` of `ContentCard` items
+- **`apps/web/components/content/ContentArticle.vue`** — full detail view for post types; renders title, excerpt, date, and `ContentHtmlRenderer`
+- **List pages** (`index.vue`): `/news`, `/articles`, `/announcements`, `/guides`, `/rules` — each calls the type-specific SDK list method via `useAsyncData`
+- **Detail pages** (`[slug].vue`): `/news`, `/articles`, `/announcements`, `/guides`, `/rules`, `/pages` — each calls the type-specific SDK detail method; 404 is caught and mapped to not-found state; noindex is set on not-found/error
+- **Category page** (`/categories/[slug].vue`) — fetches category by slug; shows metadata; empty state is shown truthfully (no fake content list)
+- **Tag page** (`/tags/[slug].vue`) — fetches tag by slug; shows metadata; empty state is shown truthfully
+- **`apps/web/features/content/content-api.spec.ts`** — 42 new tests covering all list/detail endpoints, URL encoding, absence of generic routes, SEO helper behavior (title, description, noindex, OG tags, canonical, not-found/error noindex)
+- **`apps/web/package.json`** updated — test script covers all features (`jest --runInBand features`); testRegex widened; `@dragon/types` added to `moduleNameMapper`
+- **`apps/web/nuxt.config.ts`** updated — workspace source aliases added for `@dragon/types` and `@dragon/sdk` (same fix as admin stabilization)
+
+### What was NOT built (intentionally out of scope)
+
+- No generic `/posts/[slug]` route
+- No comments UI
+- No related content component (no real API)
+- No search feature
+- No analytics tracking
+- No newsletter
+- No localization
+- No visual page builder / block renderer
+- No media upload, Media Library, or media picker
+- No user-generated content
+- No OG image resolution (`seo.ogImageMediaId` is in the DTO but not resolved — Media Library deferred)
+- No admin UI changes
+- No revision restore
+- No scheduled publish, approval workflow
+
+### Verification Commands
+
+```bash
+pnpm install
+
+pnpm --filter @dragon/web lint
+pnpm --filter @dragon/web typecheck
+pnpm --filter @dragon/web test
+pnpm --filter @dragon/web build
+
+pnpm --filter @dragon/sdk lint
+pnpm --filter @dragon/sdk typecheck
+pnpm --filter @dragon/sdk test
+pnpm --filter @dragon/sdk build
+
+pnpm --filter @dragon/types lint
+pnpm --filter @dragon/types typecheck
+pnpm --filter @dragon/types test
+pnpm --filter @dragon/types build
+
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm format:check
+```
+
+Expected after Task 0.6.6: **83 API suites + 7 admin feature suites + 3 web feature suites = 93 total suites, 0 failures; 648 API tests + 98 admin tests + 46 web tests = 792 total tests**.
+
+### Key Invariants to Verify
+
+| Invariant                                                           | How to verify                                                                    |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `/news` exists                                                      | `apps/web/pages/news/index.vue`                                                  |
+| `/news/[slug]` exists                                               | `apps/web/pages/news/[slug].vue`                                                 |
+| `/articles`, `/announcements`, `/guides`, `/rules` list pages exist | `apps/web/pages/{articles,announcements,guides,rules}/index.vue`                 |
+| All post type detail pages exist                                    | `apps/web/pages/{news,articles,announcements,guides,rules}/[slug].vue`           |
+| `/pages/[slug]` exists                                              | `apps/web/pages/pages/[slug].vue`                                                |
+| `/categories/[slug]` exists                                         | `apps/web/pages/categories/[slug].vue`                                           |
+| `/tags/[slug]` exists                                               | `apps/web/pages/tags/[slug].vue`                                                 |
+| No `/posts/[slug]` exists                                           | `apps/web/pages/` — no `posts/` directory                                        |
+| Public rendering uses bodyHtml not bodyJson                         | `content-api.spec.ts` — "post response envelope exposes bodyHtml field"          |
+| bodyJson not in PublicPostDto                                       | `content-api.spec.ts` — "'bodyJson' in result.post === false"                    |
+| `ContentHtmlRenderer` is the only v-html site                       | `ContentHtmlRenderer.vue` — only component with `v-html`                         |
+| noindex on not-found                                                | `content-seo.spec.ts` — "not-found state results in noindex"                     |
+| noindex on error                                                    | `content-seo.spec.ts` — "error state results in noindex"                         |
+| noindex when seo.noIndex === true                                   | `content-seo.spec.ts` — "sets noindex robots meta when seo.noIndex is true"      |
+| canonical URL emitted from DTO                                      | `content-seo.spec.ts` — "includes canonical link when canonicalUrl is provided"  |
+| OG tags omitted when noindex                                        | `content-seo.spec.ts` — "omits OG tags when noIndex"                             |
+| SDK has no uploadMedia/mediaPicker                                  | `content-api.spec.ts` — "has no uploadMedia method", "has no mediaPicker method" |
+| No comments/search/analytics/newsletter UI                          | Pages and components have no such imports or elements                            |
+| Pages use composable, not scattered fetch                           | All page files use `usePublicContent()` and `useAsyncData()`                     |

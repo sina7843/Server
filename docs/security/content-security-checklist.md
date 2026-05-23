@@ -93,6 +93,25 @@ This checklist covers the security properties of the content subsystem. Tasks 0.
 - [ ] SEO `canonicalUrl` is NOT yet validated as HTTPS URL (future task)
 - [x] `bodyHtml` is sanitized server-side by `HtmlSanitizer` (Task 0.6.3 ✓)
 
+## Public Web Rendering Security (Task 0.6.6 ✓)
+
+- [x] Public content is rendered using sanitized `bodyHtml` from the backend — never `bodyJson`
+- [x] `bodyJson` is not exposed in `PublicPostDto` or `PublicPageDto` — only `bodyHtml`
+- [x] `ContentHtmlRenderer.vue` is the only component that calls `v-html` on public pages
+- [x] `ContentHtmlRenderer` accepts only a `string` prop — no runtime HTML construction
+- [x] `bodyHtml` fed to `ContentHtmlRenderer` comes exclusively from backend API responses (sanitized server-side, Task 0.6.3)
+- [x] No client-side HTML transforms or re-processing of backend HTML
+- [x] No generic `/posts/[slug]` or `/api/v1/posts/:slug` route exists on the public web
+- [x] `noindex` is set on not-found pages, error pages, and when `seo.noIndex === true`
+- [x] OG image is not rendered — `seo.ogImageMediaId` is not resolved (no Media Library)
+- [x] No comments UI exists on public pages
+- [x] No search feature exists on public pages
+- [x] No analytics tracking exists on public pages
+- [x] No newsletter exists on public pages
+- [x] No media upload or Media Library exists on public pages
+- [x] No page builder renderer exists on public pages
+- [x] Canonical URL is emitted only when `seo.canonicalUrl` is provided by the backend
+
 ## MongoDB
 
 - [ ] Verify unique indexes are created on first deploy: `slugNormalized` (categories, tags, pages), `(type, slugNormalized)` (posts), `(resourceType, resourceId, revisionNumber)` (revisions)

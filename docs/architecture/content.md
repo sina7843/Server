@@ -390,14 +390,98 @@ Preview pages call the backend `POST .../preview` endpoint (not the GET endpoint
 
 All create/edit/delete/publish/archive buttons are hidden or disabled when the user lacks the required permission. Destructive actions show a `ConfirmDialog` with soft-delete language (never "permanently delete").
 
-### Out-of-Scope Constraints
+### Out-of-Scope Constraints (Admin)
 
-The following are explicitly not implemented and must not be added:
+The following are explicitly not implemented and must not be added to the admin frontend:
 
 - Media Library, file upload, image upload, media picker, fake media picker, manual `mediaId` input
 - Page builder, drag/drop layout engine, block marketplace
 - Revision restore, rollback UI
 - Scheduled publish, approval workflow
-- Public content pages (Task 0.6.6)
 - Generic `/posts/:slug` or `/api/v1/posts/:slug` routes
 - Search, analytics, comments, newsletter, localization, AI content tooling
+
+## Public Web Frontend (Task 0.6.6)
+
+`apps/web` renders public content pages using server-side rendering (Nuxt 3 SSR).
+
+### Public Routes
+
+| Route                   | Content type           |
+| ----------------------- | ---------------------- |
+| `/news`                 | News list              |
+| `/news/[slug]`          | News detail            |
+| `/articles`             | Article list           |
+| `/articles/[slug]`      | Article detail         |
+| `/announcements`        | Announcement list      |
+| `/announcements/[slug]` | Announcement detail    |
+| `/guides`               | Guide list             |
+| `/guides/[slug]`        | Guide detail           |
+| `/rules`                | Rules list             |
+| `/rules/[slug]`         | Rule detail            |
+| `/pages/[slug]`         | Static page            |
+| `/categories/[slug]`    | Category metadata page |
+| `/tags/[slug]`          | Tag metadata page      |
+
+**No `/posts/[slug]` or generic post route exists.**
+
+### Rendering Architecture
+
+Public content rendering is organized in layers:
+
+- **`apps/web/features/content/content-api.ts`** — creates the public `ContentClient` via SDK
+- **`apps/web/features/content/content-seo.ts`** — `buildContentSeoHead()` builds `useHead` config from DTOs
+- **`apps/web/composables/usePublicContent.ts`** — Nuxt composable that instantiates the content client
+- **Pages** — call `usePublicContent()` and `useAsyncData()` for SSR data fetching
+- **`ContentHtmlRenderer.vue`** — the only component that calls `v-html`; accepts only server-sanitized `bodyHtml`
+
+No scattered direct fetch calls in page files. All API calls go through the composable.
+
+### Components (`apps/web/components/content/`)
+
+| Component             | Purpose                                          |
+| --------------------- | ------------------------------------------------ |
+| `ContentHtmlRenderer` | Renders server-sanitized `bodyHtml` via `v-html` |
+| `ContentStateMessage` | Loading / error / empty / not-found states       |
+| `ContentCard`         | Card item for list pages                         |
+| `ContentList`         | Renders a list of `ContentCard` items            |
+| `ContentArticle`      | Full detail view for post types                  |
+
+### Rendering Source
+
+Public content rendering **always uses sanitized `bodyHtml` from the backend** (Task 0.6.3). `bodyJson` is never used as the public rendering source. `ContentHtmlRenderer` isolates all `v-html` usage.
+
+### SEO Behavior
+
+- `buildContentSeoHead()` reads `seo.title`, `seo.description`, `seo.canonicalUrl`, and `seo.noIndex` from the DTO
+- `noindex` is set when: `seo.noIndex === true`, content is not found (404), or an error occurs
+- OG title and OG description are set only when content is indexable
+- OG image is not set — Media Library is not available; `seo.ogImageMediaId` is not resolved
+- Canonical URL is emitted as a `<link rel="canonical">` when present
+
+### State Handling
+
+| State     | Trigger                       | SEO       |
+| --------- | ----------------------------- | --------- |
+| loading   | `pending === true`            | —         |
+| error     | `error.value !== null`        | noindex   |
+| not-found | API returns 404, data is null | noindex   |
+| empty     | List returns 0 items          | indexable |
+| success   | Content loaded                | from DTO  |
+
+### Out-of-Scope Constraints (Web)
+
+The following are explicitly not implemented and must not be added to the public web:
+
+- Generic `/posts/[slug]` route
+- Comments
+- Related content (no real API)
+- Search feature
+- Analytics tracking
+- Newsletter
+- Localization
+- Visual page builder / block renderer
+- Media Library, file upload, media picker
+- User-generated content
+- Content recommendations
+- Admin UI changes

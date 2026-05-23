@@ -9,6 +9,15 @@ import { HtmlSanitizer } from '../../content/rich-text/html-sanitizer';
 import type { AdminContentListQueryDto } from './dto/admin-content-query';
 import type { AdminCreatePostBodyDto, AdminUpdatePostBodyDto } from './dto/admin-post-body';
 
+const EMPTY_TIPTAP_DOC: Record<string, unknown> = {
+  type: 'doc',
+  content: [{ type: 'paragraph' }],
+};
+
+function normalizeBodyJson(bodyJson: Record<string, unknown>): Record<string, unknown> {
+  return Object.keys(bodyJson).length === 0 ? { ...EMPTY_TIPTAP_DOC } : bodyJson;
+}
+
 function toPostSnapshot(post: PostDocument): Record<string, unknown> {
   return {
     title: post.title,
@@ -48,8 +57,11 @@ export class AdminContentPostsService {
   }
 
   async createPost(input: AdminCreatePostBodyDto, authorId: string): Promise<PostDocument> {
-    if (input.bodyJson !== undefined && typeof input.bodyJson.type === 'string') {
-      const validation = this.richTextValidator.validate(input.bodyJson);
+    const bodyJson =
+      input.bodyJson !== undefined ? normalizeBodyJson(input.bodyJson) : undefined;
+
+    if (bodyJson !== undefined) {
+      const validation = this.richTextValidator.validate(bodyJson);
       if (!validation.valid) {
         throw new BadRequestException(
           `Invalid bodyJson: ${validation.errors.map((e) => e.message).join('; ')}`,
@@ -65,7 +77,7 @@ export class AdminContentPostsService {
       slug: input.slug,
       slugNormalized: input.slug,
       ...(input.excerpt !== undefined ? { excerpt: input.excerpt } : {}),
-      bodyJson: input.bodyJson,
+      ...(bodyJson !== undefined ? { bodyJson } : {}),
       bodyHtml: safeBodyHtml,
       authorId,
       categoryIds: input.categoryIds,

@@ -313,24 +313,24 @@ A **Content** nav item (`/content`) is visible to users with `content.post.read`
 
 ### Admin Routes
 
-| Route | Description | Permission |
-| --- | --- | --- |
-| `/content` | Hub page — links to all content sections | `content.post.read` |
-| `/content/news` | News list | `content.post.read` |
-| `/content/news/new` | Create news | `content.post.create` |
-| `/content/news/:id/edit` | Edit news | `content.post.update` |
-| `/content/news/:id/preview` | Preview news | `content.post.read` |
-| `/content/articles/*` | Article CRUD | (same pattern) |
-| `/content/announcements/*` | Announcement CRUD | (same pattern) |
-| `/content/guides/*` | Guide CRUD | (same pattern) |
-| `/content/rules/*` | Rule CRUD | (same pattern) |
-| `/content/pages` | Page list | `content.page.read` |
-| `/content/pages/new` | Create page | `content.page.create` |
-| `/content/pages/:id/edit` | Edit page | `content.page.update` |
-| `/content/pages/:id/preview` | Preview page | `content.page.read` |
-| `/content/categories` | Category CRUD (inline) | `content.category.read` |
-| `/content/tags` | Tag CRUD (inline) | `content.tag.read` |
-| `/content/revisions/:resourceId` | Revision history | `content.post.read` or `content.page.read` |
+| Route                            | Description                              | Permission                                 |
+| -------------------------------- | ---------------------------------------- | ------------------------------------------ |
+| `/content`                       | Hub page — links to all content sections | `content.post.read`                        |
+| `/content/news`                  | News list                                | `content.post.read`                        |
+| `/content/news/new`              | Create news                              | `content.post.create`                      |
+| `/content/news/:id/edit`         | Edit news                                | `content.post.update`                      |
+| `/content/news/:id/preview`      | Preview news                             | `content.post.read`                        |
+| `/content/articles/*`            | Article CRUD                             | (same pattern)                             |
+| `/content/announcements/*`       | Announcement CRUD                        | (same pattern)                             |
+| `/content/guides/*`              | Guide CRUD                               | (same pattern)                             |
+| `/content/rules/*`               | Rule CRUD                                | (same pattern)                             |
+| `/content/pages`                 | Page list                                | `content.page.read`                        |
+| `/content/pages/new`             | Create page                              | `content.page.create`                      |
+| `/content/pages/:id/edit`        | Edit page                                | `content.page.update`                      |
+| `/content/pages/:id/preview`     | Preview page                             | `content.page.read`                        |
+| `/content/categories`            | Category CRUD (inline)                   | `content.category.read`                    |
+| `/content/tags`                  | Tag CRUD (inline)                        | `content.tag.read`                         |
+| `/content/revisions/:resourceId` | Revision history                         | `content.post.read` or `content.page.read` |
 
 ### Component Architecture
 

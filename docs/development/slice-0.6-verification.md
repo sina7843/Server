@@ -260,13 +260,13 @@ Note: `pnpm typecheck` (workspace-wide) fails on `@dragon/admin` due to pre-exis
 
 ### Key Invariants to Verify
 
-| Invariant | How to verify |
-| --- | --- |
-| Content nav uses `content.post.read` | `admin-navigation.spec.ts` — "content nav item uses content.post.read permission" |
-| Content nav hidden without permission | `admin-navigation.spec.ts` — "does not show Content nav without content.post.read permission" |
-| No Media/Audit/Analytics nav items | `admin-navigation.spec.ts` — "does not contain Media, Audit, or Analytics nav items" |
-| SDK has no restoreRevision method | `admin-content.api.spec.ts` — "has no restoreRevision method" |
-| SDK has no restorePostRevision method | `admin-content.api.spec.ts` — "has no restorePostRevision method" |
-| No generic `/posts/slug/` path in SDK | `admin-content.api.spec.ts` — "no generic /posts/:slug route" |
-| Preview calls the preview endpoint | `ContentPostPreviewView` — uses `previewPost()` not `getPost()` |
-| Revision view has no restore button | `ContentRevisionListView` — no restore button; shows "بازیابی نسخه‌ها در این مرحله پشتیبانی نمی‌شود." |
+| Invariant                             | How to verify                                                                                         |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Content nav uses `content.post.read`  | `admin-navigation.spec.ts` — "content nav item uses content.post.read permission"                     |
+| Content nav hidden without permission | `admin-navigation.spec.ts` — "does not show Content nav without content.post.read permission"         |
+| No Media/Audit/Analytics nav items    | `admin-navigation.spec.ts` — "does not contain Media, Audit, or Analytics nav items"                  |
+| SDK has no restoreRevision method     | `admin-content.api.spec.ts` — "has no restoreRevision method"                                         |
+| SDK has no restorePostRevision method | `admin-content.api.spec.ts` — "has no restorePostRevision method"                                     |
+| No generic `/posts/slug/` path in SDK | `admin-content.api.spec.ts` — "no generic /posts/:slug route"                                         |
+| Preview calls the preview endpoint    | `ContentPostPreviewView` — uses `previewPost()` not `getPost()`                                       |
+| Revision view has no restore button   | `ContentRevisionListView` — no restore button; shows "بازیابی نسخه‌ها در این مرحله پشتیبانی نمی‌شود." |

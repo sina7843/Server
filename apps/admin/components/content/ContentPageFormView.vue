@@ -276,7 +276,7 @@ function buildBodyHtml(): string {
   return form.bodyHtml
     .split(/\n\n+/)
     .filter(Boolean)
-    .map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`)
+    .map((p: string) => `<p>${p.replace(/\n/g, '<br>')}</p>`)
     .join('');
 }
 

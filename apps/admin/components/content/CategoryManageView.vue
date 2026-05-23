@@ -62,11 +62,7 @@
             </label>
             <select id="cat-parent" v-model="form.parentId" class="field-select">
               <option value="">بدون والد</option>
-              <option
-                v-for="cat in categories.filter((c) => c.id !== editingId)"
-                :key="cat.id"
-                :value="cat.id"
-              >
+              <option v-for="cat in selectableCategories" :key="cat.id" :value="cat.id">
                 {{ cat.name }}
               </option>
             </select>
@@ -185,6 +181,10 @@ const {
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/;
 
 const editingId = ref<string | null>(null);
+
+const selectableCategories = computed(() =>
+  categories.value.filter((c: AdminCategoryDto) => c.id !== editingId.value),
+);
 const deleteDialogOpen = ref(false);
 const pendingDeleteId = ref<string | null>(null);
 
@@ -200,7 +200,7 @@ const errors = reactive({ name: '', slug: '' });
 
 function parentName(parentId?: string): string {
   if (!parentId) return '—';
-  return categories.value.find((c) => c.id === parentId)?.name ?? parentId;
+  return categories.value.find((c: AdminCategoryDto) => c.id === parentId)?.name ?? parentId;
 }
 
 function validate(): boolean {

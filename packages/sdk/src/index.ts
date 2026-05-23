@@ -15,3 +15,5 @@ export * from './content-types';
 export * from './content';
 export * from './admin-content-types';
 export * from './admin-content';
+export * from './admin-media-types';
+export * from './admin-media';

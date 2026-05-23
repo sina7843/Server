@@ -5,7 +5,7 @@
     "baseUrl": ".",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "types": ["node", "jest"]
+    "types": ["node", "jest", "multer"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "node_modules"]

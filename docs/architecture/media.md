@@ -3,13 +3,12 @@
 ## Status
 
 Task 0.7.1 — Storage abstraction and providers — **Complete**
+Task 0.7.2 — MediaAsset persistence and secure upload APIs — **Complete**
 
 Not yet implemented (Later tasks):
 
-- MediaAsset schema and persistence
-- Media upload endpoint (`POST /admin/v1/media/upload`)
+- Image variant generation (Task 0.7.3)
 - Admin media UI / media picker
-- Image variant generation
 - Content cover integration / TipTap inline image
 - Direct-to-S3 presigned upload
 - Multipart upload
@@ -105,7 +104,7 @@ Rules enforced:
 
 ### StorageModule
 
-`StorageModule` is defined at `apps/api/src/storage/storage.module.ts` but is **not imported into `AppModule`** until a media upload endpoint exists (Task 0.7.2+).
+`StorageModule` is defined at `apps/api/src/storage/storage.module.ts` and is imported into `AppModule` via `MediaModule`.
 
 ### Configuration
 
@@ -129,11 +128,62 @@ Environment variables (see `apps/api/.env.example`):
 
 ---
 
+---
+
+## Media API (Task 0.7.2)
+
+### Endpoints
+
+| Method   | Path                       | Permission              | Description                  |
+| -------- | -------------------------- | ----------------------- | ---------------------------- |
+| `GET`    | `/admin/v1/media`          | `media.asset.read`      | List assets (paginated)      |
+| `POST`   | `/admin/v1/media/upload`   | `media.asset.upload`    | Upload a new asset           |
+| `GET`    | `/admin/v1/media/:id`      | `media.asset.read`      | Get single asset by ID       |
+| `PATCH`  | `/admin/v1/media/:id`      | `media.asset.update`    | Update visibility/alt/caption |
+| `DELETE` | `/admin/v1/media/:id`      | `media.asset.delete`    | Soft delete                  |
+
+All routes require a valid access token and the listed permission.
+
+### Upload constraints
+
+- Allowed MIME types: `image/jpeg`, `image/png`, `image/webp`, `image/gif`
+- Extension must match MIME type (jpeg/jpg both accepted for `image/jpeg`)
+- Maximum file size: configurable via `MEDIA_MAX_FILE_SIZE_BYTES` (default 10 MB)
+- Object key is backend-generated (randomized) — never derived from filename
+- SHA256 checksum computed from uploaded buffer and stored
+
+### MediaAsset schema
+
+Fields: `originalName`, `fileName`, `mimeType`, `extension`, `sizeBytes`, `storageProvider`, `bucket`, `objectKey`, `visibility`, `variants[]`, `width?`, `height?`, `alt?`, `caption?`, `uploadedBy`, `status`, `checksum?`, `deletedAt?`, timestamps.
+
+- **Soft delete only** — `deletedAt` is set; document stays in DB
+- **`variants[]`** — array of `{ type, objectKey, width?, height?, sizeBytes?, mimeType? }`; original variant stored at upload time
+- **Status lifecycle**: `uploaded → processing → ready | failed` — upload sets `ready`; variant generation (Task 0.7.3) will use `processing → ready | failed`
+
+### URL resolution
+
+- Public assets: `storageService.getPublicUrl(objectKey)`
+- Private assets: `storageService.getSignedUrl(objectKey)` (falls back to public URL on error, with warning log)
+
+### SDK
+
+`createAdminMediaClient(client)` in `@dragon/sdk` provides:
+
+```ts
+client.listMedia(params?)
+client.uploadMedia(params)   // FormData, browser-compatible (Blob | Uint8Array)
+client.getMedia(id)
+client.updateMedia(id, input)
+client.deleteMedia(id)
+```
+
+---
+
 ## Later — Not Yet Implemented
 
-- **Direct-to-S3 presigned upload**: client uploads directly to S3; backend issues a short-lived presigned PUT URL. Not implemented — deferred.
-- **Multipart upload**: for large files. Not implemented — deferred.
-- **MediaAsset schema**: MongoDB document tracking uploaded assets. Not implemented — Task 0.7.2+.
-- **Media upload endpoint**: `POST /admin/v1/media/upload`. Not implemented — Task 0.7.2+.
-- **Image variants**: thumbnail, webp conversion. Not implemented — deferred.
-- **Admin media UI / media picker**: Not implemented — deferred.
+- **Image variants** (Task 0.7.3): thumbnail (max 320px) and medium (max 1280px) via `sharp`; GIFs keep original only.
+- **`POST /admin/v1/media/:id/regenerate-variants`** (Task 0.7.3): `media.asset.regenerate` permission.
+- **Direct-to-S3 presigned upload**: client uploads directly to S3; backend issues a short-lived presigned PUT URL. Deferred.
+- **Multipart upload**: for large files. Deferred.
+- **Admin media UI / media picker**: Deferred.
+- **Video processing / transcoding**: Out of scope.

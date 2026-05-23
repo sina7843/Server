@@ -9,6 +9,7 @@ import { AppConfigModule } from './config/app-config.module';
 import { ContentModule } from './content/content.module';
 import { DatabaseModule } from './database/database.module';
 import { HealthController } from './health.controller';
+import { MediaModule } from './media/media.module';
 import { ProfileModule } from './profiles/profile.module';
 import { RbacModule } from './rbac/rbac.module';
 
@@ -25,6 +26,7 @@ import { RbacModule } from './rbac/rbac.module';
     AdminDashboardModule,
     AdminSystemModule,
     AdminContentModule,
+    MediaModule,
   ],
   controllers: [HealthController],
 })

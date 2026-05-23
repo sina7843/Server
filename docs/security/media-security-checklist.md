@@ -1,6 +1,6 @@
 # Media Security Checklist
 
-> Task 0.7.1 — Storage abstraction only. No upload endpoint, no MediaAsset schema, no admin UI.
+> Tasks 0.7.1 and 0.7.2 — Storage abstraction and media upload API.
 
 ## Object Key Safety (Task 0.7.1 ✓)
 
@@ -38,21 +38,31 @@
 - [x] No real network calls in unit tests — `@aws-sdk/client-s3` is fully mocked in specs
 - [x] Public URL for private objects is not included in `StoredObject.publicUrl` (conditional)
 
-## Upload Safety — Not Yet Applicable
+## Upload Safety (Task 0.7.2 ✓)
 
-The following items are deferred until the media upload endpoint is implemented (Task 0.7.2+):
+- [x] MIME type validated against allowlist (`image/jpeg`, `image/png`, `image/webp`, `image/gif`)
+- [x] File extension validated — must match MIME type; extension-only allowlist enforced
+- [x] Extension/MIME mismatch rejected (e.g. `photo.jpg` with `image/png` MIME)
+- [x] File size limit enforced via multer `limits.fileSize` and `MEDIA_MAX_FILE_SIZE_BYTES`
+- [x] Admin-only upload authorization — `AccessTokenGuard` + `PermissionGuard(media.asset.upload)` on upload route
+- [x] Object key is backend-generated — user cannot supply an `objectKey` in the request body
+- [x] `safeOriginalName` strips path separators (`/`, `\`) and `..` sequences — stored as metadata only, never used in key generation
+- [x] SHA256 checksum computed server-side — no client-supplied checksum accepted
+- [x] Soft delete only — hard delete not exposed; `deletedAt` is set; documents remain in DB
+- [x] Private media URLs use signed URLs with configurable TTL — not permanent public links
+- [x] Signed URL generation failure degrades to public URL with a warning log, not a 500
 
-- [ ] MIME type validation at upload boundary
-- [ ] File size limit enforcement
-- [ ] Virus scan integration
-- [ ] Upload rate limiting
-- [ ] Admin-only upload authorization
-- [ ] Presigned PUT URL expiry enforcement
-- [ ] Multipart upload size guard
+## Limitations / Known Gaps
+
+- [ ] No virus scan / malware detection at upload boundary — deferred
+- [ ] No upload rate limiting (beyond auth guards) — deferred
+- [ ] No multipart upload size guard — deferred (multipart not implemented)
+- [ ] MIME sniffing not used — MIME type is accepted from multipart header; extension/MIME mismatch is the primary control
+- [ ] Image processing (dimension extraction, variants) — Task 0.7.3
 
 ## Planned (Not Yet Implemented)
 
 - [ ] Direct-to-S3 presigned upload — Later
 - [ ] Multipart upload — Later
-- [ ] Image variant access control — Later
+- [ ] Image variant access control — Task 0.7.3
 - [ ] CDN cache purge on delete — Later

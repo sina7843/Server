@@ -10,3 +10,6 @@ Project documentation:
 - [Content architecture](docs/architecture/content.md)
 - [Content security checklist](docs/security/content-security-checklist.md)
 - [Slice 0.6 verification](docs/development/slice-0.6-verification.md)
+- [Media architecture](docs/architecture/media.md)
+- [Media security checklist](docs/security/media-security-checklist.md)
+- [Slice 0.7 verification](docs/development/slice-0.7-verification.md)

@@ -4,3 +4,4 @@ export * from './profile';
 export * from './admin-users';
 export * from './admin-dashboard';
 export * from './content';
+export * from './media';

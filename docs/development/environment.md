@@ -28,6 +28,32 @@ RBAC_BOOTSTRAP_SUPER_ADMIN_PHONE=
 
 This value is optional. It is used only by the seed foundation to assign the `super_admin` role to an existing active user. It does not create a user and does not introduce a permanent request-time bypass.
 
+## Slice 0.7
+
+Storage environment variables added to `apps/api/.env.example`:
+
+```env
+STORAGE_PROVIDER=local|minio|arvan
+STORAGE_BUCKET=
+STORAGE_PUBLIC_BASE_URL=
+STORAGE_SIGNED_URL_TTL_SECONDS=3600
+
+# Local adapter (dev/fallback only)
+STORAGE_LOCAL_ROOT=
+STORAGE_LOCAL_PUBLIC_BASE_URL=
+
+# S3-compatible adapter (minio or arvan)
+STORAGE_S3_ENDPOINT=
+STORAGE_S3_REGION=
+STORAGE_S3_ACCESS_KEY_ID=
+STORAGE_S3_SECRET_ACCESS_KEY=
+STORAGE_S3_FORCE_PATH_STYLE=false
+```
+
+**`STORAGE_S3_ACCESS_KEY_ID` and `STORAGE_S3_SECRET_ACCESS_KEY` are secrets. They must only exist in the deployment environment, never in the repository.** The `.env.example` file has these fields empty.
+
+For local dev using MinIO, set `STORAGE_PROVIDER=minio` and use the MinIO credentials from `infra/docker/.env.example`. For production Arvan Object Storage, set `STORAGE_PROVIDER=arvan` and provide the Arvan S3 credentials via deployment environment only.
+
 ## Out of scope
 
 Production secret management, deployment configuration, monitoring, backup, and real provider credentials are not implemented in these foundation slices.

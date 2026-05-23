@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page">
     <div class="page-header">
       <NuxtLink :to="backPath" class="back-link">← بازگشت</NuxtLink>
@@ -125,13 +125,13 @@ async function toggleRevision(id: string) {
   }
 }
 
-function snapshotTitle(rev: { snapshot: unknown }): string {
-  const s = rev.snapshot as Record<string, unknown>;
+function snapshotTitle(rev: unknown): string {
+  const s = ((rev as { snapshot?: unknown }).snapshot ?? {}) as Record<string, unknown>;
   return String(s?.title ?? '—');
 }
 
-function snapshotStatus(rev: { snapshot: unknown }): string {
-  const s = rev.snapshot as Record<string, unknown>;
+function snapshotStatus(rev: unknown): string {
+  const s = ((rev as { snapshot?: unknown }).snapshot ?? {}) as Record<string, unknown>;
   return String(s?.status ?? '—');
 }
 

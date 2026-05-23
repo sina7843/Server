@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "eslint \"nuxt.config.ts\" \"eslint.config.js\" \"composables/**/*.ts\" \"features/**/*.ts\" \"middleware/**/*.ts\" --no-error-on-unmatched-pattern",
     "typecheck": "nuxt typecheck",
-    "test": "jest --runInBand features",
+    "test": "jest --config jest.config.cjs --runInBand features",
     "build": "nuxt build",
     "dev": "nuxt dev",
     "start": "node .output/server/index.mjs"

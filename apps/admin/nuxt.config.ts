@@ -1,29 +1,34 @@
+﻿import { fileURLToPath } from 'node:url';
 import { defineNuxtConfig } from 'nuxt/config';
-import { fileURLToPath, URL } from 'node:url';
+
+const adminRoot = fileURLToPath(new URL('.', import.meta.url));
 
 export default defineNuxtConfig({
-  ssr: false,
-  css: ['~/assets/css/main.css'],
+  compatibilityDate: '2024-04-03',
+
+  srcDir: '.',
+
+  alias: {
+    '~': adminRoot,
+    '@': adminRoot,
+    '@dragon/types': fileURLToPath(new URL('../../packages/types/src/index.ts', import.meta.url)),
+    '@dragon/sdk': fileURLToPath(new URL('../../packages/sdk/src/index.ts', import.meta.url)),
+  },
+
+  imports: {
+    autoImport: true,
+    dirs: ['composables', 'features/**'],
+  },
+
+  components: [
+    {
+      path: '~/components',
+      pathPrefix: false,
+    },
+  ],
+
   typescript: {
     strict: true,
-  },
-  runtimeConfig: {
-    public: {
-      apiBaseUrl: '/',
-    },
-  },
-  app: {
-    head: {
-      meta: [{ name: 'robots', content: 'noindex, nofollow' }],
-    },
-  },
-  vite: {
-    resolve: {
-      alias: {
-        '@dragon/types': fileURLToPath(
-          new URL('../../packages/types/src/index.ts', import.meta.url),
-        ),
-      },
-    },
+    typeCheck: false,
   },
 });

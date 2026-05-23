@@ -1,4 +1,3 @@
-apps/web/composables/useProfile.ts
-packages/sdk/src/index.ts
-packages/sdk/dist/index.js
-packages/sdk/dist/index.d.ts
+APPLY_TYPES_PERMISSION_EXPORT_FIX.ps1
+TYPES_PERMISSION_EXPORT_FIX.patch
+README.txt

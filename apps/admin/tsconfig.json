@@ -1,18 +1,26 @@
 {
-  "extends": "../../packages/config/tsconfig/vue.json",
+  "extends": "./.nuxt/tsconfig.json",
   "compilerOptions": {
-    "types": ["node"]
+    "baseUrl": ".",
+    "types": ["node"],
+    "paths": {
+      "~/*": ["./*"],
+      "@/*": ["./*"]
+    }
   },
   "include": [
+    ".nuxt/nuxt.d.ts",
+    ".nuxt/imports.d.ts",
+    ".nuxt/types/**/*.d.ts",
     "app.vue",
     "nuxt.config.ts",
-    "layouts/**/*.vue",
-    "pages/**/*.vue",
     "components/**/*.vue",
     "composables/**/*.ts",
     "features/**/*.ts",
+    "layouts/**/*.vue",
     "middleware/**/*.ts",
-    "types/**/*.d.ts"
+    "pages/**/*.vue",
+    "plugins/**/*.ts"
   ],
-  "exclude": ["node_modules", ".nuxt", ".output"]
+  "exclude": ["**/*.spec.ts", "**/*.test.ts", "node_modules", "dist", ".output"]
 }

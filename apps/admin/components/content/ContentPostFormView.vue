@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page">
     <div class="page-header">
       <NuxtLink :to="`/content/${pluralPath}`" class="back-link">← بازگشت</NuxtLink>
@@ -242,7 +242,7 @@
 import { DragonPermissions as Permissions } from '@dragon/sdk';
 
 const props = defineProps<{
-  type: string;
+  type: 'article' | 'news' | 'announcement' | 'guide' | 'rule';
   pluralPath: string;
   postId?: string;
 }>();

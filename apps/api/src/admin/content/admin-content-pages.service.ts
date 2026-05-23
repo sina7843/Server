@@ -9,6 +9,15 @@ import { HtmlSanitizer } from '../../content/rich-text/html-sanitizer';
 import type { AdminPageListQueryDto } from './dto/admin-content-query';
 import type { AdminCreatePageBodyDto, AdminUpdatePageBodyDto } from './dto/admin-page-body';
 
+const EMPTY_TIPTAP_DOC: Record<string, unknown> = {
+  type: 'doc',
+  content: [{ type: 'paragraph' }],
+};
+
+function normalizeBodyJson(bodyJson: Record<string, unknown>): Record<string, unknown> {
+  return Object.keys(bodyJson).length === 0 ? { ...EMPTY_TIPTAP_DOC } : bodyJson;
+}
+
 function toPageSnapshot(page: PageDocument): Record<string, unknown> {
   return {
     title: page.title,
@@ -41,8 +50,10 @@ export class AdminContentPagesService {
   }
 
   async createPage(input: AdminCreatePageBodyDto, authorId: string): Promise<PageDocument> {
-    if (input.bodyJson !== undefined && typeof input.bodyJson.type === 'string') {
-      const validation = this.richTextValidator.validate(input.bodyJson);
+    const bodyJson = input.bodyJson !== undefined ? normalizeBodyJson(input.bodyJson) : undefined;
+
+    if (bodyJson !== undefined) {
+      const validation = this.richTextValidator.validate(bodyJson);
       if (!validation.valid) {
         throw new BadRequestException(
           `Invalid bodyJson: ${validation.errors.map((e) => e.message).join('; ')}`,
@@ -56,7 +67,7 @@ export class AdminContentPagesService {
       title: input.title,
       slug: input.slug,
       slugNormalized: input.slug,
-      bodyJson: input.bodyJson,
+      ...(bodyJson !== undefined ? { bodyJson } : {}),
       bodyHtml: safeBodyHtml,
       createdBy: authorId,
       seo: input.seo,
@@ -81,8 +92,11 @@ export class AdminContentPagesService {
   ): Promise<PageDocument> {
     const id = validateObjectId(rawId, 'id');
 
-    if (input.bodyJson !== undefined && typeof input.bodyJson.type === 'string') {
-      const validation = this.richTextValidator.validate(input.bodyJson);
+    const normalizedBodyJson =
+      input.bodyJson !== undefined ? normalizeBodyJson(input.bodyJson) : undefined;
+
+    if (normalizedBodyJson !== undefined) {
+      const validation = this.richTextValidator.validate(normalizedBodyJson);
       if (!validation.valid) {
         throw new BadRequestException(
           `Invalid bodyJson: ${validation.errors.map((e) => e.message).join('; ')}`,
@@ -90,13 +104,16 @@ export class AdminContentPagesService {
       }
     }
 
+    const effectiveInput: AdminUpdatePageBodyDto =
+      normalizedBodyJson !== undefined ? { ...input, bodyJson: normalizedBodyJson } : input;
+
     const safeInput: AdminUpdatePageBodyDto =
-      input.bodyHtml !== undefined
+      effectiveInput.bodyHtml !== undefined
         ? ({
-            ...input,
-            bodyHtml: this.htmlSanitizer.sanitize(input.bodyHtml),
+            ...effectiveInput,
+            bodyHtml: this.htmlSanitizer.sanitize(effectiveInput.bodyHtml),
           } as AdminUpdatePageBodyDto)
-        : input;
+        : effectiveInput;
 
     if (safeInput.slug !== undefined) {
       const updated = await this.pageService.updateSlug(id, {

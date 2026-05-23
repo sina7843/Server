@@ -43,33 +43,6 @@
     >
       <em>I</em>
     </button>
-    <button
-      type="button"
-      class="tb-btn tb-btn--icon"
-      :class="{ 'tb-btn--active': editor.isActive('underline') }"
-      title="زیرخط (Underline)"
-      @click="editor.chain().focus().toggleUnderline().run()"
-    >
-      <u>U</u>
-    </button>
-    <button
-      type="button"
-      class="tb-btn tb-btn--icon"
-      :class="{ 'tb-btn--active': editor.isActive('strike') }"
-      title="خط‌خورده (Strikethrough)"
-      @click="editor.chain().focus().toggleStrike().run()"
-    >
-      <s>S</s>
-    </button>
-    <button
-      type="button"
-      class="tb-btn tb-btn--icon"
-      :class="{ 'tb-btn--active': editor.isActive('code') }"
-      title="کد درون‌خطی (Inline code)"
-      @click="editor.chain().focus().toggleCode().run()"
-    >
-      &lt;&gt;
-    </button>
 
     <span class="tb-sep" />
 
@@ -189,18 +162,6 @@
         del⊞
       </button>
     </template>
-
-    <span class="tb-sep" />
-
-    <!-- Horizontal rule -->
-    <button
-      type="button"
-      class="tb-btn"
-      title="خط افقی"
-      @click="editor.chain().focus().setHorizontalRule().run()"
-    >
-      ─
-    </button>
   </div>
 </template>
 

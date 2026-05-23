@@ -57,8 +57,7 @@ export class AdminContentPostsService {
   }
 
   async createPost(input: AdminCreatePostBodyDto, authorId: string): Promise<PostDocument> {
-    const bodyJson =
-      input.bodyJson !== undefined ? normalizeBodyJson(input.bodyJson) : undefined;
+    const bodyJson = input.bodyJson !== undefined ? normalizeBodyJson(input.bodyJson) : undefined;
 
     if (bodyJson !== undefined) {
       const validation = this.richTextValidator.validate(bodyJson);
@@ -104,8 +103,11 @@ export class AdminContentPostsService {
   ): Promise<PostDocument> {
     const id = validateObjectId(rawId, 'id');
 
-    if (input.bodyJson !== undefined && typeof input.bodyJson.type === 'string') {
-      const validation = this.richTextValidator.validate(input.bodyJson);
+    const normalizedBodyJson =
+      input.bodyJson !== undefined ? normalizeBodyJson(input.bodyJson) : undefined;
+
+    if (normalizedBodyJson !== undefined) {
+      const validation = this.richTextValidator.validate(normalizedBodyJson);
       if (!validation.valid) {
         throw new BadRequestException(
           `Invalid bodyJson: ${validation.errors.map((e) => e.message).join('; ')}`,
@@ -113,13 +115,16 @@ export class AdminContentPostsService {
       }
     }
 
+    const effectiveInput: AdminUpdatePostBodyDto =
+      normalizedBodyJson !== undefined ? { ...input, bodyJson: normalizedBodyJson } : input;
+
     const safeInput: AdminUpdatePostBodyDto =
-      input.bodyHtml !== undefined
+      effectiveInput.bodyHtml !== undefined
         ? ({
-            ...input,
-            bodyHtml: this.htmlSanitizer.sanitize(input.bodyHtml),
+            ...effectiveInput,
+            bodyHtml: this.htmlSanitizer.sanitize(effectiveInput.bodyHtml),
           } as AdminUpdatePostBodyDto)
-        : input;
+        : effectiveInput;
 
     if (safeInput.slug !== undefined) {
       const updated = await this.postService.updateSlug(id, {

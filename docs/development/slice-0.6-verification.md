@@ -430,3 +430,62 @@ Expected after Task 0.6.6: **83 API suites + 7 admin feature suites + 3 web feat
 | SDK has no uploadMedia/mediaPicker                                  | `content-api.spec.ts` — "has no uploadMedia method", "has no mediaPicker method" |
 | No comments/search/analytics/newsletter UI                          | Pages and components have no such imports or elements                            |
 | Pages use composable, not scattered fetch                           | All page files use `usePublicContent()` and `useAsyncData()`                     |
+
+---
+
+## Slice 0.6 Closeout Fix — bodyJson Validation and Toolbar Scope
+
+### What was fixed
+
+- **bodyJson validation bypass** — The condition `typeof input.bodyJson.type === 'string'` silently skipped validation when `bodyJson = {}` or `bodyJson = { unknown: "bad" }` (no `type` field). Fixed in all four paths:
+  - `AdminContentPostsService.createPost` — normalize then always validate
+  - `AdminContentPostsService.updatePost` — normalize, validate, propagate normalized value through `effectiveInput`
+  - `AdminContentPagesService.createPage` — same pattern
+  - `AdminContentPagesService.updatePage` — same pattern
+- **Normalization** — `{}` (empty object) is now normalized to `{ type: "doc", content: [{ type: "paragraph" }] }` before validation. Previously it was passed through without validation.
+- **`{ unknown: "bad" }` now rejected** — objects without a valid `type` string field are rejected with `BadRequestException`.
+- **TipTap toolbar narrowed to Phase 0 scope** — removed underline, strike, inline code, and horizontal rule buttons from `ContentEditorToolbar.vue`; removed `Underline` extension import and usage from `ContentRichTextEditor.vue`.
+- **TipTap v3 `setContent` type fix** — `commands.setContent(content, false)` → `commands.setContent(content, { emitUpdate: false })` to match TipTap v3 API.
+
+### Tests updated
+
+- `admin-content-posts.service.spec.ts`:
+  - Renamed "accepts empty bodyJson ({}) without TipTap validation" → "normalizes empty bodyJson ({}) to valid doc and accepts it" (now asserts `postService.create` is called with normalized doc)
+  - Added: "rejects bodyJson without type field" (createPost)
+  - Added: "rejects bodyJson without type field on update" (updatePost)
+- `admin-content-pages.service.spec.ts`:
+  - Renamed "accepts empty bodyJson ({}) without validation" → "normalizes empty bodyJson ({}) to valid doc and accepts it"
+  - Added: "rejects bodyJson without type field" (createPage)
+  - Added: "rejects bodyJson without type field on update" (updatePage)
+
+### Verification Commands
+
+```bash
+pnpm --filter @dragon/api lint
+pnpm --filter @dragon/api typecheck
+pnpm --filter @dragon/api test
+pnpm --filter @dragon/api build
+pnpm --filter @dragon/admin lint
+pnpm --filter @dragon/admin typecheck
+pnpm --filter @dragon/admin test
+pnpm --filter @dragon/admin build
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm format:check
+```
+
+Expected: **83 API test suites, 652 API tests** (4 new tests added), 98 admin tests, all passing.
+
+### Key Invariants
+
+| Invariant                                           | How to verify                                                                                                 |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `{}` bodyJson normalized to empty TipTap doc        | `admin-content-posts.service.spec.ts` — "normalizes empty bodyJson ({}) to valid doc and accepts it"          |
+| `{ unknown: "bad" }` rejected on post create        | `admin-content-posts.service.spec.ts` — "rejects bodyJson without type field"                                 |
+| `{ unknown: "bad" }` rejected on post update        | `admin-content-posts.service.spec.ts` — "rejects bodyJson without type field on update"                       |
+| `{ unknown: "bad" }` rejected on page create        | `admin-content-pages.service.spec.ts` — "rejects bodyJson without type field"                                 |
+| `{ unknown: "bad" }` rejected on page update        | `admin-content-pages.service.spec.ts` — "rejects bodyJson without type field on update"                       |
+| Toolbar has no underline/strike/inline-code/hr      | `ContentEditorToolbar.vue` — no `toggleUnderline`, `toggleStrike`, `toggleCode`, `setHorizontalRule` calls    |
+| No Underline extension in editor                    | `ContentRichTextEditor.vue` — no `import Underline` and not in extensions array                               |

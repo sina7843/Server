@@ -147,7 +147,7 @@ describe('AdminContentPagesService — sanitization', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('accepts empty bodyJson ({}) without validation', async () => {
+    it('normalizes empty bodyJson ({}) to valid doc and accepts it', async () => {
       sanitizeSpy.mockReturnValue('<p>ok</p>');
       const page = makePage();
       (pageService.create as jest.Mock).mockResolvedValue(page);
@@ -155,6 +155,18 @@ describe('AdminContentPagesService — sanitization', () => {
       await expect(
         service.createPage({ ...BASE_CREATE_INPUT, bodyJson: {} }, 'author1'),
       ).resolves.toBeDefined();
+
+      expect(pageService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bodyJson: { type: 'doc', content: [{ type: 'paragraph' }] },
+        }),
+      );
+    });
+
+    it('rejects bodyJson without type field', async () => {
+      await expect(
+        service.createPage({ ...BASE_CREATE_INPUT, bodyJson: { unknown: 'bad' } }, 'author1'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('never stores raw unsafe HTML', async () => {
@@ -209,6 +221,12 @@ describe('AdminContentPagesService — sanitization', () => {
           { bodyJson: { type: 'doc', content: [{ type: 'iframe' }] } },
           'editor1',
         ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('rejects bodyJson without type field on update', async () => {
+      await expect(
+        service.updatePage('507f1f77bcf86cd799439022', { bodyJson: { unknown: 'bad' } }, 'editor1'),
       ).rejects.toThrow(BadRequestException);
     });
 

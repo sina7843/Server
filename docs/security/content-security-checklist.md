@@ -24,7 +24,7 @@ This checklist covers the security properties of the content subsystem. Tasks 0.
 - [x] Revision snapshots store sanitized `bodyHtml` (sanitized before `postService.create/update` is called)
 - [x] `mediaRefs` extraction not implemented — deferred until Media Library is available
 
-## TipTap Editor Security (Task 0.6.5 ✓)
+## TipTap Editor Security (Task 0.6.5 ✓ / Closeout Fix ✓)
 
 - [x] TipTap editor extensions match exactly the backend-allowed node/mark allowlist — no extra nodes
 - [x] Image insertion is disabled — no `Image` extension; backend rejects `image` nodes
@@ -32,8 +32,13 @@ This checklist covers the security properties of the content subsystem. Tasks 0.
 - [x] Link extension validates URLs client-side before applying — blocks `javascript:`, `data:`, `vbscript:`, `//`
 - [x] Backend remains the security boundary — `bodyHtml` from TipTap is re-sanitized server-side on every save
 - [x] `bodyJson` from TipTap is validated server-side by `RichTextValidator` on every save
+- [x] `bodyJson` validation cannot be bypassed — `{}` and objects without a `type` field are normalized/rejected before reaching the DB (Closeout Fix)
+- [x] `{}` bodyJson is normalized to `{ type: "doc", content: [{ type: "paragraph" }] }` before validation — never bypasses the validator
+- [x] `{ unknown: "bad" }` (no type field) is rejected with `BadRequestException` on all create/update paths
 - [x] Preview uses backend `POST .../preview` endpoint — not raw frontend HTML
 - [x] No embed, iframe, video, audio extension in editor
+- [x] Toolbar is narrowed to Phase 0 scope — no underline, strike, inline code, or horizontal rule buttons (Closeout Fix)
+- [x] `Underline` extension removed from editor — prevents hidden underline formatting from clipboard paste
 - [x] Revision viewer renders only backend-sanitized `bodyHtml` from snapshot — never raw user input
 - [x] No revision restore UI exists — read-only viewer only
 - [x] Editor is wrapped in `<ClientOnly>` — no SSR execution of browser-only TipTap code

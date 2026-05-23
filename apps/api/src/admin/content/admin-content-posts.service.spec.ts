@@ -152,7 +152,7 @@ describe('AdminContentPostsService — sanitization', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('accepts empty bodyJson ({}) without TipTap validation', async () => {
+    it('normalizes empty bodyJson ({}) to valid doc and accepts it', async () => {
       sanitizeSpy.mockReturnValue('<p>ok</p>');
       const post = makePost();
       (postService.create as jest.Mock).mockResolvedValue(post);
@@ -160,6 +160,18 @@ describe('AdminContentPostsService — sanitization', () => {
       await expect(
         service.createPost({ ...BASE_CREATE_INPUT, bodyJson: {} }, 'author1'),
       ).resolves.toBeDefined();
+
+      expect(postService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bodyJson: { type: 'doc', content: [{ type: 'paragraph' }] },
+        }),
+      );
+    });
+
+    it('rejects bodyJson without type field', async () => {
+      await expect(
+        service.createPost({ ...BASE_CREATE_INPUT, bodyJson: { unknown: 'bad' } }, 'author1'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('never stores raw unsafe HTML (script removed from stored bodyHtml)', async () => {
@@ -216,6 +228,12 @@ describe('AdminContentPostsService — sanitization', () => {
           { bodyJson: { type: 'doc', content: [{ type: 'unknownBlock' }] } },
           'editor1',
         ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('rejects bodyJson without type field on update', async () => {
+      await expect(
+        service.updatePost('507f1f77bcf86cd799439011', { bodyJson: { unknown: 'bad' } }, 'editor1'),
       ).rejects.toThrow(BadRequestException);
     });
 

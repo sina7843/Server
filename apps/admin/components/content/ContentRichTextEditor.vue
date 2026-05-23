@@ -8,7 +8,6 @@
 <script setup lang="ts">
 import { useEditor, EditorContent } from '@tiptap/vue-3';
 import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table';
 
@@ -35,7 +34,6 @@ function isSafeUrl(url: string): boolean {
 const editor = useEditor({
   extensions: [
     StarterKit,
-    Underline,
     Link.configure({
       openOnClick: false,
       autolink: false,
@@ -60,7 +58,9 @@ watch(
     const incoming = JSON.stringify(newVal);
     const current = JSON.stringify(editor.value.getJSON());
     if (incoming !== current) {
-      editor.value.commands.setContent(Object.keys(newVal).length > 0 ? newVal : null, false);
+      editor.value.commands.setContent(Object.keys(newVal).length > 0 ? newVal : null, {
+        emitUpdate: false,
+      });
     }
   },
 );

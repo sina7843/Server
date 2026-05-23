@@ -336,20 +336,51 @@ A **Content** nav item (`/content`) is visible to users with `content.post.read`
 
 Thin page files (~15 lines each) delegate to shared view components:
 
+- **`ContentRichTextEditor`** — TipTap-based rich text editor (Task 0.6.5); wraps the editor and toolbar; emits `bodyJson` and `bodyHtml` for the form
+- **`ContentEditorToolbar`** — limited toolbar exposing only backend-allowed formatting; no media upload, no media picker, no page builder
 - **`ContentPostListView`** — status filter, paginated table, publish/archive/soft-delete actions
-- **`ContentPostFormView`** — title, slug, excerpt, body (textarea), categoryIds, tagIds, SEO fields
+- **`ContentPostFormView`** — title, slug, excerpt, TipTap body editor, categoryIds, tagIds, SEO fields
 - **`ContentPostPreviewView`** — calls preview endpoint, renders sanitized `bodyHtml` via `v-html`
 - **`ContentPageListView`** — page list with lifecycle actions
-- **`ContentPageFormView`** — title, slug, body (textarea), SEO fields
+- **`ContentPageFormView`** — title, slug, TipTap body editor, SEO fields
 - **`ContentPagePreviewView`** — calls page preview endpoint
 - **`CategoryManageView`** — inline CRUD with parentId hierarchy support
 - **`TagManageView`** — inline CRUD with card grid display
-- **`ContentRevisionListView`** — revision table with expandable snapshot JSON; **no restore button**
+- **`ContentRevisionListView`** — revision table with expandable snapshot HTML preview and JSON; **no restore button**
 - **`ContentStatusBadge`** — draft/published/archived colored badge
 
-### Body Field
+### TipTap Editor (Task 0.6.5)
 
-Posts and pages use a simple `<textarea>` for body input (no TipTap — Task 0.6.5). `buildBodyHtml()` splits on double-newlines and wraps paragraphs in `<p>` tags. The backend sanitizer processes the result.
+Posts and pages use a TipTap rich text editor for `bodyJson`/`bodyHtml` authoring. The editor is wrapped in `<ClientOnly>` to avoid SSR issues; a plain `<textarea>` is shown as the SSR fallback.
+
+**Allowed editor extensions (matching backend validator):**
+
+- StarterKit: paragraph, heading (1–6), bold, italic, strike, code, codeBlock, blockquote, bulletList, orderedList, listItem, horizontalRule, hardBreak
+- Underline
+- Link (with client-side URL safety validation: blocks `javascript:`, `data:`, `vbscript:`, `//`)
+- Table, TableRow, TableCell, TableHeader
+
+**Image insertion is disabled.** The backend validator rejects `image` nodes. No upload, no picker, no fake picker, no manual `mediaId` field will be added until the Media Library is available.
+
+**Embeds are disabled.** `embed`, `iframe`, `video`, `audio` nodes are not in the editor extensions and would be rejected by the backend validator.
+
+**bodyJson/bodyHtml submit flow:**
+
+1. User edits content in `ContentRichTextEditor` — editor emits `update:modelValue` (bodyJson) and `html` event (bodyHtml) on every change.
+2. Form holds both `form.bodyJson` (TipTap JSON) and `form.bodyHtml` (TipTap HTML output).
+3. On submit, both `bodyJson` and `bodyHtml` are sent to the backend.
+4. Backend validates `bodyJson` with `RichTextValidator` and sanitizes `bodyHtml` with `HtmlSanitizer`. Backend is the security boundary.
+
+**Preview uses the backend preview endpoint** — not the frontend editor HTML directly. Preview response contains already-sanitized `bodyHtml`.
+
+### Revision Viewer (Task 0.6.5)
+
+The revision detail panel now shows:
+
+1. A `bodyHtml` preview (backend-sanitized, safe to render via `v-html`) if the snapshot contains `bodyHtml`.
+2. A collapsible JSON viewer showing the raw snapshot data.
+
+**Revision restore is not supported.** No restore button exists anywhere. The revision detail view displays a notice: "بازیابی نسخه‌ها در این مرحله پشتیبانی نمی‌شود." (Revision restore is not supported at this stage.)
 
 ### Preview
 
@@ -359,6 +390,14 @@ Preview pages call the backend `POST .../preview` endpoint (not the GET endpoint
 
 All create/edit/delete/publish/archive buttons are hidden or disabled when the user lacks the required permission. Destructive actions show a `ConfirmDialog` with soft-delete language (never "permanently delete").
 
-### Revision Restore
+### Out-of-Scope Constraints
 
-**Revision restore is not supported.** No restore button exists anywhere. The revision detail view displays a notice: "بازیابی نسخه‌ها در این مرحله پشتیبانی نمی‌شود." (Revision restore is not supported at this stage.)
+The following are explicitly not implemented and must not be added:
+
+- Media Library, file upload, image upload, media picker, fake media picker, manual `mediaId` input
+- Page builder, drag/drop layout engine, block marketplace
+- Revision restore, rollback UI
+- Scheduled publish, approval workflow
+- Public content pages (Task 0.6.6)
+- Generic `/posts/:slug` or `/api/v1/posts/:slug` routes
+- Search, analytics, comments, newsletter, localization, AI content tooling

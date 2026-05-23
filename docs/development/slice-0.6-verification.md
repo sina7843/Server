@@ -270,3 +270,71 @@ Note: `pnpm typecheck` (workspace-wide) fails on `@dragon/admin` due to pre-exis
 | No generic `/posts/slug/` path in SDK | `admin-content.api.spec.ts` — "no generic /posts/:slug route"                                         |
 | Preview calls the preview endpoint    | `ContentPostPreviewView` — uses `previewPost()` not `getPost()`                                       |
 | Revision view has no restore button   | `ContentRevisionListView` — no restore button; shows "بازیابی نسخه‌ها در این مرحله پشتیبانی نمی‌شود." |
+
+---
+
+## Task 0.6.5 — TipTap Editor Integration
+
+### What was built
+
+- **`ContentRichTextEditor.vue`** — TipTap-based rich text editor component; wrapped in `<ClientOnly>` for SSR safety; accepts `modelValue` (bodyJson), emits `update:modelValue` (bodyJson) and `html` (bodyHtml); fallback is a plain `<textarea>`
+- **`ContentEditorToolbar.vue`** — limited toolbar with paragraph, H1–H3, bold, italic, underline, strike, inline code, link (with client-side URL safety validation), blockquote, bullet list, ordered list, code block, table (insert/add col/add row/delete), horizontal rule; **no media upload, no media picker, no page-builder controls**
+- **TipTap extensions used** (all matching backend validator allowlist): `StarterKit`, `Underline`, `Link` (autolink off, `validate` blocks `javascript:`, `data:`, `vbscript:`, `//`), `Table`, `TableRow`, `TableCell`, `TableHeader`
+- **`ContentPostFormView.vue`** updated — `bodyJson` added to reactive form state; `ContentRichTextEditor` replaces the old `<textarea>`; `buildBodyHtml()` removed; both `bodyJson` and `bodyHtml` sent on submit
+- **`ContentPageFormView.vue`** updated — same pattern as posts
+- **`ContentRevisionListView.vue`** updated — revision detail now shows a sanitized `bodyHtml` preview panel (rendered via `v-html`, safe because bodyHtml is backend-sanitized); raw JSON moved to a collapsible `<details>` section; **no restore button added**
+- **`admin-content.api.spec.ts`** — added `bodyJson/bodyHtml flow` describe block (4 new tests); added `uploadMedia`/`mediaPicker` absence assertions
+
+### What was NOT built (intentionally out of scope)
+
+- No image insertion (backend validator rejects `image` nodes; no Media API exists)
+- No media upload, no media picker, no fake picker, no manual `mediaId` field
+- No page builder, drag/drop layout, block marketplace
+- No revision restore
+- No public content pages (Task 0.6.6)
+- No generic `/posts/:slug` route
+
+### Verification Commands
+
+```bash
+pnpm install
+
+pnpm --filter @dragon/admin lint
+pnpm --filter @dragon/admin test
+pnpm --filter @dragon/admin build
+
+pnpm --filter @dragon/sdk lint
+pnpm --filter @dragon/sdk typecheck
+pnpm --filter @dragon/sdk test
+pnpm --filter @dragon/sdk build
+
+pnpm --filter @dragon/types lint
+pnpm --filter @dragon/types typecheck
+pnpm --filter @dragon/types test
+pnpm --filter @dragon/types build
+
+pnpm lint
+pnpm test
+pnpm build
+pnpm format:check
+```
+
+Expected: **83 API test suites + 7 admin feature suites = 90 total, 0 failures** (as of Task 0.6.5 completion; admin feature tests now include 4 bodyJson/bodyHtml tests and 2 no-upload/no-picker assertions).
+
+Note: `pnpm typecheck` (workspace-wide) fails on `@dragon/admin` due to pre-existing Nuxt/Vue TypeScript errors unrelated to Slice 0.6. All other packages typecheck clean.
+
+### Key Invariants to Verify
+
+| Invariant                                         | How to verify                                                                             |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `ContentRichTextEditor` exists                    | `apps/admin/components/content/ContentRichTextEditor.vue`                                 |
+| Editor uses only backend-allowed extensions       | `ContentRichTextEditor.vue` — StarterKit + Underline + Link + Table extensions only       |
+| No `Image` extension in editor                    | `ContentRichTextEditor.vue` — no Image import or extension                                |
+| Link validates URL client-side                    | `ContentEditorToolbar.vue` — `isSafeUrl()` blocks `javascript:`, `data:`, `//`            |
+| Toolbar has no upload/picker/page-builder buttons | `ContentEditorToolbar.vue` — read the file                                                |
+| Both bodyJson and bodyHtml sent on submit         | `admin-content.api.spec.ts` — "createPost sends bodyJson when provided"                   |
+| SDK has no uploadMedia/mediaPicker method         | `admin-content.api.spec.ts` — "has no uploadMedia method", "has no mediaPicker method"    |
+| Revision viewer shows sanitized bodyHtml          | `ContentRevisionListView.vue` — `v-html="snapshotBodyHtml(revision)"` with backend source |
+| Revision restore does not exist                   | `ContentRevisionListView.vue` — no restore button; restore-notice text present            |
+| No generic `/posts/:slug` route                   | `admin-content.api.spec.ts` — "no generic /posts/:slug route"                             |
+| No public content pages added                     | `apps/admin/pages/` — no new top-level routes outside `/content/`                         |

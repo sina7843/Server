@@ -47,17 +47,18 @@
         </div>
 
         <div class="field">
-          <label for="body-input" class="field-label">
-            متن صفحه
-            <span class="field-hint">(ویرایشگر ساده — TipTap در Task 0.6.5)</span>
-          </label>
-          <textarea
-            id="body-input"
-            v-model="form.bodyHtml"
-            class="field-textarea field-textarea--body"
-            rows="12"
-            placeholder="متن صفحه را اینجا وارد کنید…"
-          />
+          <label class="field-label">متن صفحه</label>
+          <ClientOnly>
+            <ContentRichTextEditor v-model="form.bodyJson" @html="form.bodyHtml = $event" />
+            <template #fallback>
+              <textarea
+                v-model="form.bodyHtml"
+                class="field-textarea field-textarea--body"
+                rows="12"
+                placeholder="متن صفحه را اینجا وارد کنید…"
+              />
+            </template>
+          </ClientOnly>
         </div>
 
         <fieldset class="fieldset">
@@ -225,6 +226,7 @@ const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/;
 const form = reactive({
   title: '',
   slug: '',
+  bodyJson: {} as Record<string, unknown>,
   bodyHtml: '',
   seoTitle: '',
   seoDescription: '',
@@ -271,15 +273,6 @@ function validate(): boolean {
   return true;
 }
 
-function buildBodyHtml(): string {
-  if (!form.bodyHtml.trim()) return '';
-  return form.bodyHtml
-    .split(/\n\n+/)
-    .filter(Boolean)
-    .map((p: string) => `<p>${p.replace(/\n/g, '<br>')}</p>`)
-    .join('');
-}
-
 async function onSubmit() {
   if (!validate()) return;
   clearActionState();
@@ -291,12 +284,14 @@ async function onSubmit() {
     ...(form.noIndex ? { noIndex: true } : {}),
   };
 
-  const bodyHtml = buildBodyHtml();
+  const bodyJson = Object.keys(form.bodyJson).length > 0 ? form.bodyJson : undefined;
+  const bodyHtml = form.bodyHtml || undefined;
 
   if (isEdit.value && props.pageId) {
     const updated = await updatePage(props.pageId, {
       title: form.title.trim(),
       slug: form.slug.trim(),
+      bodyJson,
       bodyHtml,
       seo,
     });
@@ -305,6 +300,7 @@ async function onSubmit() {
     const created = await createPage({
       title: form.title.trim(),
       slug: form.slug.trim(),
+      bodyJson,
       bodyHtml,
       seo,
     });
@@ -339,6 +335,7 @@ onMounted(async () => {
     if (page.value) {
       form.title = page.value.title;
       form.slug = page.value.slug;
+      form.bodyJson = page.value.bodyJson ?? {};
       form.bodyHtml = page.value.bodyHtml;
       form.seoTitle = page.value.seo?.title ?? '';
       form.seoDescription = page.value.seo?.description ?? '';

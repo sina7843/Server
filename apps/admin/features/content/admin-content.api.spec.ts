@@ -393,6 +393,74 @@ describe('createAdminContentClient — tags', () => {
   });
 });
 
+describe('createAdminContentClient — bodyJson/bodyHtml flow', () => {
+  function makeClient() {
+    return createAdminContentClient(
+      createApiClient({ baseUrl: '/', headers: { Authorization: 'Bearer token' } }),
+    );
+  }
+
+  it('createPost sends bodyJson when provided', async () => {
+    mockJson({ post: mockPostDetail });
+
+    const bodyJson = {
+      type: 'doc',
+      content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Hello' }] }],
+    };
+    await makeClient().createPost({
+      type: 'news',
+      title: 'Test',
+      slug: 'test',
+      bodyJson,
+      bodyHtml: '<p>Hello</p>',
+    });
+
+    const [[, opts]] = mockFetch.mock.calls;
+    const body = JSON.parse(opts.body as string);
+    expect(body.bodyJson).toEqual(bodyJson);
+    expect(body.bodyHtml).toBe('<p>Hello</p>');
+  });
+
+  it('updatePost sends bodyJson when provided', async () => {
+    mockJson({ post: mockPostDetail });
+
+    const bodyJson = { type: 'doc', content: [] };
+    await makeClient().updatePost(POST_ID, { bodyJson, bodyHtml: '<p>Updated</p>' });
+
+    const [[, opts]] = mockFetch.mock.calls;
+    const body = JSON.parse(opts.body as string);
+    expect(body.bodyJson).toEqual(bodyJson);
+    expect(body.bodyHtml).toBe('<p>Updated</p>');
+  });
+
+  it('createPage sends bodyJson when provided', async () => {
+    mockJson({ page: mockPageDetail });
+
+    const bodyJson = { type: 'doc', content: [] };
+    await makeClient().createPage({
+      title: 'Test Page',
+      slug: 'test-page',
+      bodyJson,
+      bodyHtml: '<p>Page</p>',
+    });
+
+    const [[, opts]] = mockFetch.mock.calls;
+    const body = JSON.parse(opts.body as string);
+    expect(body.bodyJson).toEqual(bodyJson);
+  });
+
+  it('updatePage sends bodyJson when provided', async () => {
+    mockJson({ page: mockPageDetail });
+
+    const bodyJson = { type: 'doc', content: [] };
+    await makeClient().updatePage(PAGE_ID, { bodyJson, bodyHtml: '<p>Updated Page</p>' });
+
+    const [[, opts]] = mockFetch.mock.calls;
+    const body = JSON.parse(opts.body as string);
+    expect(body.bodyJson).toEqual(bodyJson);
+  });
+});
+
 describe('createAdminContentClient — security', () => {
   function makeClient() {
     return createAdminContentClient(
@@ -416,6 +484,18 @@ describe('createAdminContentClient — security', () => {
     const client = makeClient();
 
     expect('restorePageRevision' in client).toBe(false);
+  });
+
+  it('has no uploadMedia method', () => {
+    const client = makeClient();
+
+    expect('uploadMedia' in client).toBe(false);
+  });
+
+  it('has no mediaPicker method', () => {
+    const client = makeClient();
+
+    expect('mediaPicker' in client).toBe(false);
   });
 
   it('no generic /posts/:slug route — softDeletePost uses id-based path only', async () => {

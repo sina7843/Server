@@ -65,7 +65,16 @@
               <span class="detail-date">{{ formatDate(revision.createdAt) }}</span>
               <div class="restore-notice">بازیابی نسخه‌ها در این مرحله پشتیبانی نمی‌شود.</div>
             </div>
-            <pre class="snapshot-view">{{ JSON.stringify(revision.snapshot, null, 2) }}</pre>
+            <template v-if="snapshotBodyHtml(revision)">
+              <div class="snapshot-html-label">پیش‌نمایش محتوا (bodyHtml پاک‌شده سمت سرور):</div>
+              <!-- bodyHtml is backend-sanitized (Task 0.6.3) — safe to render -->
+              <!-- eslint-disable-next-line vue/no-v-html -->
+              <div class="snapshot-html" v-html="snapshotBodyHtml(revision)" />
+            </template>
+            <details class="snapshot-json-details">
+              <summary class="snapshot-json-summary">داده‌های خام نسخه (JSON)</summary>
+              <pre class="snapshot-view">{{ JSON.stringify(revision.snapshot, null, 2) }}</pre>
+            </details>
           </div>
         </template>
       </template>
@@ -133,6 +142,11 @@ function snapshotTitle(rev: unknown): string {
 function snapshotStatus(rev: unknown): string {
   const s = ((rev as { snapshot?: unknown }).snapshot ?? {}) as Record<string, unknown>;
   return String(s?.status ?? '—');
+}
+
+function snapshotBodyHtml(rev: unknown): string {
+  const s = ((rev as { snapshot?: unknown }).snapshot ?? {}) as Record<string, unknown>;
+  return typeof s?.bodyHtml === 'string' ? s.bodyHtml : '';
 }
 
 function formatDate(iso: string): string {
@@ -278,6 +292,37 @@ onMounted(load);
   border-radius: 0.3rem;
 }
 
+.snapshot-html-label {
+  padding: 0.5rem 1rem 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  background: #fff;
+}
+
+.snapshot-html {
+  padding: 0.75rem 1rem 1rem;
+  background: #fff;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: #1e293b;
+  border-block-end: 1px solid #e2e8f0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.snapshot-json-details {
+  background: #fff;
+}
+
+.snapshot-json-summary {
+  padding: 0.45rem 1rem;
+  font-size: 0.78rem;
+  color: #64748b;
+  cursor: pointer;
+  user-select: none;
+}
+
 .snapshot-view {
   padding: 1rem;
   font-size: 0.8rem;
@@ -288,7 +333,7 @@ onMounted(load);
   white-space: pre-wrap;
   word-break: break-all;
   color: #334155;
-  max-height: 400px;
+  max-height: 300px;
   overflow-y: auto;
 }
 </style>

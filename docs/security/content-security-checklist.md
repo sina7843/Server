@@ -24,6 +24,20 @@ This checklist covers the security properties of the content subsystem. Tasks 0.
 - [x] Revision snapshots store sanitized `bodyHtml` (sanitized before `postService.create/update` is called)
 - [x] `mediaRefs` extraction not implemented — deferred until Media Library is available
 
+## TipTap Editor Security (Task 0.6.5 ✓)
+
+- [x] TipTap editor extensions match exactly the backend-allowed node/mark allowlist — no extra nodes
+- [x] Image insertion is disabled — no `Image` extension; backend rejects `image` nodes
+- [x] No media upload button, no media picker, no fake picker in toolbar
+- [x] Link extension validates URLs client-side before applying — blocks `javascript:`, `data:`, `vbscript:`, `//`
+- [x] Backend remains the security boundary — `bodyHtml` from TipTap is re-sanitized server-side on every save
+- [x] `bodyJson` from TipTap is validated server-side by `RichTextValidator` on every save
+- [x] Preview uses backend `POST .../preview` endpoint — not raw frontend HTML
+- [x] No embed, iframe, video, audio extension in editor
+- [x] Revision viewer renders only backend-sanitized `bodyHtml` from snapshot — never raw user input
+- [x] No revision restore UI exists — read-only viewer only
+- [x] Editor is wrapped in `<ClientOnly>` — no SSR execution of browser-only TipTap code
+
 ## Slug Injection (Task 0.6.1 ✓)
 
 - [x] `normalizeSlug()` rejects all unsafe URL characters (`/?#[]@!$&'()*+,;=<>{}|\^\`"`)
@@ -77,7 +91,7 @@ This checklist covers the security properties of the content subsystem. Tasks 0.
 - [x] ObjectId validation via `validateObjectId()` on all `:id` params
 - [ ] `categoryIds` and `tagIds` are NOT yet validated as existing ObjectIds (future task)
 - [ ] SEO `canonicalUrl` is NOT yet validated as HTTPS URL (future task)
-- [ ] `bodyHtml` is NOT yet sanitized — Task 0.6.3 required
+- [x] `bodyHtml` is sanitized server-side by `HtmlSanitizer` (Task 0.6.3 ✓)
 
 ## MongoDB
 

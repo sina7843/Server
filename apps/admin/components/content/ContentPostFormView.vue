@@ -62,17 +62,18 @@
         </div>
 
         <div class="field">
-          <label for="body-input" class="field-label">
-            متن محتوا
-            <span class="field-hint">(ویرایشگر ساده — TipTap در Task 0.6.5)</span>
-          </label>
-          <textarea
-            id="body-input"
-            v-model="form.bodyHtml"
-            class="field-textarea field-textarea--body"
-            rows="12"
-            placeholder="متن محتوا را اینجا وارد کنید…"
-          />
+          <label class="field-label">متن محتوا</label>
+          <ClientOnly>
+            <ContentRichTextEditor v-model="form.bodyJson" @html="form.bodyHtml = $event" />
+            <template #fallback>
+              <textarea
+                v-model="form.bodyHtml"
+                class="field-textarea field-textarea--body"
+                rows="12"
+                placeholder="متن محتوا را اینجا وارد کنید…"
+              />
+            </template>
+          </ClientOnly>
         </div>
 
         <div class="field-group">
@@ -285,6 +286,7 @@ const form = reactive({
   title: '',
   slug: '',
   excerpt: '',
+  bodyJson: {} as Record<string, unknown>,
   bodyHtml: '',
   categoryIds: [] as string[],
   tagIds: [] as string[],
@@ -333,15 +335,6 @@ function validate(): boolean {
   return true;
 }
 
-function buildBodyHtml(): string {
-  if (!form.bodyHtml.trim()) return '';
-  return form.bodyHtml
-    .split(/\n\n+/)
-    .filter(Boolean)
-    .map((p: string) => `<p>${p.replace(/\n/g, '<br>')}</p>`)
-    .join('');
-}
-
 async function onSubmit() {
   if (!validate()) return;
   clearActionState();
@@ -353,13 +346,15 @@ async function onSubmit() {
     ...(form.noIndex ? { noIndex: true } : {}),
   };
 
-  const bodyHtml = buildBodyHtml();
+  const bodyJson = Object.keys(form.bodyJson).length > 0 ? form.bodyJson : undefined;
+  const bodyHtml = form.bodyHtml || undefined;
 
   if (isEdit.value && props.postId) {
     const updated = await updatePost(props.postId, {
       title: form.title.trim(),
       slug: form.slug.trim(),
       ...(form.excerpt.trim() ? { excerpt: form.excerpt.trim() } : {}),
+      bodyJson,
       bodyHtml,
       categoryIds: form.categoryIds,
       tagIds: form.tagIds,
@@ -375,6 +370,7 @@ async function onSubmit() {
       title: form.title.trim(),
       slug: form.slug.trim(),
       ...(form.excerpt.trim() ? { excerpt: form.excerpt.trim() } : {}),
+      bodyJson,
       bodyHtml,
       categoryIds: form.categoryIds,
       tagIds: form.tagIds,
@@ -417,6 +413,7 @@ onMounted(async () => {
       form.title = post.value.title;
       form.slug = post.value.slug;
       form.excerpt = post.value.excerpt ?? '';
+      form.bodyJson = post.value.bodyJson ?? {};
       form.bodyHtml = post.value.bodyHtml;
       form.categoryIds = [...post.value.categoryIds];
       form.tagIds = [...post.value.tagIds];

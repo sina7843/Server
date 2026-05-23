@@ -8,6 +8,15 @@ import type {
 
 export type MediaAssetId = Types.ObjectId | string;
 
+export interface MediaAssetVariantInput {
+  readonly type: MediaVariantType;
+  readonly objectKey: string;
+  readonly width?: number;
+  readonly height?: number;
+  readonly sizeBytes?: number;
+  readonly mimeType?: string;
+}
+
 export interface CreateMediaAssetInput {
   readonly originalName: string;
   readonly fileName: string;
@@ -21,18 +30,22 @@ export interface CreateMediaAssetInput {
   readonly uploadedBy: string;
   readonly status: MediaAssetStatus;
   readonly checksum?: string;
-  readonly variants?: ReadonlyArray<{
-    readonly type: MediaVariantType;
-    readonly objectKey: string;
-    readonly sizeBytes?: number;
-    readonly mimeType?: string;
-  }>;
+  readonly alt?: string;
+  readonly caption?: string;
+  readonly variants?: ReadonlyArray<MediaAssetVariantInput>;
 }
 
 export interface UpdateMediaAssetMetadataInput {
   readonly visibility?: MediaVisibility;
   readonly alt?: string;
   readonly caption?: string;
+}
+
+export interface UpdateMediaAssetVariantsInput {
+  readonly status: MediaAssetStatus;
+  readonly variants: ReadonlyArray<MediaAssetVariantInput>;
+  readonly width?: number;
+  readonly height?: number;
 }
 
 export interface MediaAssetListFilter {

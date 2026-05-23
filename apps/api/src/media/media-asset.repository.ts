@@ -7,6 +7,7 @@ import type {
   MediaAssetId,
   MediaAssetListFilter,
   UpdateMediaAssetMetadataInput,
+  UpdateMediaAssetVariantsInput,
 } from './media-asset.types';
 
 @Injectable()
@@ -31,9 +32,21 @@ export class MediaAssetRepository {
       uploadedBy: new Types.ObjectId(input.uploadedBy),
       status: input.status,
       ...(input.checksum !== undefined ? { checksum: input.checksum } : {}),
+      ...(input.alt !== undefined ? { alt: input.alt } : {}),
+      ...(input.caption !== undefined ? { caption: input.caption } : {}),
       variants: input.variants ?? [],
     });
     return doc.save();
+  }
+
+  async updateVariants(
+    id: MediaAssetId,
+    input: UpdateMediaAssetVariantsInput,
+  ): Promise<MediaAssetDocument | null> {
+    const update: Record<string, unknown> = { status: input.status, variants: input.variants };
+    if (input.width !== undefined) update.width = input.width;
+    if (input.height !== undefined) update.height = input.height;
+    return this.model.findOneAndUpdate({ _id: id }, { $set: update }, { new: true }).exec();
   }
 
   async updateMetadata(

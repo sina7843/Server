@@ -77,6 +77,21 @@ describe('LocalStorageAdapter', () => {
     });
   });
 
+  describe('download', () => {
+    it('returns the file contents as a Buffer', async () => {
+      const objectKey = 'media/original/2026/05/todownload.jpg';
+      const content = Buffer.from('download-me');
+      await adapter.upload({ objectKey, body: content, mimeType: 'image/jpeg' });
+
+      const result = await adapter.download(objectKey);
+      expect(result.toString()).toBe('download-me');
+    });
+
+    it('rejects path traversal', async () => {
+      await expect(adapter.download('../../etc/passwd')).rejects.toThrow();
+    });
+  });
+
   describe('delete', () => {
     it('removes an existing file', async () => {
       const objectKey = 'media/original/2026/05/todelete.jpg';

@@ -31,6 +31,12 @@ export class LocalStorageAdapter implements StorageService {
     };
   }
 
+  async download(objectKey: string): Promise<Buffer> {
+    assertSafeObjectKey(objectKey);
+    const destPath = this.resolveLocalPath(objectKey);
+    return fs.readFile(destPath);
+  }
+
   async delete(objectKey: string): Promise<void> {
     assertSafeObjectKey(objectKey);
     const destPath = this.resolveLocalPath(objectKey);

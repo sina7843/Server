@@ -4,10 +4,10 @@
 
 Task 0.7.1 — Storage abstraction and providers — **Complete**
 Task 0.7.2 — MediaAsset persistence and secure upload APIs — **Complete**
+Task 0.7.3 — Image processing and variants — **Complete**
 
 Not yet implemented (Later tasks):
 
-- Image variant generation (Task 0.7.3)
 - Admin media UI / media picker
 - Content cover integration / TipTap inline image
 - Direct-to-S3 presigned upload
@@ -134,13 +134,13 @@ Environment variables (see `apps/api/.env.example`):
 
 ### Endpoints
 
-| Method   | Path                       | Permission              | Description                  |
-| -------- | -------------------------- | ----------------------- | ---------------------------- |
-| `GET`    | `/admin/v1/media`          | `media.asset.read`      | List assets (paginated)      |
-| `POST`   | `/admin/v1/media/upload`   | `media.asset.upload`    | Upload a new asset           |
-| `GET`    | `/admin/v1/media/:id`      | `media.asset.read`      | Get single asset by ID       |
-| `PATCH`  | `/admin/v1/media/:id`      | `media.asset.update`    | Update visibility/alt/caption |
-| `DELETE` | `/admin/v1/media/:id`      | `media.asset.delete`    | Soft delete                  |
+| Method   | Path                     | Permission           | Description                   |
+| -------- | ------------------------ | -------------------- | ----------------------------- |
+| `GET`    | `/admin/v1/media`        | `media.asset.read`   | List assets (paginated)       |
+| `POST`   | `/admin/v1/media/upload` | `media.asset.upload` | Upload a new asset            |
+| `GET`    | `/admin/v1/media/:id`    | `media.asset.read`   | Get single asset by ID        |
+| `PATCH`  | `/admin/v1/media/:id`    | `media.asset.update` | Update visibility/alt/caption |
+| `DELETE` | `/admin/v1/media/:id`    | `media.asset.delete` | Soft delete                   |
 
 All routes require a valid access token and the listed permission.
 
@@ -158,7 +158,7 @@ Fields: `originalName`, `fileName`, `mimeType`, `extension`, `sizeBytes`, `stora
 
 - **Soft delete only** — `deletedAt` is set; document stays in DB
 - **`variants[]`** — array of `{ type, objectKey, width?, height?, sizeBytes?, mimeType? }`; original variant stored at upload time
-- **Status lifecycle**: `uploaded → processing → ready | failed` — upload sets `ready`; variant generation (Task 0.7.3) will use `processing → ready | failed`
+- **Status lifecycle**: `processing → ready | failed` — non-GIF uploads start as `processing`, become `ready` after variant generation (or `failed` if processing throws). GIFs go directly to `ready`.
 
 ### URL resolution
 
@@ -171,18 +171,45 @@ Fields: `originalName`, `fileName`, `mimeType`, `extension`, `sizeBytes`, `stora
 
 ```ts
 client.listMedia(params?)
-client.uploadMedia(params)   // FormData, browser-compatible (Blob | Uint8Array)
+client.uploadMedia(params)         // FormData, browser-compatible (Blob | Uint8Array)
 client.getMedia(id)
 client.updateMedia(id, input)
+client.regenerateVariants(id)      // POST :id/regenerate-variants
 client.deleteMedia(id)
 ```
 
 ---
 
+---
+
+## Image Processing (Task 0.7.3)
+
+### Variant generation
+
+Thumbnail (max 320px) and medium (max 1280px) variants are generated synchronously during upload using `sharp`:
+
+- **GIF**: no variants generated; status set to `ready` immediately.
+- **Other images**: status starts as `processing`; variants are generated and uploaded; status becomes `ready` or `failed`.
+
+Only generates a variant if the original is larger than the target dimension (e.g. a 200px image gets no thumbnail).
+
+Variant object keys use the format `media/variants/<type>/<yyyy>/<mm>/<uuid>.<ext>`.
+
+### `POST /admin/v1/media/:id/regenerate-variants`
+
+Requires `media.asset.regenerate` permission. Downloads the original from storage, re-runs the processing pipeline, replaces existing non-original variants, and updates the asset record. GIFs return immediately without processing.
+
+### `StorageService.download`
+
+Added `download(objectKey: string): Promise<Buffer>` to the `StorageService` interface:
+
+- `LocalStorageAdapter`: reads from disk.
+- `S3BaseAdapter`: uses `GetObjectCommand` + `transformToByteArray()`.
+
+---
+
 ## Later — Not Yet Implemented
 
-- **Image variants** (Task 0.7.3): thumbnail (max 320px) and medium (max 1280px) via `sharp`; GIFs keep original only.
-- **`POST /admin/v1/media/:id/regenerate-variants`** (Task 0.7.3): `media.asset.regenerate` permission.
 - **Direct-to-S3 presigned upload**: client uploads directly to S3; backend issues a short-lived presigned PUT URL. Deferred.
 - **Multipart upload**: for large files. Deferred.
 - **Admin media UI / media picker**: Deferred.

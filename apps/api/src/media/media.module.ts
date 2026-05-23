@@ -13,6 +13,7 @@ import { MediaAssetRepository } from './media-asset.repository';
 import { MediaAssetService } from './media-asset.service';
 import { AdminMediaController } from './admin-media.controller';
 import { AdminMediaService } from './admin-media.service';
+import { ImageProcessorService } from './image-processor.service';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { AdminMediaService } from './admin-media.service';
     },
     MediaAssetRepository,
     MediaAssetService,
+    ImageProcessorService,
     AdminMediaService,
   ],
   exports: [MediaAssetService],

@@ -143,19 +143,88 @@ Expected: **90 API test suites, 763 API tests, 0 failures**.
 
 ### Key Invariants to Verify
 
-| Invariant                                                        | How to verify                                                                            |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Upload rejects unsupported MIME type                             | `media-upload.config.spec.ts` — "rejects unsupported MIME type (video/mp4)"              |
-| Upload rejects dangerous extension                               | `media-upload.config.spec.ts` — "rejects dangerous extension (.exe)"                    |
-| Upload rejects extension/MIME mismatch                           | `media-upload.config.spec.ts` — "rejects extension/MIME mismatch"                       |
-| Upload rejects oversized file                                    | `media-upload.config.spec.ts` — "rejects oversized files"                               |
+| Invariant                                                       | How to verify                                                                               |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Upload rejects unsupported MIME type                            | `media-upload.config.spec.ts` — "rejects unsupported MIME type (video/mp4)"                 |
+| Upload rejects dangerous extension                              | `media-upload.config.spec.ts` — "rejects dangerous extension (.exe)"                        |
+| Upload rejects extension/MIME mismatch                          | `media-upload.config.spec.ts` — "rejects extension/MIME mismatch"                           |
+| Upload rejects oversized file                                   | `media-upload.config.spec.ts` — "rejects oversized files"                                   |
 | `safeOriginalName` strips `..` and path separators              | `media-upload.config.spec.ts` — "sanitizes safeOriginalName to not contain path separators" |
-| Object key is randomized (not derived from filename)             | `admin-media.service.spec.ts` — "uses a randomized objectKey"                           |
-| User cannot supply `objectKey` via body                          | `admin-media.service.spec.ts` — "does not accept user-controlled objectKey from body"   |
-| SHA256 checksum is computed server-side                          | `admin-media.service.spec.ts` — "computes a SHA256 checksum"                            |
-| Original variant metadata is stored                              | `admin-media.service.spec.ts` — "stores original variant metadata"                      |
-| Soft delete sets `deletedAt` without hard-deleting the document  | `media-asset.schema.spec.ts` — schema field checks                                      |
-| `MediaModule` is registered in `AppModule`                       | `apps/api/src/app.module.ts`                                                             |
-| SDK `uploadMedia` uses `FormData` (browser-compatible)           | `admin-media.spec.ts` — "builds POST /admin/v1/media/upload with FormData body"         |
-| SDK does not expose regenerate-variants or direct-S3 methods     | `admin-media.spec.ts` — "does not expose a regenerate variants method"                  |
-| No real credentials committed                                    | `apps/api/.env.example` — all S3 key/secret fields empty                                |
+| Object key is randomized (not derived from filename)            | `admin-media.service.spec.ts` — "uses a randomized objectKey"                               |
+| User cannot supply `objectKey` via body                         | `admin-media.service.spec.ts` — "does not accept user-controlled objectKey from body"       |
+| SHA256 checksum is computed server-side                         | `admin-media.service.spec.ts` — "computes a SHA256 checksum"                                |
+| Original variant metadata is stored                             | `admin-media.service.spec.ts` — "stores original variant metadata"                          |
+| Soft delete sets `deletedAt` without hard-deleting the document | `media-asset.schema.spec.ts` — schema field checks                                          |
+| `MediaModule` is registered in `AppModule`                      | `apps/api/src/app.module.ts`                                                                |
+| SDK `uploadMedia` uses `FormData` (browser-compatible)          | `admin-media.spec.ts` — "builds POST /admin/v1/media/upload with FormData body"             |
+| SDK does not expose direct-S3 methods                           | `admin-media.spec.ts` — "does not expose a direct-S3 upload method"                         |
+| No real credentials committed                                   | `apps/api/.env.example` — all S3 key/secret fields empty                                    |
+
+---
+
+## Task 0.7.3 — Image Processing and Variants
+
+### What was built
+
+- **`apps/api/src/storage/storage.service.ts`** — added `download(objectKey): Promise<Buffer>` to interface
+- **`apps/api/src/storage/local/local-storage.adapter.ts`** — implemented `download` (reads file from disk)
+- **`apps/api/src/storage/s3/s3-base.adapter.ts`** — implemented `download` (GetObjectCommand + transformToByteArray)
+- **`apps/api/src/media/image-processor.service.ts`** — `ImageProcessorService.process(buffer, mimeType)` using `sharp`
+- **`apps/api/src/media/image-processor.service.spec.ts`** — unit tests with mocked `sharp`
+- **`apps/api/src/media/media-asset.types.ts`** — added `MediaAssetVariantInput`, `UpdateMediaAssetVariantsInput`, `alt/caption` in `CreateMediaAssetInput`
+- **`apps/api/src/media/media-asset.repository.ts`** — added `updateVariants`; `create` now includes `alt/caption`
+- **`apps/api/src/media/media-asset.service.ts`** — added `updateVariants`
+- **`apps/api/src/rbac/registry/permission-keys.ts`** — added `MEDIA_ASSET_REGENERATE`
+- **`apps/api/src/rbac/registry/permission-registry.ts`** — registered `media.asset.regenerate`
+- **`apps/api/src/media/admin-media.service.ts`** — updated upload pipeline (processing → ready/failed), added `regenerateVariants`
+- **`apps/api/src/media/admin-media.controller.ts`** — added `POST :id/regenerate-variants`
+- **`apps/api/src/media/media.module.ts`** — added `ImageProcessorService`
+- **`packages/sdk/src/admin-media-types.ts`** — added `regenerateVariants` to `AdminMediaClient`
+- **`packages/sdk/src/admin-media.ts`** — implemented `regenerateVariants`
+- **`packages/sdk/src/admin-media.spec.ts`** — replaced stale invariant test with real `regenerateVariants` tests
+- **`sharp`** installed as a dependency in `@dragon/api`; `@types/sharp` installed as dev dependency
+- Storage adapter specs updated with `download` tests
+
+### What was NOT built (intentionally out of scope)
+
+- No BullMQ / queue-based processing (processing is synchronous in the upload request)
+- No WebP transcoding (variants keep the original MIME type)
+- No video processing
+- No admin media UI
+- No content cover or TipTap inline image integration
+
+### Verification Commands
+
+```bash
+pnpm --filter @dragon/api typecheck
+pnpm --filter @dragon/api test
+pnpm --filter @dragon/sdk typecheck
+pnpm --filter @dragon/sdk test
+pnpm --filter @dragon/sdk build
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm format:check
+```
+
+Expected: **91 API test suites, 782 API tests, 0 failures**.
+
+### Key Invariants to Verify
+
+| Invariant                                                        | How to verify                                                                                         |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| GIF upload: status='ready', no variants beyond original          | `admin-media.service.spec.ts` — "sets GIF status to 'ready' immediately without processing"           |
+| Non-GIF upload: initial status='processing'                      | `admin-media.service.spec.ts` — "initial status is 'processing' for non-GIF"                          |
+| Thumbnail generated for images >320px                            | `image-processor.service.spec.ts` — "generates thumbnail and medium for large images"                 |
+| Medium generated for images >1280px                              | `image-processor.service.spec.ts` — "generates thumbnail and medium for large images"                 |
+| No variants for images ≤320px                                    | `image-processor.service.spec.ts` — "skips thumbnail for images already ≤ 320px"                      |
+| Processing failure → status='failed', original variant preserved | `admin-media.service.spec.ts` — "sets status to 'failed' and preserves original if processing throws" |
+| Variant keys are randomized (not derived from original)          | `admin-media.service.spec.ts` — variant upload keys match `media/variants/<type>/`                    |
+| `download` works for LocalStorageAdapter                         | `local-storage.adapter.spec.ts` — "download returns the file contents as a Buffer"                    |
+| `download` works for S3BaseAdapter (no real network calls)       | `s3-storage.adapter.spec.ts` — "download returns a Buffer from the S3 object body"                    |
+| `regenerateVariants` skips GIFs                                  | `admin-media.service.spec.ts` — "returns current asset for GIF without processing"                    |
+| `regenerateVariants` sets status='processing' before downloading | `admin-media.service.spec.ts` — "sets status to 'processing' before downloading original"             |
+| `regenerateVariants` download failure → status='failed'          | `admin-media.service.spec.ts` — "sets status to 'failed' if download throws"                          |
+| SDK `regenerateVariants` builds correct POST request             | `admin-media.spec.ts` — "builds POST /admin/v1/media/:id/regenerate-variants"                         |
+| `MEDIA_ASSET_REGENERATE` permission registered                   | `apps/api/src/rbac/registry/permission-registry.ts`                                                   |

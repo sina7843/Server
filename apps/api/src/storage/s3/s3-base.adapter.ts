@@ -52,6 +52,18 @@ export abstract class S3BaseAdapter implements StorageService {
     };
   }
 
+  async download(objectKey: string): Promise<Buffer> {
+    assertSafeObjectKey(objectKey);
+    const response = await this.client.send(
+      new GetObjectCommand({ Bucket: this.config.bucket, Key: objectKey }),
+    );
+    if (!response.Body) throw new Error(`No body returned for object: ${objectKey}`);
+    const bytes = await (
+      response.Body as { transformToByteArray(): Promise<Uint8Array> }
+    ).transformToByteArray();
+    return Buffer.from(bytes);
+  }
+
   async delete(objectKey: string): Promise<void> {
     assertSafeObjectKey(objectKey);
     await this.client.send(new DeleteObjectCommand({ Bucket: this.config.bucket, Key: objectKey }));

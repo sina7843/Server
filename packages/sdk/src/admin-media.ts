@@ -60,6 +60,13 @@ export function createAdminMediaClient(client: ApiClient): AdminMediaClient {
       });
     },
 
+    regenerateVariants(id: string): Promise<AdminMediaAssetDto> {
+      return client.request<AdminMediaAssetDto>({
+        method: 'POST',
+        path: `/admin/v1/media/${encodeURIComponent(id)}/regenerate-variants`,
+      });
+    },
+
     deleteMedia(id: string): Promise<void> {
       return client.request<void>({
         method: 'DELETE',

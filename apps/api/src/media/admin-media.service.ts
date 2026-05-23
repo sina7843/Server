@@ -9,6 +9,7 @@ import { STORAGE_CONFIG, type StorageConfig } from '../config/storage.config';
 import { STORAGE_SERVICE, type StorageService } from '../storage/storage.service';
 import { generateObjectKey } from '../storage/storage-object-key';
 import { MediaAssetService } from './media-asset.service';
+import { ImageProcessorService } from './image-processor.service';
 import { validateUploadedFile } from './media-upload.config';
 import { parseUpdateMediaBody, parseUploadMetadata } from './dto/admin-media-body';
 import { parseAdminMediaListQuery } from './dto/admin-media-query';
@@ -17,7 +18,8 @@ import {
   toAdminMediaListResponse,
   toAdminMediaUploadResponse,
 } from './dto/admin-media-response';
-import type { UpdateMediaAssetMetadataInput } from './media-asset.types';
+import type { MediaAssetVariantInput } from './media-asset.types';
+import type { MediaAssetDocument } from './media-asset.schema';
 
 @Injectable()
 export class AdminMediaService {
@@ -25,6 +27,7 @@ export class AdminMediaService {
 
   constructor(
     private readonly mediaAssetService: MediaAssetService,
+    private readonly imageProcessor: ImageProcessorService,
     @Inject(STORAGE_SERVICE) private readonly storageService: StorageService,
     @Inject(STORAGE_CONFIG) private readonly storageConfig: StorageConfig,
   ) {}
@@ -62,7 +65,16 @@ export class AdminMediaService {
       metadata: { uploadedBy, originalName: safeOriginalName },
     });
 
-    const asset = await this.mediaAssetService.create({
+    const isGif = file.mimetype === 'image/gif';
+
+    const originalVariant: MediaAssetVariantInput = {
+      type: 'original',
+      objectKey,
+      sizeBytes: file.size,
+      mimeType: file.mimetype,
+    };
+
+    let asset = await this.mediaAssetService.create({
       originalName: safeOriginalName,
       fileName: objectKey.split('/').pop() ?? objectKey,
       mimeType: file.mimetype,
@@ -73,30 +85,60 @@ export class AdminMediaService {
       objectKey,
       visibility: metadata.visibility,
       uploadedBy,
-      status: 'ready',
+      status: isGif ? 'ready' : 'processing',
       checksum,
-      variants: [
-        {
-          type: 'original',
-          objectKey,
-          sizeBytes: file.size,
-          mimeType: file.mimetype,
-        },
-      ],
-      ...(metadata.alt !== undefined ? {} : {}),
+      variants: [originalVariant],
+      ...(metadata.alt !== undefined ? { alt: metadata.alt } : {}),
+      ...(metadata.caption !== undefined ? { caption: metadata.caption } : {}),
     });
 
-    if (metadata.alt !== undefined || metadata.caption !== undefined) {
-      const update: UpdateMediaAssetMetadataInput = {};
-      if (metadata.alt !== undefined) (update as Record<string, unknown>)['alt'] = metadata.alt;
-      if (metadata.caption !== undefined)
-        (update as Record<string, unknown>)['caption'] = metadata.caption;
-      await this.mediaAssetService.updateMetadata(String(asset._id), update);
+    if (!isGif) {
+      asset = await this.processAndAttachVariants(asset, file.buffer, file.mimetype, objectKey);
     }
 
     const url = await this.resolveUrl(objectKey, metadata.visibility);
     const dto = toAdminMediaAssetDto(asset, url);
     return toAdminMediaUploadResponse(dto);
+  }
+
+  async regenerateVariants(rawId: string): Promise<AdminMediaAssetDto> {
+    const asset = await this.mediaAssetService.findById(rawId);
+
+    if (asset.mimeType === 'image/gif') {
+      const url = await this.resolveUrl(asset.objectKey, asset.visibility);
+      return toAdminMediaAssetDto(asset, url);
+    }
+
+    await this.mediaAssetService.updateVariants(String(asset._id), {
+      status: 'processing',
+      variants: asset.variants.filter((v) => v.type === 'original'),
+    });
+
+    let buffer: Buffer;
+    try {
+      buffer = await this.storageService.download(asset.objectKey);
+    } catch (err) {
+      this.logger.error(
+        `Failed to download original for regeneration ${asset.objectKey}: ${String(err)}`,
+      );
+      await this.mediaAssetService.updateVariants(String(asset._id), {
+        status: 'failed',
+        variants: asset.variants.filter((v) => v.type === 'original'),
+      });
+      throw new BadRequestException(
+        'Could not download the original file for variant regeneration.',
+      );
+    }
+
+    const updatedAsset = await this.processAndAttachVariants(
+      asset,
+      buffer,
+      asset.mimeType,
+      asset.objectKey,
+    );
+
+    const url = await this.resolveUrl(updatedAsset.objectKey, updatedAsset.visibility);
+    return toAdminMediaAssetDto(updatedAsset, url);
   }
 
   async listMedia(query: unknown): Promise<AdminMediaListResponseDto> {
@@ -111,9 +153,9 @@ export class AdminMediaService {
       q.limit,
     );
     const dtos = await Promise.all(
-      items.map(async (asset) => {
-        const url = await this.resolveUrl(asset.objectKey, asset.visibility);
-        return toAdminMediaAssetDto(asset, url);
+      items.map(async (a) => {
+        const url = await this.resolveUrl(a.objectKey, a.visibility);
+        return toAdminMediaAssetDto(a, url);
       }),
     );
     return toAdminMediaListResponse(dtos, total, q.page, q.limit);
@@ -142,6 +184,61 @@ export class AdminMediaService {
 
   async deleteMedia(rawId: string): Promise<void> {
     await this.mediaAssetService.softDelete(rawId);
+  }
+
+  private async processAndAttachVariants(
+    asset: MediaAssetDocument,
+    buffer: Buffer,
+    mimeType: string,
+    originalObjectKey: string,
+  ): Promise<MediaAssetDocument> {
+    const originalVariant: MediaAssetVariantInput = {
+      type: 'original',
+      objectKey: originalObjectKey,
+      sizeBytes: asset.sizeBytes,
+      mimeType,
+    };
+
+    try {
+      const result = await this.imageProcessor.process(buffer, mimeType);
+      const uploadedVariants: MediaAssetVariantInput[] = [originalVariant];
+
+      for (const v of result.variants) {
+        const variantKey = generateObjectKey({
+          namespace: `media/variants/${v.type}`,
+          mimeType: v.mimeType,
+        });
+        await this.storageService.upload({
+          objectKey: variantKey,
+          body: v.buffer,
+          mimeType: v.mimeType,
+          sizeBytes: v.sizeBytes,
+          visibility: asset.visibility,
+        });
+        uploadedVariants.push({
+          type: v.type,
+          objectKey: variantKey,
+          width: v.width,
+          height: v.height,
+          sizeBytes: v.sizeBytes,
+          mimeType: v.mimeType,
+        });
+      }
+
+      return this.mediaAssetService.updateVariants(String(asset._id), {
+        status: 'ready',
+        variants: uploadedVariants,
+        ...(result.originalWidth !== undefined ? { width: result.originalWidth } : {}),
+        ...(result.originalHeight !== undefined ? { height: result.originalHeight } : {}),
+      });
+    } catch (err) {
+      this.logger.error(`Image processing failed for asset ${String(asset._id)}: ${String(err)}`);
+      await this.mediaAssetService.updateVariants(String(asset._id), {
+        status: 'failed',
+        variants: [originalVariant],
+      });
+      return this.mediaAssetService.findById(String(asset._id));
+    }
   }
 
   private async resolveUrl(objectKey: string, visibility: string): Promise<string> {

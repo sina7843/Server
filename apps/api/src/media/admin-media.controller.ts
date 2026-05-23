@@ -65,6 +65,12 @@ export class AdminMediaController {
     return this.service.updateMedia(id, body);
   }
 
+  @Post(':id/regenerate-variants')
+  @RequirePermission(Permissions.MEDIA_ASSET_REGENERATE)
+  regenerateVariants(@Param('id') id: string): Promise<AdminMediaAssetDto> {
+    return this.service.regenerateVariants(id);
+  }
+
   @Delete(':id')
   @HttpCode(204)
   @RequirePermission(Permissions.MEDIA_ASSET_DELETE)

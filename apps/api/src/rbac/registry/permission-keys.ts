@@ -45,6 +45,7 @@ export const Permissions = {
   MEDIA_ASSET_UPLOAD: 'media.asset.upload',
   MEDIA_ASSET_UPDATE: 'media.asset.update',
   MEDIA_ASSET_DELETE: 'media.asset.delete',
+  MEDIA_ASSET_REGENERATE: 'media.asset.regenerate',
 
   AUDIT_LOG_READ: 'audit.log.read',
   ANALYTICS_READ: 'analytics.analytics.read',

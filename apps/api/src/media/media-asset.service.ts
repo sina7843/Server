@@ -5,6 +5,7 @@ import type {
   CreateMediaAssetInput,
   MediaAssetListFilter,
   UpdateMediaAssetMetadataInput,
+  UpdateMediaAssetVariantsInput,
 } from './media-asset.types';
 import { validateObjectId } from '../rbac/dto/rbac-validation';
 
@@ -37,6 +38,16 @@ export class MediaAssetService {
     const id = validateObjectId(rawId, 'id');
     const asset = await this.repository.softDelete(id);
     if (!asset) throw new NotFoundException('Media asset not found or already deleted.');
+    return asset;
+  }
+
+  async updateVariants(
+    rawId: string,
+    input: UpdateMediaAssetVariantsInput,
+  ): Promise<MediaAssetDocument> {
+    const id = validateObjectId(rawId, 'id');
+    const asset = await this.repository.updateVariants(id, input);
+    if (!asset) throw new NotFoundException('Media asset not found.');
     return asset;
   }
 

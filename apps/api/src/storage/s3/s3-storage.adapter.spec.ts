@@ -5,13 +5,17 @@ import { ArvanS3StorageAdapter } from './arvan-s3-storage.adapter';
 import type { S3CompatibleStorageConfig } from '../../config/storage.config';
 
 jest.mock('@aws-sdk/client-s3', () => {
-  const mockSend = jest.fn().mockResolvedValue({ ETag: '"mock-etag"' });
+  const mockBody = {
+    transformToByteArray: jest.fn().mockResolvedValue(new Uint8Array([1, 2, 3, 4])),
+  };
+  const mockSend = jest.fn().mockResolvedValue({ ETag: '"mock-etag"', Body: mockBody });
   const mockClient = jest.fn().mockImplementation(() => ({ send: mockSend }));
   return {
     S3Client: mockClient,
     PutObjectCommand: jest.fn().mockImplementation((input) => ({ _type: 'PutObject', input })),
     DeleteObjectCommand: jest.fn().mockImplementation((input) => ({ _type: 'Delete', input })),
     GetObjectCommand: jest.fn().mockImplementation((input) => ({ _type: 'GetObject', input })),
+    __mockBody: mockBody,
   };
 });
 
@@ -127,6 +131,16 @@ describe('MinioStorageAdapter', () => {
         mimeType: 'text/plain',
       }),
     ).rejects.toThrow();
+  });
+
+  it('download returns a Buffer from the S3 object body', async () => {
+    const result = await adapter.download('media/original/2026/05/abc.jpg');
+    expect(Buffer.isBuffer(result)).toBe(true);
+    expect(result).toEqual(Buffer.from(new Uint8Array([1, 2, 3, 4])));
+  });
+
+  it('rejects path traversal in download', async () => {
+    await expect(adapter.download('../../etc/passwd')).rejects.toThrow();
   });
 });
 

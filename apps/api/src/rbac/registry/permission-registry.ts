@@ -172,6 +172,13 @@ export const PermissionRegistry = [
     'Update media asset metadata',
   ),
   permission(Permissions.MEDIA_ASSET_DELETE, 'media', 'asset', 'delete', 'Delete media assets'),
+  permission(
+    Permissions.MEDIA_ASSET_REGENERATE,
+    'media',
+    'asset',
+    'regenerate',
+    'Regenerate media asset variants',
+  ),
 
   permission(Permissions.AUDIT_LOG_READ, 'audit', 'log', 'read', 'Read audit logs'),
   permission(

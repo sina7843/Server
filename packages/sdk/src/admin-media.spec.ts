@@ -112,15 +112,35 @@ describe('createAdminMediaClient', () => {
     });
   });
 
-  describe('SDK invariants', () => {
-    it('does not expose a regenerate variants method', () => {
+  describe('regenerateVariants', () => {
+    it('builds POST /admin/v1/media/:id/regenerate-variants', async () => {
       const client = createAdminMediaClient(makeClient(requestMock));
-      expect((client as unknown as Record<string, unknown>).regenerateVariants).toBeUndefined();
+      await client.regenerateVariants('abc123');
+      expect(requestMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          path: '/admin/v1/media/abc123/regenerate-variants',
+        }),
+      );
     });
 
+    it('URL-encodes the id', async () => {
+      const client = createAdminMediaClient(makeClient(requestMock));
+      await client.regenerateVariants('id with spaces');
+      const [call] = requestMock.mock.calls;
+      expect(call[0].path).toBe('/admin/v1/media/id%20with%20spaces/regenerate-variants');
+    });
+  });
+
+  describe('SDK invariants', () => {
     it('does not expose a multipart upload method', () => {
       const client = createAdminMediaClient(makeClient(requestMock));
       expect((client as unknown as Record<string, unknown>).multipartUpload).toBeUndefined();
+    });
+
+    it('does not expose a direct-S3 upload method', () => {
+      const client = createAdminMediaClient(makeClient(requestMock));
+      expect((client as unknown as Record<string, unknown>).directS3Upload).toBeUndefined();
     });
   });
 });

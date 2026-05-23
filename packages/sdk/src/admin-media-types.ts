@@ -34,5 +34,6 @@ export interface AdminMediaClient {
   uploadMedia(params: AdminMediaUploadParams): Promise<AdminMediaUploadResponseDto>;
   getMedia(id: string): Promise<AdminMediaAssetDto>;
   updateMedia(id: string, input: UpdateMediaAssetDto): Promise<AdminMediaAssetDto>;
+  regenerateVariants(id: string): Promise<AdminMediaAssetDto>;
   deleteMedia(id: string): Promise<void>;
 }

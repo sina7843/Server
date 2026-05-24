@@ -72,4 +72,8 @@ async function handleSmsSend(
       });
     }
   }
+
+  if (result.status !== 'sent') {
+    throw new Error('SMS delivery failed: provider returned failure status.');
+  }
 }

@@ -1,5 +1,6 @@
 import { processSmsJob } from './sms-processor';
 import type { NotificationLogStatusUpdater } from './processor-types';
+import * as smsSender from '../sms/sms-sender';
 
 function createMockJob(name: string, data: Record<string, unknown> = {}, attemptsMade = 0) {
   return { name, data, attemptsMade } as never;
@@ -135,6 +136,114 @@ describe('processSmsJob', () => {
       await processSmsJob(job, updateStatus, updateNotificationLog);
 
       expect(updateNotificationLog).not.toHaveBeenCalled();
+    });
+
+    describe('provider failure path', () => {
+      beforeEach(() => {
+        jest.spyOn(smsSender, 'sendSmsDirectly').mockResolvedValue({
+          status: 'failed',
+          errorCode: 'provider_timeout',
+          errorMessage: 'Request timed out.',
+        });
+      });
+
+      afterEach(() => {
+        jest.restoreAllMocks();
+      });
+
+      it('marks NotificationLog as failed when provider returns failed', async () => {
+        const updateStatus = jest.fn().mockResolvedValue(undefined);
+        const updateNotificationLog = createUpdateNotificationLog();
+        const job = createMockJob('sms.send', {
+          notificationLogId: 'nlog-fail',
+          recipientPhoneNormalized: '+1234567890',
+          smsBody: 'Your OTP is 111111',
+        });
+
+        await expect(processSmsJob(job, updateStatus, updateNotificationLog)).rejects.toThrow();
+
+        expect(updateNotificationLog).toHaveBeenCalledWith(
+          'nlog-fail',
+          'failed',
+          expect.objectContaining({ errorCode: 'provider_timeout' }),
+        );
+      });
+
+      it('does NOT mark JobLog as completed when provider returns failed', async () => {
+        const updateStatus = jest.fn().mockResolvedValue(undefined);
+        const updateNotificationLog = createUpdateNotificationLog();
+        const job = createMockJob('sms.send', {
+          jobLogId: 'log-fail',
+          notificationLogId: 'nlog-fail',
+          recipientPhoneNormalized: '+1234567890',
+          smsBody: 'Your OTP is 222222',
+        });
+
+        await expect(processSmsJob(job, updateStatus, updateNotificationLog)).rejects.toThrow();
+
+        const completedCall = updateStatus.mock.calls.find((c) => c[1] === 'completed');
+        expect(completedCall).toBeUndefined();
+      });
+
+      it('marks JobLog as failed (not completed) when provider returns failed', async () => {
+        const updateStatus = jest.fn().mockResolvedValue(undefined);
+        const updateNotificationLog = createUpdateNotificationLog();
+        const job = createMockJob('sms.send', {
+          jobLogId: 'log-fail',
+          notificationLogId: 'nlog-fail',
+          recipientPhoneNormalized: '+1234567890',
+          smsBody: 'Your OTP is 333333',
+        });
+
+        await expect(processSmsJob(job, updateStatus, updateNotificationLog)).rejects.toThrow();
+
+        expect(updateStatus).toHaveBeenCalledWith(
+          'log-fail',
+          'failed',
+          expect.objectContaining({ error: expect.any(String) }),
+        );
+      });
+
+      it('throws a safe error that does not contain raw OTP, phone, or SMS body', async () => {
+        const updateStatus = jest.fn().mockResolvedValue(undefined);
+        const updateNotificationLog = createUpdateNotificationLog();
+        const job = createMockJob('sms.send', {
+          jobLogId: 'log-fail',
+          notificationLogId: 'nlog-fail',
+          recipientPhoneNormalized: '+9876543210',
+          smsBody: 'Secret OTP: 444555',
+        });
+
+        let thrownError: Error | undefined;
+        try {
+          await processSmsJob(job, updateStatus, updateNotificationLog);
+        } catch (err) {
+          thrownError = err as Error;
+        }
+
+        expect(thrownError).toBeDefined();
+        expect(thrownError!.message).not.toContain('444555');
+        expect(thrownError!.message).not.toContain('+9876543210');
+        expect(thrownError!.message).not.toContain('Secret OTP');
+      });
+
+      it('error from JobLog failed update does not contain raw OTP or phone', async () => {
+        const updateStatus = jest.fn().mockResolvedValue(undefined);
+        const updateNotificationLog = createUpdateNotificationLog();
+        const job = createMockJob('sms.send', {
+          jobLogId: 'log-fail',
+          notificationLogId: 'nlog-fail',
+          recipientPhoneNormalized: '+9876543210',
+          smsBody: 'Your OTP is 777888',
+        });
+
+        await expect(processSmsJob(job, updateStatus, updateNotificationLog)).rejects.toThrow();
+
+        const failedCall = updateStatus.mock.calls.find((c) => c[1] === 'failed');
+        const serialized = JSON.stringify(failedCall);
+        expect(serialized).not.toContain('777888');
+        expect(serialized).not.toContain('+9876543210');
+      });
     });
   });
 });

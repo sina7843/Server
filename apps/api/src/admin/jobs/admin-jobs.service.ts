@@ -68,23 +68,36 @@ export class AdminJobsService {
       );
     }
 
-    await this.repository.updateStatus(id, 'retrying', { attempts: log.attempts });
-
-    if (log.bullJobId) {
-      const queue = this.resolveQueue(log.queueName);
-      if (queue) {
-        try {
-          const bullJob = await queue.getJob(log.bullJobId);
-          if (bullJob) {
-            await bullJob.retry();
-          }
-        } catch (err) {
-          this.logger.warn(
-            `BullMQ retry failed for job ${log.bullJobId} on queue ${log.queueName}: ${String(err)}`,
-          );
-        }
-      }
+    if (!log.bullJobId) {
+      throw new BadRequestException('Job cannot be retried: BullMQ job ID is missing.');
     }
+
+    const queue = this.resolveQueue(log.queueName);
+    if (!queue) {
+      throw new BadRequestException(
+        `Job cannot be retried: queue '${log.queueName}' is not registered.`,
+      );
+    }
+
+    const bullJob = await queue.getJob(log.bullJobId);
+    if (!bullJob) {
+      throw new BadRequestException('Job cannot be retried: BullMQ job not found in queue.');
+    }
+
+    try {
+      await bullJob.retry();
+    } catch (err) {
+      this.logger.warn(
+        `BullMQ retry failed for job ${log.bullJobId} on queue ${log.queueName}: ${String(err)}`,
+      );
+      await this.repository.updateStatus(id, 'failed', {
+        attempts: log.attempts,
+        error: 'Retry attempt failed; job remains in failed state.',
+      });
+      throw new BadRequestException('Failed to enqueue retry. Job remains in failed state.');
+    }
+
+    await this.repository.updateStatus(id, 'retrying', { attempts: log.attempts });
 
     const updated = await this.repository.findById(id);
     return toRetryJobResponseDto(updated ?? log);

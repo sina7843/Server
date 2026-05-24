@@ -9,14 +9,12 @@ describe('validateUpdateMyProfileDto', () => {
         displayName: 'Dragon',
         bio: 'Bio',
         visibility: 'private',
-        avatarMediaId: '64f000000000000000000123',
       }),
     ).toEqual({
       username: 'dragon',
       displayName: 'Dragon',
       bio: 'Bio',
       visibility: 'private',
-      avatarMediaId: '64f000000000000000000123',
     });
   });
 
@@ -36,18 +34,22 @@ describe('validateUpdateMyProfileDto', () => {
     );
   });
 
-  it('accepts avatarMediaId as valid ObjectId string or null only', () => {
-    expect(validateUpdateMyProfileDto({ avatarMediaId: '64f000000000000000000123' })).toEqual({
-      avatarMediaId: '64f000000000000000000123',
-    });
-    expect(validateUpdateMyProfileDto({ avatarMediaId: null })).toEqual({
-      avatarMediaId: null,
-    });
-    expect(() => validateUpdateMyProfileDto({ avatarMediaId: 123 })).toThrow(BadRequestException);
+  it('rejects avatarMediaId as a forbidden internal field', () => {
+    expect(() => validateUpdateMyProfileDto({ avatarMediaId: '64f000000000000000000123' })).toThrow(
+      BadRequestException,
+    );
   });
 
-  it('rejects invalid avatarMediaId safely instead of allowing a runtime ObjectId error', () => {
-    expect(() => validateUpdateMyProfileDto({ avatarMediaId: 'not-an-object-id' })).toThrow(
+  it('rejects avatarMediaId set to null as a forbidden field', () => {
+    expect(() => validateUpdateMyProfileDto({ avatarMediaId: null })).toThrow(BadRequestException);
+  });
+
+  it('accepts an empty object (no-op update)', () => {
+    expect(validateUpdateMyProfileDto({})).toEqual({});
+  });
+
+  it('rejects unknown fields that are not internal', () => {
+    expect(() => validateUpdateMyProfileDto({ favoriteColor: 'blue' })).toThrow(
       BadRequestException,
     );
   });

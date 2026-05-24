@@ -130,18 +130,6 @@ describe('UserProfileService API methods', () => {
     );
   });
 
-  it('PATCH my profile rejects invalid avatarMediaId safely instead of causing ObjectId runtime errors', async () => {
-    const service = new UserProfileService({
-      findByUserId: jest.fn().mockResolvedValue(publicProfile),
-      isUsernameTaken: jest.fn().mockResolvedValue(false),
-      updateProfile: jest.fn(),
-    } as never);
-
-    await expect(
-      service.updateMyProfile('user-1', { avatarMediaId: 'not-an-object-id' }),
-    ).rejects.toThrow(BadRequestException);
-  });
-
   it('PATCH my profile updates usernameNormalized and publicUrl', async () => {
     const updateProfile = jest.fn().mockResolvedValue({
       ...publicProfile,

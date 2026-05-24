@@ -2,20 +2,9 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AdminMediaService } from './admin-media.service';
 import { MediaAssetService } from './media-asset.service';
-import { ImageProcessorService } from './image-processor.service';
+import { MediaUploadPipeline } from './media-upload-pipeline.service';
 import { STORAGE_SERVICE } from '../storage/storage.service';
-import { STORAGE_CONFIG } from '../config/storage.config';
 import type { MediaAssetDocument } from './media-asset.schema';
-import type { LocalStorageConfig } from '../config/storage.config';
-
-const MOCK_STORAGE_CONFIG: LocalStorageConfig = {
-  provider: 'local',
-  bucket: 'test-bucket',
-  publicBaseUrl: 'http://localhost:3000/storage',
-  signedUrlTtlSeconds: 3600,
-  localRoot: '/tmp/test-storage',
-  localPublicBaseUrl: 'http://localhost:3000/storage',
-};
 
 function makeAsset(overrides: Partial<Record<string, unknown>> = {}): MediaAssetDocument {
   return {
@@ -60,7 +49,7 @@ function makeFile(overrides: Partial<Record<string, unknown>> = {}): Express.Mul
 describe('AdminMediaService', () => {
   let service: AdminMediaService;
   let mediaAssetService: jest.Mocked<MediaAssetService>;
-  let imageProcessor: jest.Mocked<ImageProcessorService>;
+  let pipeline: { upload: jest.Mock; reprocessVariants: jest.Mock };
   let storageService: {
     upload: jest.Mock;
     download: jest.Mock;
@@ -70,6 +59,11 @@ describe('AdminMediaService', () => {
   };
 
   beforeEach(async () => {
+    pipeline = {
+      upload: jest.fn(),
+      reprocessVariants: jest.fn(),
+    };
+
     storageService = {
       upload: jest.fn().mockResolvedValue({
         objectKey: 'media/original/2026/05/abc123.jpg',
@@ -102,22 +96,13 @@ describe('AdminMediaService', () => {
             list: jest.fn(),
           },
         },
-        {
-          provide: ImageProcessorService,
-          useValue: {
-            process: jest
-              .fn()
-              .mockResolvedValue({ variants: [], originalWidth: 800, originalHeight: 600 }),
-          },
-        },
+        { provide: MediaUploadPipeline, useValue: pipeline },
         { provide: STORAGE_SERVICE, useValue: storageService },
-        { provide: STORAGE_CONFIG, useValue: MOCK_STORAGE_CONFIG },
       ],
     }).compile();
 
     service = module.get(AdminMediaService);
     mediaAssetService = module.get(MediaAssetService) as jest.Mocked<MediaAssetService>;
-    imageProcessor = module.get(ImageProcessorService) as jest.Mocked<ImageProcessorService>;
   });
 
   // ─── uploadMedia ─────────────────────────────────────────────────────────
@@ -129,151 +114,46 @@ describe('AdminMediaService', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('rejects unsupported MIME type', async () => {
+    it('propagates BadRequestException from pipeline for invalid files', async () => {
+      pipeline.upload.mockRejectedValue(new BadRequestException('Unsupported file type'));
       const file = makeFile({ mimetype: 'video/mp4', originalname: 'video.mp4' });
       await expect(service.uploadMedia(file, {}, 'uploader1')).rejects.toThrow(BadRequestException);
     });
 
-    it('rejects dangerous extension', async () => {
-      const file = makeFile({ mimetype: 'image/jpeg', originalname: 'evil.exe' });
+    it('propagates BadRequestException for oversized file', async () => {
+      pipeline.upload.mockRejectedValue(new BadRequestException('File exceeds maximum size'));
+      const file = makeFile({ size: 100 * 1024 * 1024 });
       await expect(service.uploadMedia(file, {}, 'uploader1')).rejects.toThrow(BadRequestException);
     });
 
-    it('rejects extension/MIME mismatch', async () => {
-      const file = makeFile({ mimetype: 'image/png', originalname: 'photo.jpg' });
+    it('propagates BadRequestException for fake image content', async () => {
+      pipeline.upload.mockRejectedValue(
+        new BadRequestException('File content does not match declared type'),
+      );
+      const file = makeFile();
       await expect(service.uploadMedia(file, {}, 'uploader1')).rejects.toThrow(BadRequestException);
     });
 
-    it('rejects oversized file', async () => {
-      const file = makeFile({
-        mimetype: 'image/jpeg',
-        originalname: 'big.jpg',
-        size: 100 * 1024 * 1024,
-      });
-      await expect(service.uploadMedia(file, {}, 'uploader1')).rejects.toThrow(BadRequestException);
-    });
-
-    it('uploads a valid file — initial status is "processing" for non-GIF', async () => {
-      const processingAsset = makeAsset({ status: 'processing' });
-      const readyAsset = makeAsset({ status: 'ready' });
-      mediaAssetService.create.mockResolvedValue(processingAsset);
-      mediaAssetService.updateVariants.mockResolvedValue(readyAsset);
+    it('uploads a valid file and returns DTO with URL', async () => {
+      const asset = makeAsset({ status: 'ready' });
+      pipeline.upload.mockResolvedValue(asset);
 
       const file = makeFile();
       const result = await service.uploadMedia(file, { visibility: 'public' }, 'uploader1');
 
-      expect(mediaAssetService.create).toHaveBeenCalledWith(
+      expect(pipeline.upload).toHaveBeenCalledWith(
         expect.objectContaining({
-          mimeType: 'image/jpeg',
-          extension: 'jpg',
           uploadedBy: 'uploader1',
-          status: 'processing',
           visibility: 'public',
         }),
       );
       expect(result.asset.id).toBeDefined();
-    });
-
-    it('sets GIF status to "ready" immediately without processing', async () => {
-      const asset = makeAsset({ mimeType: 'image/gif', status: 'ready' });
-      mediaAssetService.create.mockResolvedValue(asset);
-
-      const file = makeFile({ mimetype: 'image/gif', originalname: 'anim.gif' });
-      await service.uploadMedia(file, {}, 'uploader1');
-
-      expect(mediaAssetService.create).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'ready', mimeType: 'image/gif' }),
-      );
-      expect(imageProcessor.process).not.toHaveBeenCalled();
-    });
-
-    it('uses a randomized objectKey — not the original filename', async () => {
-      const asset = makeAsset();
-      mediaAssetService.create.mockResolvedValue(asset);
-      mediaAssetService.updateVariants.mockResolvedValue(asset);
-
-      const file = makeFile({ originalname: 'my-secret-photo.jpg' });
-      await service.uploadMedia(file, {}, 'uploader1');
-
-      const [uploadCall] = storageService.upload.mock.calls;
-      const uploadInput = uploadCall[0] as { objectKey: string };
-      expect(uploadInput.objectKey).not.toContain('my-secret-photo');
-      expect(uploadInput.objectKey).toMatch(/^media\/original\/\d{4}\/\d{2}\//);
-    });
-
-    it('does not accept user-controlled objectKey from body', async () => {
-      const asset = makeAsset();
-      mediaAssetService.create.mockResolvedValue(asset);
-      mediaAssetService.updateVariants.mockResolvedValue(asset);
-
-      const file = makeFile();
-      await service.uploadMedia(file, { objectKey: '../../hack.jpg' }, 'uploader1');
-
-      const [uploadCall] = storageService.upload.mock.calls;
-      const uploadInput = uploadCall[0] as { objectKey: string };
-      expect(uploadInput.objectKey).not.toContain('hack');
-    });
-
-    it('stores original variant metadata', async () => {
-      const asset = makeAsset();
-      mediaAssetService.create.mockResolvedValue(asset);
-      mediaAssetService.updateVariants.mockResolvedValue(asset);
-
-      const file = makeFile();
-      await service.uploadMedia(file, {}, 'uploader1');
-
-      expect(mediaAssetService.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          variants: expect.arrayContaining([
-            expect.objectContaining({ type: 'original', mimeType: 'image/jpeg' }),
-          ]),
-        }),
-      );
-    });
-
-    it('computes a SHA256 checksum', async () => {
-      const asset = makeAsset();
-      mediaAssetService.create.mockResolvedValue(asset);
-      mediaAssetService.updateVariants.mockResolvedValue(asset);
-
-      const file = makeFile();
-      await service.uploadMedia(file, {}, 'uploader1');
-
-      expect(mediaAssetService.create).toHaveBeenCalledWith(
-        expect.objectContaining({ checksum: expect.stringMatching(/^[a-f0-9]{64}$/) }),
-      );
-    });
-
-    it('does not expose local filesystem path in the response URL', async () => {
-      const asset = makeAsset();
-      mediaAssetService.create.mockResolvedValue(asset);
-      mediaAssetService.updateVariants.mockResolvedValue(asset);
-      storageService.getPublicUrl.mockReturnValue(
-        'http://localhost:3000/storage/media/original/2026/05/abc123.jpg',
-      );
-
-      const file = makeFile();
-      const result = await service.uploadMedia(file, {}, 'uploader1');
-      expect(result.asset.url).not.toContain('/tmp/');
-      expect(result.asset.url).not.toContain('dragon-storage');
-    });
-
-    it('uses getSignedUrl for private assets', async () => {
-      const asset = makeAsset({ visibility: 'private' });
-      mediaAssetService.create.mockResolvedValue(asset);
-      mediaAssetService.updateVariants.mockResolvedValue(asset);
-
-      const file = makeFile();
-      await service.uploadMedia(file, { visibility: 'private' }, 'uploader1');
-
-      expect(storageService.getSignedUrl).toHaveBeenCalled();
-      expect(storageService.getPublicUrl).not.toHaveBeenCalled();
+      expect(result.asset.url).toBeDefined();
     });
 
     it('uses getPublicUrl for public assets', async () => {
       const asset = makeAsset({ visibility: 'public' });
-      mediaAssetService.create.mockResolvedValue(asset);
-      mediaAssetService.updateVariants.mockResolvedValue(asset);
+      pipeline.upload.mockResolvedValue(asset);
 
       const file = makeFile();
       await service.uploadMedia(file, { visibility: 'public' }, 'uploader1');
@@ -282,77 +162,38 @@ describe('AdminMediaService', () => {
       expect(storageService.getSignedUrl).not.toHaveBeenCalled();
     });
 
-    it('calls imageProcessor.process for non-GIF uploads', async () => {
-      const asset = makeAsset({ status: 'processing' });
-      mediaAssetService.create.mockResolvedValue(asset);
-      mediaAssetService.updateVariants.mockResolvedValue(makeAsset({ status: 'ready' }));
+    it('uses getSignedUrl for private assets', async () => {
+      const asset = makeAsset({ visibility: 'private' });
+      pipeline.upload.mockResolvedValue(asset);
 
       const file = makeFile();
-      await service.uploadMedia(file, {}, 'uploader1');
+      await service.uploadMedia(file, { visibility: 'private' }, 'uploader1');
 
-      expect(imageProcessor.process).toHaveBeenCalledWith(file.buffer, 'image/jpeg');
+      expect(storageService.getSignedUrl).toHaveBeenCalled();
+      expect(storageService.getPublicUrl).not.toHaveBeenCalled();
     });
 
-    it('uploads thumbnail and medium variants when image processor returns them', async () => {
-      const asset = makeAsset({ status: 'processing' });
-      mediaAssetService.create.mockResolvedValue(asset);
-      mediaAssetService.updateVariants.mockResolvedValue(makeAsset({ status: 'ready' }));
-      imageProcessor.process.mockResolvedValue({
-        variants: [
-          {
-            type: 'thumbnail',
-            buffer: Buffer.from('thumb'),
-            mimeType: 'image/jpeg',
-            width: 320,
-            height: 240,
-            sizeBytes: 5,
-          },
-          {
-            type: 'medium',
-            buffer: Buffer.from('medium'),
-            mimeType: 'image/jpeg',
-            width: 1280,
-            height: 960,
-            sizeBytes: 20,
-          },
-        ],
-        originalWidth: 2000,
-        originalHeight: 1500,
-      });
+    it('does not fallback to public URL when getSignedUrl fails for private asset', async () => {
+      const asset = makeAsset({ visibility: 'private' });
+      pipeline.upload.mockResolvedValue(asset);
+      storageService.getSignedUrl.mockRejectedValue(new Error('Signing service unavailable'));
 
       const file = makeFile();
-      await service.uploadMedia(file, {}, 'uploader1');
+      const result = await service.uploadMedia(file, { visibility: 'private' }, 'uploader1');
 
-      expect(storageService.upload).toHaveBeenCalledTimes(3);
-      expect(mediaAssetService.updateVariants).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          status: 'ready',
-          variants: expect.arrayContaining([
-            expect.objectContaining({ type: 'original' }),
-            expect.objectContaining({ type: 'thumbnail' }),
-            expect.objectContaining({ type: 'medium' }),
-          ]),
-        }),
-      );
+      expect(result.asset.url).toBe('');
+      expect(storageService.getPublicUrl).not.toHaveBeenCalled();
     });
 
-    it('sets status to "failed" and preserves original if image processing throws', async () => {
-      const asset = makeAsset({ status: 'processing' });
-      const failedAsset = makeAsset({ status: 'failed' });
-      mediaAssetService.create.mockResolvedValue(asset);
-      mediaAssetService.updateVariants.mockResolvedValue(failedAsset);
-      mediaAssetService.findById.mockResolvedValue(failedAsset);
-      imageProcessor.process.mockRejectedValue(new Error('sharp failed'));
+    it('does not expose a video upload method', () => {
+      pipeline.upload.mockRejectedValue(new BadRequestException('Unsupported file type'));
+      const file = makeFile({ mimetype: 'video/mp4', originalname: 'video.mp4' });
+      return expect(service.uploadMedia(file, {}, 'user1')).rejects.toThrow(BadRequestException);
+    });
 
-      const file = makeFile();
-      const result = await service.uploadMedia(file, {}, 'uploader1');
-
-      expect(mediaAssetService.updateVariants).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({ status: 'failed' }),
-      );
-      expect(result.asset).toBeDefined();
+    it('does not expose a direct-to-S3 upload method', () => {
+      expect((service as unknown as Record<string, unknown>).presignUpload).toBeUndefined();
+      expect((service as unknown as Record<string, unknown>).directS3Upload).toBeUndefined();
     });
   });
 
@@ -364,7 +205,7 @@ describe('AdminMediaService', () => {
       mediaAssetService.findById.mockResolvedValue(gifAsset);
 
       const result = await service.regenerateVariants('507f1f77bcf86cd799439011');
-      expect(imageProcessor.process).not.toHaveBeenCalled();
+      expect(pipeline.reprocessVariants).not.toHaveBeenCalled();
       expect(result.id).toBeDefined();
     });
 
@@ -376,6 +217,7 @@ describe('AdminMediaService', () => {
       mediaAssetService.updateVariants
         .mockResolvedValueOnce(processingAsset)
         .mockResolvedValueOnce(readyAsset);
+      pipeline.reprocessVariants.mockResolvedValue(readyAsset);
 
       await service.regenerateVariants('507f1f77bcf86cd799439011');
 
@@ -388,7 +230,8 @@ describe('AdminMediaService', () => {
     it('downloads original from storage', async () => {
       const asset = makeAsset();
       mediaAssetService.findById.mockResolvedValue(asset);
-      mediaAssetService.updateVariants.mockResolvedValue(makeAsset({ status: 'ready' }));
+      mediaAssetService.updateVariants.mockResolvedValue(makeAsset({ status: 'processing' }));
+      pipeline.reprocessVariants.mockResolvedValue(makeAsset({ status: 'ready' }));
 
       await service.regenerateVariants('507f1f77bcf86cd799439011');
 
@@ -420,6 +263,20 @@ describe('AdminMediaService', () => {
         NotFoundException,
       );
     });
+
+    it('does not return public URL for private asset when getSignedUrl fails', async () => {
+      const asset = makeAsset({ status: 'ready' });
+      const privateAsset = makeAsset({ status: 'ready', visibility: 'private' });
+      mediaAssetService.findById.mockResolvedValue(asset);
+      mediaAssetService.updateVariants.mockResolvedValue(makeAsset({ status: 'processing' }));
+      pipeline.reprocessVariants.mockResolvedValue(privateAsset);
+      storageService.getSignedUrl.mockRejectedValue(new Error('Signing service unavailable'));
+
+      const result = await service.regenerateVariants('507f1f77bcf86cd799439011');
+
+      expect(result.url).toBe('');
+      expect(storageService.getPublicUrl).not.toHaveBeenCalled();
+    });
   });
 
   // ─── listMedia ───────────────────────────────────────────────────────────
@@ -443,6 +300,17 @@ describe('AdminMediaService', () => {
         expect.any(Number),
         expect.any(Number),
       );
+    });
+
+    it('returns empty string URL for private assets when getSignedUrl fails', async () => {
+      const privateAsset = makeAsset({ visibility: 'private' });
+      mediaAssetService.list.mockResolvedValue({ items: [privateAsset], total: 1 });
+      storageService.getSignedUrl.mockRejectedValue(new Error('Signing service unavailable'));
+
+      const result = await service.listMedia({});
+
+      expect(result.items[0]!.url).toBe('');
+      expect(storageService.getPublicUrl).not.toHaveBeenCalled();
     });
   });
 
@@ -522,17 +390,5 @@ describe('AdminMediaService', () => {
       expect((service as unknown as Record<string, unknown>).hardDelete).toBeUndefined();
       expect((service as unknown as Record<string, unknown>).destroyMedia).toBeUndefined();
     });
-  });
-
-  // ─── Invariants ──────────────────────────────────────────────────────────
-
-  it('does not expose a video upload method', () => {
-    const file = makeFile({ mimetype: 'video/mp4', originalname: 'video.mp4' });
-    return expect(service.uploadMedia(file, {}, 'user1')).rejects.toThrow(BadRequestException);
-  });
-
-  it('does not expose a direct-to-S3 upload method', () => {
-    expect((service as unknown as Record<string, unknown>).presignUpload).toBeUndefined();
-    expect((service as unknown as Record<string, unknown>).directS3Upload).toBeUndefined();
   });
 });

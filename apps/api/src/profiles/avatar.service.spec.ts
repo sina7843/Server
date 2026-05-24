@@ -28,11 +28,17 @@ const mockProfileRepository = {
   updateProfile: jest.fn(),
 };
 
+const mockPipeline = {
+  upload: jest.fn(),
+  reprocessVariants: jest.fn(),
+};
+
 function makeService() {
   return new AvatarService(
     mockProfileRepository as never,
     mockMediaRepository as never,
     mockStorageService as never,
+    mockPipeline as never,
   );
 }
 
@@ -111,6 +117,86 @@ describe('AvatarService.setAvatar', () => {
     mockMediaRepository.findById.mockResolvedValue({ ...imageAsset, visibility: 'private' });
     const service = makeService();
     await expect(service.setAvatar('user-1', 'a'.repeat(24))).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+  });
+});
+
+describe('AvatarService.uploadAndSetAvatar', () => {
+  const mockFile: Express.Multer.File = {
+    fieldname: 'file',
+    originalname: 'avatar.jpg',
+    encoding: '7bit',
+    mimetype: 'image/jpeg',
+    buffer: Buffer.from('fake-image-data'),
+    size: 16,
+  } as Express.Multer.File;
+
+  it('calls pipeline.upload with correct arguments', async () => {
+    const createdAsset = { ...imageAsset, _id: 'new-asset-id' };
+    mockPipeline.upload.mockResolvedValue(createdAsset);
+    mockProfileRepository.updateProfile.mockResolvedValue({ _id: 'profile' });
+
+    const service = makeService();
+    await service.uploadAndSetAvatar('user-1', mockFile);
+
+    expect(mockPipeline.upload).toHaveBeenCalledWith(
+      expect.objectContaining({
+        file: expect.objectContaining({
+          buffer: mockFile.buffer,
+          mimetype: mockFile.mimetype,
+          originalname: mockFile.originalname,
+          size: mockFile.size,
+        }),
+        uploadedBy: 'user-1',
+        visibility: 'public',
+        namespace: 'avatars',
+      }),
+    );
+  });
+
+  it('sets avatarMediaId to the created asset id', async () => {
+    const createdAsset = { ...imageAsset, _id: 'new-asset-id' };
+    mockPipeline.upload.mockResolvedValue(createdAsset);
+    mockProfileRepository.updateProfile.mockResolvedValue({ _id: 'profile' });
+
+    const service = makeService();
+    await service.uploadAndSetAvatar('user-1', mockFile);
+
+    expect(mockProfileRepository.updateProfile).toHaveBeenCalledWith('user-1', {
+      avatarMediaId: 'new-asset-id',
+    });
+  });
+
+  it('propagates BadRequestException from pipeline for invalid content', async () => {
+    mockPipeline.upload.mockRejectedValue(
+      new BadRequestException('File content does not match declared type'),
+    );
+
+    const service = makeService();
+    await expect(service.uploadAndSetAvatar('user-1', mockFile)).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+    expect(mockProfileRepository.updateProfile).not.toHaveBeenCalled();
+  });
+
+  it('does not call storageService.upload directly', async () => {
+    const createdAsset = { ...imageAsset, _id: 'new-asset-id' };
+    mockPipeline.upload.mockResolvedValue(createdAsset);
+    mockProfileRepository.updateProfile.mockResolvedValue({ _id: 'profile' });
+
+    const service = makeService();
+    await service.uploadAndSetAvatar('user-1', mockFile);
+
+    expect(mockStorageService.upload).not.toHaveBeenCalled();
+  });
+
+  it('throws if profile does not exist after asset creation', async () => {
+    mockPipeline.upload.mockResolvedValue({ ...imageAsset, _id: 'new-asset-id' });
+    mockProfileRepository.updateProfile.mockResolvedValue(null);
+
+    const service = makeService();
+    await expect(service.uploadAndSetAvatar('user-1', mockFile)).rejects.toBeInstanceOf(
       BadRequestException,
     );
   });

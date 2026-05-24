@@ -1,14 +1,11 @@
-import { createHash } from 'node:crypto';
 import { BadRequestException, ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { MediaAssetRepository } from '../media/media-asset.repository';
-import { generateObjectKey } from '../storage/storage-object-key';
+import { MediaUploadPipeline } from '../media/media-upload-pipeline.service';
 import { STORAGE_SERVICE, type StorageService } from '../storage/storage.service';
 import { UserProfileRepository } from './profile.repository';
 import type { UserProfileDocument } from './profile.schema';
 
 const OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
-const AVATAR_ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
-const AVATAR_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
 
 export interface ProfileAvatarData {
   readonly avatarUrl: string;
@@ -21,6 +18,7 @@ export class AvatarService {
     private readonly profileRepository: UserProfileRepository,
     private readonly mediaRepository: MediaAssetRepository,
     @Inject(STORAGE_SERVICE) private readonly storageService: StorageService,
+    private readonly pipeline: MediaUploadPipeline,
   ) {}
 
   async setAvatar(userId: string, rawMediaAssetId: string): Promise<UserProfileDocument> {
@@ -59,51 +57,16 @@ export class AvatarService {
     userId: string,
     file: Express.Multer.File,
   ): Promise<UserProfileDocument> {
-    if (!AVATAR_ALLOWED_MIME_TYPES.has(file.mimetype)) {
-      throw new BadRequestException('Unsupported file type. Allowed: JPEG, PNG, WebP, GIF.');
-    }
-    if (file.size > AVATAR_MAX_BYTES) {
-      throw new BadRequestException('File exceeds the 5 MB avatar size limit.');
-    }
-
-    const objectKey = generateObjectKey({
-      namespace: 'avatars',
-      mimeType: file.mimetype,
-    });
-
-    const checksum = createHash('sha256').update(file.buffer).digest('hex');
-
-    const stored = await this.storageService.upload({
-      objectKey,
-      body: file.buffer,
-      mimeType: file.mimetype,
-      sizeBytes: file.size,
-      visibility: 'public',
-      metadata: { uploadedBy: userId },
-    });
-
-    const safeOriginalName = (file.originalname ?? 'avatar')
-      .replace(/[^\w.-]/g, '_')
-      .replace(/\.{2,}/g, '_')
-      .slice(0, 200);
-
-    const dotIndex = safeOriginalName.lastIndexOf('.');
-    const ext = dotIndex >= 0 ? safeOriginalName.slice(dotIndex + 1).toLowerCase() : 'jpg';
-
-    const asset = await this.mediaRepository.create({
-      originalName: safeOriginalName,
-      fileName: objectKey.split('/').pop() ?? objectKey,
-      mimeType: file.mimetype,
-      extension: ext,
-      sizeBytes: file.size,
-      storageProvider: stored.provider,
-      bucket: stored.bucket,
-      objectKey,
-      visibility: 'public',
+    const asset = await this.pipeline.upload({
+      file: {
+        buffer: file.buffer,
+        mimetype: file.mimetype,
+        originalname: file.originalname,
+        size: file.size,
+      },
       uploadedBy: userId,
-      status: 'ready',
-      checksum,
-      variants: [],
+      visibility: 'public',
+      namespace: 'avatars',
     });
 
     const profile = await this.profileRepository.updateProfile(userId, {

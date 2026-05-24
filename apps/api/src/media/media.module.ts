@@ -14,6 +14,7 @@ import { MediaAssetService } from './media-asset.service';
 import { AdminMediaController } from './admin-media.controller';
 import { AdminMediaService } from './admin-media.service';
 import { ImageProcessorService } from './image-processor.service';
+import { MediaUploadPipeline } from './media-upload-pipeline.service';
 
 @Module({
   imports: [
@@ -40,8 +41,9 @@ import { ImageProcessorService } from './image-processor.service';
     MediaAssetRepository,
     MediaAssetService,
     ImageProcessorService,
+    MediaUploadPipeline,
     AdminMediaService,
   ],
-  exports: [MediaAssetService, MediaAssetRepository, STORAGE_SERVICE],
+  exports: [MediaAssetService, MediaAssetRepository, STORAGE_SERVICE, MediaUploadPipeline],
 })
 export class MediaModule {}

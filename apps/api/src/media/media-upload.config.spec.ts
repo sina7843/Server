@@ -1,5 +1,13 @@
 import { BadRequestException } from '@nestjs/common';
-import { validateUploadedFile, isAllowedMimeType, isAllowedExtension } from './media-upload.config';
+import {
+  validateUploadedFile,
+  validateImageContent,
+  isAllowedMimeType,
+  isAllowedExtension,
+} from './media-upload.config';
+
+jest.mock('sharp');
+import sharp from 'sharp';
 
 const VALID_JPEG = { originalname: 'photo.jpg', mimetype: 'image/jpeg', size: 1024 };
 const VALID_PNG = { originalname: 'image.png', mimetype: 'image/png', size: 2048 };
@@ -84,6 +92,76 @@ describe('validateUploadedFile', () => {
     });
     expect(result.safeOriginalName).not.toContain('/');
     expect(result.safeOriginalName).not.toContain('..');
+  });
+});
+
+describe('validateImageContent', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('passes when detected format matches declared JPEG MIME', async () => {
+    (sharp as unknown as jest.Mock).mockReturnValue({
+      metadata: jest.fn().mockResolvedValue({ format: 'jpeg' }),
+    });
+    await expect(validateImageContent(Buffer.from('fake'), 'image/jpeg')).resolves.toBeUndefined();
+  });
+
+  it('passes when detected format matches declared PNG MIME', async () => {
+    (sharp as unknown as jest.Mock).mockReturnValue({
+      metadata: jest.fn().mockResolvedValue({ format: 'png' }),
+    });
+    await expect(validateImageContent(Buffer.from('fake'), 'image/png')).resolves.toBeUndefined();
+  });
+
+  it('passes when detected format matches declared WebP MIME', async () => {
+    (sharp as unknown as jest.Mock).mockReturnValue({
+      metadata: jest.fn().mockResolvedValue({ format: 'webp' }),
+    });
+    await expect(validateImageContent(Buffer.from('fake'), 'image/webp')).resolves.toBeUndefined();
+  });
+
+  it('passes when detected format matches declared GIF MIME', async () => {
+    (sharp as unknown as jest.Mock).mockReturnValue({
+      metadata: jest.fn().mockResolvedValue({ format: 'gif' }),
+    });
+    await expect(validateImageContent(Buffer.from('fake'), 'image/gif')).resolves.toBeUndefined();
+  });
+
+  it('rejects when sharp detects a different format than declared (content/MIME mismatch)', async () => {
+    (sharp as unknown as jest.Mock).mockReturnValue({
+      metadata: jest.fn().mockResolvedValue({ format: 'png' }),
+    });
+    await expect(validateImageContent(Buffer.from('fake'), 'image/jpeg')).rejects.toThrow(
+      BadRequestException,
+    );
+  });
+
+  it('rejects when file content is not a valid image (sharp throws)', async () => {
+    (sharp as unknown as jest.Mock).mockReturnValue({
+      metadata: jest
+        .fn()
+        .mockRejectedValue(new Error('Input buffer contains unsupported image format')),
+    });
+    await expect(validateImageContent(Buffer.from('not-an-image'), 'image/jpeg')).rejects.toThrow(
+      BadRequestException,
+    );
+  });
+
+  it('rejects unsupported MIME type (no sharp format mapping)', async () => {
+    await expect(validateImageContent(Buffer.from('fake'), 'application/pdf')).rejects.toThrow(
+      BadRequestException,
+    );
+    expect(sharp).not.toHaveBeenCalled();
+  });
+
+  it('error message identifies declared vs detected type on mismatch', async () => {
+    (sharp as unknown as jest.Mock).mockReturnValue({
+      metadata: jest.fn().mockResolvedValue({ format: 'gif' }),
+    });
+    await expect(validateImageContent(Buffer.from('fake'), 'image/jpeg')).rejects.toThrow(
+      /declared/i,
+    );
   });
 });
 

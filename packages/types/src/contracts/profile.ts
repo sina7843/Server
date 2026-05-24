@@ -59,5 +59,4 @@ export interface UpdateMyProfileDto {
   readonly displayName?: string;
   readonly bio?: string;
   readonly visibility?: ProfileVisibility;
-  readonly avatarMediaId?: string | null;
 }

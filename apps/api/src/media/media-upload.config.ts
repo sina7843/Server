@@ -1,3 +1,4 @@
+import sharp from 'sharp';
 import {
   ALLOWED_MEDIA_EXTENSIONS,
   ALLOWED_MEDIA_MIME_TYPES,
@@ -71,4 +72,38 @@ export function validateUploadedFile(file: {
     .slice(0, 200);
 
   return { extension: rawExt === 'jpeg' ? 'jpg' : rawExt, safeOriginalName };
+}
+
+const MIME_TO_SHARP_FORMAT: Readonly<Record<string, string>> = {
+  'image/jpeg': 'jpeg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+};
+
+/**
+ * Validates that the buffer's actual content matches the declared MIME type.
+ * Uses sharp to read real image headers — rejects fake/mismatched content.
+ */
+export async function validateImageContent(buffer: Buffer, mimeType: string): Promise<void> {
+  const expectedFormat = MIME_TO_SHARP_FORMAT[mimeType];
+
+  if (!expectedFormat) {
+    throw new BadRequestException(`Content validation is not supported for type: ${mimeType}.`);
+  }
+
+  let detectedFormat: string | undefined;
+
+  try {
+    const meta = await sharp(buffer, { failOn: 'error' }).metadata();
+    detectedFormat = meta.format;
+  } catch {
+    throw new BadRequestException('File content is not a valid image or is corrupt.');
+  }
+
+  if (detectedFormat !== expectedFormat) {
+    throw new BadRequestException(
+      `File content does not match declared type. Declared: ${mimeType}, detected: ${detectedFormat ?? 'unknown'}.`,
+    );
+  }
 }

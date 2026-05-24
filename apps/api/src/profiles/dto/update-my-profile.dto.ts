@@ -1,7 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import { PROFILE_VISIBILITIES, type ProfileVisibility } from '../profile.types';
 
-const ALLOWED_FIELDS = new Set(['username', 'displayName', 'bio', 'visibility', 'avatarMediaId']);
+const ALLOWED_FIELDS = new Set(['username', 'displayName', 'bio', 'visibility']);
 const FORBIDDEN_FIELDS = new Set([
   'userId',
   'usernameNormalized',
@@ -18,16 +18,14 @@ const FORBIDDEN_FIELDS = new Set([
   'accessToken',
   'refreshToken',
   'passwordHash',
+  'avatarMediaId',
 ]);
-
-const OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
 
 export class UpdateMyProfileDto {
   readonly username?: string;
   readonly displayName?: string;
   readonly bio?: string;
   readonly visibility?: ProfileVisibility;
-  readonly avatarMediaId?: string | null;
 }
 
 export function validateUpdateMyProfileDto(input: Record<string, unknown>): UpdateMyProfileDto {
@@ -48,7 +46,6 @@ export function validateUpdateMyProfileDto(input: Record<string, unknown>): Upda
     displayName?: string;
     bio?: string;
     visibility?: ProfileVisibility;
-    avatarMediaId?: string | null;
   } = {};
 
   if (input.username !== undefined) {
@@ -84,18 +81,6 @@ export function validateUpdateMyProfileDto(input: Record<string, unknown>): Upda
     }
 
     output.visibility = input.visibility as ProfileVisibility;
-  }
-
-  if (input.avatarMediaId !== undefined) {
-    if (input.avatarMediaId !== null && typeof input.avatarMediaId !== 'string') {
-      throw new BadRequestException('avatarMediaId must be a string or null.');
-    }
-
-    if (typeof input.avatarMediaId === 'string' && !OBJECT_ID_PATTERN.test(input.avatarMediaId)) {
-      throw new BadRequestException('avatarMediaId must be a valid ObjectId.');
-    }
-
-    output.avatarMediaId = input.avatarMediaId;
   }
 
   return output;

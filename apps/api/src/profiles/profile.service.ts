@@ -3,7 +3,10 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Optional,
 } from '@nestjs/common';
+import { AuditAction } from '@dragon/types';
+import { AuditService } from '../audit/audit.service';
 import { Types } from 'mongoose';
 import { UserRepository } from '../auth/users/user.repository';
 import type { MyUserProfileDto } from './dto/my-profile-response.dto';
@@ -32,6 +35,7 @@ export class UserProfileService {
     private readonly profileRepository: UserProfileRepository,
     private readonly userRepository?: UserRepository,
     private readonly visibilityService?: UserProfileVisibilityService,
+    @Optional() private readonly auditService?: AuditService,
   ) {}
 
   validateUsername(username: string) {
@@ -116,6 +120,15 @@ export class UserProfileService {
     if (!updated) {
       throw new BadRequestException('Profile does not exist.');
     }
+
+    void this.auditService?.log({
+      actorId: userId,
+      actorType: 'user',
+      action: AuditAction.PROFILE_UPDATED,
+      resourceType: 'profile',
+      resourceId: userId,
+      severity: 'info',
+    });
 
     return toMyUserProfileDto(updated);
   }

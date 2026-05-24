@@ -1,11 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
+import { AuditAction } from '@dragon/types';
+import { AuditService } from '../../audit/audit.service';
 import { RolePermissionRepository } from './role-permission.repository';
 import type { RolePermissionDocument } from './role-permission.schema';
 import type { AttachPermissionInput } from './role-permission.types';
 
 @Injectable()
 export class RolePermissionService {
-  constructor(private readonly rolePermissionRepository: RolePermissionRepository) {}
+  constructor(
+    private readonly rolePermissionRepository: RolePermissionRepository,
+    @Optional() private readonly auditService?: AuditService,
+  ) {}
 
   async attachPermission(input: AttachPermissionInput): Promise<RolePermissionDocument> {
     const existing = await this.rolePermissionRepository.findByRolePermission(input);
@@ -14,11 +19,35 @@ export class RolePermissionService {
       return existing;
     }
 
-    return this.rolePermissionRepository.attachPermission(input);
+    const attached = await this.rolePermissionRepository.attachPermission(input);
+
+    void this.auditService?.log({
+      actorType: 'admin',
+      action: AuditAction.RBAC_PERMISSION_ATTACHED,
+      resourceType: 'role_permission',
+      resourceId: String(attached._id),
+      after: { roleId: input.roleId, permissionId: input.permissionId },
+      severity: 'info',
+    });
+
+    return attached;
   }
 
-  detachPermission(input: AttachPermissionInput): Promise<RolePermissionDocument | null> {
-    return this.rolePermissionRepository.detachPermission(input);
+  async detachPermission(input: AttachPermissionInput): Promise<RolePermissionDocument | null> {
+    const detached = await this.rolePermissionRepository.detachPermission(input);
+
+    if (detached) {
+      void this.auditService?.log({
+        actorType: 'admin',
+        action: AuditAction.RBAC_PERMISSION_DETACHED,
+        resourceType: 'role_permission',
+        resourceId: String(detached._id),
+        before: { roleId: input.roleId, permissionId: input.permissionId },
+        severity: 'warning',
+      });
+    }
+
+    return detached;
   }
 
   findByRoleId(roleId: string): Promise<RolePermissionDocument[]> {

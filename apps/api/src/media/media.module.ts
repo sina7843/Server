@@ -1,5 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { AuditModule } from '../audit/audit.module';
 import { AuthModule } from '../auth/auth.module';
 import { RbacModule } from '../rbac/rbac.module';
 import { STORAGE_CONFIG, getStorageConfig } from '../config/storage.config';
@@ -19,6 +20,7 @@ import { MediaUploadPipeline } from './media-upload-pipeline.service';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: MediaAsset.name, schema: MediaAssetSchema }]),
+    AuditModule,
     forwardRef(() => AuthModule),
     RbacModule,
   ],

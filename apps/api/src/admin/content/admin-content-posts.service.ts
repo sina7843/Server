@@ -1,5 +1,7 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { Types } from 'mongoose';
+import { AuditAction } from '@dragon/types';
+import { AuditService } from '../../audit/audit.service';
 import { validateObjectId } from '../../rbac/dto/rbac-validation';
 import { PostService } from '../../content/posts/post.service';
 import type { PostDocument } from '../../content/posts/post.schema';
@@ -102,6 +104,7 @@ export class AdminContentPostsService {
     private readonly revisionService: ContentRevisionService,
     private readonly richTextValidator: RichTextValidator,
     private readonly htmlSanitizer: HtmlSanitizer,
+    @Optional() private readonly auditService?: AuditService,
   ) {}
 
   async listPosts(
@@ -153,6 +156,16 @@ export class AdminContentPostsService {
     });
 
     await this.revisionService.snapshot('post', String(post._id), toPostSnapshot(post), authorId);
+
+    void this.auditService?.log({
+      actorId: authorId,
+      actorType: 'admin',
+      action: AuditAction.CONTENT_POST_CREATED,
+      resourceType: 'content_post',
+      resourceId: String(post._id),
+      after: { title: post.title, slug: post.slug, type: post.type },
+      severity: 'info',
+    });
 
     return post;
   }
@@ -221,12 +234,34 @@ export class AdminContentPostsService {
 
       const post = result ?? updated;
       await this.revisionService.snapshot('post', id, toPostSnapshot(post), editorId);
+
+      void this.auditService?.log({
+        actorId: editorId,
+        actorType: 'admin',
+        action: AuditAction.CONTENT_POST_UPDATED,
+        resourceType: 'content_post',
+        resourceId: id,
+        after: { title: post.title, slug: post.slug },
+        severity: 'info',
+      });
+
       return post;
     }
 
     const updated = await this.postService.update(id, { ...safeInput, mediaRefs });
     if (!updated) throw new NotFoundException('Post not found.');
     await this.revisionService.snapshot('post', id, toPostSnapshot(updated), editorId);
+
+    void this.auditService?.log({
+      actorId: editorId,
+      actorType: 'admin',
+      action: AuditAction.CONTENT_POST_UPDATED,
+      resourceType: 'content_post',
+      resourceId: id,
+      after: { title: updated.title, slug: updated.slug },
+      severity: 'info',
+    });
+
     return updated;
   }
 
@@ -238,6 +273,17 @@ export class AdminContentPostsService {
     const id = validateObjectId(rawId, 'id');
     const post = await this.postService.markPublished(id);
     await this.revisionService.snapshot('post', id, toPostSnapshot(post), editorId);
+
+    void this.auditService?.log({
+      actorId: editorId,
+      actorType: 'admin',
+      action: AuditAction.CONTENT_POST_PUBLISHED,
+      resourceType: 'content_post',
+      resourceId: id,
+      after: { status: 'published' },
+      severity: 'info',
+    });
+
     return post;
   }
 
@@ -245,12 +291,35 @@ export class AdminContentPostsService {
     const id = validateObjectId(rawId, 'id');
     const post = await this.postService.markArchived(id);
     await this.revisionService.snapshot('post', id, toPostSnapshot(post), editorId);
+
+    void this.auditService?.log({
+      actorId: editorId,
+      actorType: 'admin',
+      action: AuditAction.CONTENT_POST_ARCHIVED,
+      resourceType: 'content_post',
+      resourceId: id,
+      after: { status: 'archived' },
+      severity: 'info',
+    });
+
     return post;
   }
 
-  async softDeletePost(rawId: string): Promise<PostDocument> {
+  async softDeletePost(rawId: string, editorId?: string): Promise<PostDocument> {
     const id = validateObjectId(rawId, 'id');
-    return this.postService.softDelete(id);
+    const post = await this.postService.softDelete(id);
+
+    void this.auditService?.log({
+      ...(editorId ? { actorId: editorId } : {}),
+      actorType: 'admin',
+      action: AuditAction.CONTENT_POST_SOFT_DELETED,
+      resourceType: 'content_post',
+      resourceId: id,
+      after: { deletedAt: new Date().toISOString() },
+      severity: 'warning',
+    });
+
+    return post;
   }
 
   async listPostRevisions(rawId: string): Promise<ContentRevisionDocument[]> {

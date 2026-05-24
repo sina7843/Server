@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AuditModule } from '../../audit/audit.module';
 import { AuthModule } from '../../auth/auth.module';
 import { RbacModule } from '../../rbac/rbac.module';
 import { ContentModule } from '../../content/content.module';
@@ -10,7 +11,7 @@ import { AdminContentCategoriesController } from './admin-content-categories.con
 import { AdminContentTagsController } from './admin-content-tags.controller';
 
 @Module({
-  imports: [AuthModule, RbacModule, ContentModule],
+  imports: [AuditModule, AuthModule, RbacModule, ContentModule],
   controllers: [
     AdminContentPostsController,
     AdminContentPagesController,

@@ -1,4 +1,12 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  Optional,
+} from '@nestjs/common';
+import { AuditAction } from '@dragon/types';
+import { AuditService } from '../audit/audit.service';
 import { MediaAssetRepository } from '../media/media-asset.repository';
 import { MediaUploadPipeline } from '../media/media-upload-pipeline.service';
 import { STORAGE_SERVICE, type StorageService } from '../storage/storage.service';
@@ -19,6 +27,7 @@ export class AvatarService {
     private readonly mediaRepository: MediaAssetRepository,
     @Inject(STORAGE_SERVICE) private readonly storageService: StorageService,
     private readonly pipeline: MediaUploadPipeline,
+    @Optional() private readonly auditService?: AuditService,
   ) {}
 
   async setAvatar(userId: string, rawMediaAssetId: string): Promise<UserProfileDocument> {
@@ -50,6 +59,16 @@ export class AvatarService {
 
     if (!profile) throw new BadRequestException('Profile does not exist.');
 
+    void this.auditService?.log({
+      actorId: userId,
+      actorType: 'user',
+      action: AuditAction.MEDIA_AVATAR_UPDATED,
+      resourceType: 'media_asset',
+      resourceId: rawMediaAssetId,
+      metadata: { userId },
+      severity: 'info',
+    });
+
     return profile;
   }
 
@@ -75,6 +94,16 @@ export class AvatarService {
 
     if (!profile) throw new BadRequestException('Profile does not exist.');
 
+    void this.auditService?.log({
+      actorId: userId,
+      actorType: 'user',
+      action: AuditAction.MEDIA_AVATAR_UPDATED,
+      resourceType: 'media_asset',
+      resourceId: String(asset._id),
+      metadata: { userId },
+      severity: 'info',
+    });
+
     return profile;
   }
 
@@ -82,6 +111,15 @@ export class AvatarService {
     const profile = await this.profileRepository.updateProfile(userId, { avatarMediaId: null });
 
     if (!profile) throw new BadRequestException('Profile does not exist.');
+
+    void this.auditService?.log({
+      actorId: userId,
+      actorType: 'user',
+      action: AuditAction.MEDIA_AVATAR_DELETED,
+      resourceType: 'profile',
+      resourceId: userId,
+      severity: 'info',
+    });
 
     return profile;
   }

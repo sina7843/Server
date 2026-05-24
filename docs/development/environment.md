@@ -54,6 +54,12 @@ STORAGE_S3_FORCE_PATH_STYLE=false
 
 For local dev using MinIO, set `STORAGE_PROVIDER=minio` and use the MinIO credentials from `infra/docker/.env.example`. For production Arvan Object Storage, set `STORAGE_PROVIDER=arvan` and provide the Arvan S3 credentials via deployment environment only.
 
+## Slice 0.8
+
+No new environment variables were introduced in Slice 0.8.1. The audit log subsystem persists to the existing MongoDB connection configured in Slice 0.1.
+
+The `audit_logs` collection is created automatically by Mongoose on first write.
+
 ## Out of scope
 
 Production secret management, deployment configuration, monitoring, backup, and real provider credentials are not implemented in these foundation slices.

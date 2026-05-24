@@ -1,4 +1,6 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, Optional } from '@nestjs/common';
+import { AuditAction } from '@dragon/types';
+import { AuditService } from '../../audit/audit.service';
 import { RoleRegistry } from '../registry/role-registry';
 import { RoleRepository } from './role.repository';
 import type { RoleDocument } from './role.schema';
@@ -8,7 +10,10 @@ const RESERVED_ROLE_KEYS: ReadonlySet<string> = new Set(RoleRegistry.map((role) 
 
 @Injectable()
 export class RoleService {
-  constructor(private readonly roleRepository: RoleRepository) {}
+  constructor(
+    private readonly roleRepository: RoleRepository,
+    @Optional() private readonly auditService?: AuditService,
+  ) {}
 
   findById(roleId: RoleId): Promise<RoleDocument | null> {
     return this.roleRepository.findById(roleId);
@@ -43,7 +48,7 @@ export class RoleService {
       throw new ConflictException('Role key already exists.');
     }
 
-    return this.roleRepository.createRole({
+    const role = await this.roleRepository.createRole({
       key: input.key,
       name: input.name,
       ...(input.description !== undefined ? { description: input.description } : {}),
@@ -51,6 +56,17 @@ export class RoleService {
       isAssignable: input.isAssignable ?? true,
       isActive: true,
     });
+
+    void this.auditService?.log({
+      actorType: 'admin',
+      action: AuditAction.RBAC_ROLE_CREATED,
+      resourceType: 'role',
+      resourceId: String(role._id),
+      after: { key: role.key, name: role.name },
+      severity: 'info',
+    });
+
+    return role;
   }
 
   updateRole(roleId: RoleId, input: UpdateRoleInput): Promise<RoleDocument | null> {
@@ -68,12 +84,25 @@ export class RoleService {
       throw new ConflictException('System role cannot be modified.');
     }
 
-    return this.roleRepository.updateRole(roleId, {
+    const updated = await this.roleRepository.updateRole(roleId, {
       ...(input.name !== undefined ? { name: input.name } : {}),
       ...(input.description !== undefined ? { description: input.description } : {}),
       ...(input.isAssignable !== undefined ? { isAssignable: input.isAssignable } : {}),
       ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
     });
+
+    if (updated) {
+      void this.auditService?.log({
+        actorType: 'admin',
+        action: AuditAction.RBAC_ROLE_UPDATED,
+        resourceType: 'role',
+        resourceId: String(updated._id),
+        after: { key: updated.key, name: updated.name },
+        severity: 'info',
+      });
+    }
+
+    return updated;
   }
 
   deactivateRole(roleId: RoleId): Promise<RoleDocument | null> {
@@ -96,6 +125,15 @@ export class RoleService {
     if (!deactivated) {
       throw new NotFoundException('Role not found.');
     }
+
+    void this.auditService?.log({
+      actorType: 'admin',
+      action: AuditAction.RBAC_ROLE_DEACTIVATED,
+      resourceType: 'role',
+      resourceId: String(deactivated._id),
+      after: { key: deactivated.key, isActive: false },
+      severity: 'warning',
+    });
 
     return deactivated;
   }

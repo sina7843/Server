@@ -5,6 +5,8 @@ import {
   Optional,
   UnauthorizedException,
 } from '@nestjs/common';
+import { AuditAction } from '@dragon/types';
+import { AuditService } from '../audit/audit.service';
 import { Types } from 'mongoose';
 import { AUTH_CONFIG } from '../config/app-config.module';
 import type { AuthConfig } from '../config/auth.config';
@@ -79,6 +81,8 @@ export class AuthService {
     private readonly passwordResetService?: PasswordResetService,
     @Optional()
     private readonly profileLifecycleService?: UserProfileLifecycleService,
+    @Optional()
+    private readonly auditService?: AuditService,
   ) {}
 
   async register(
@@ -157,6 +161,17 @@ export class AuthService {
 
     if (!isPasswordValid) {
       await this.recordFailedLogin(user, now);
+      void this.auditService?.log({
+        actorId: String(user._id),
+        actorType: 'user',
+        action: AuditAction.AUTH_LOGIN_FAILED,
+        resourceType: 'auth',
+        resourceId: String(user._id),
+        ...(metadata.ip !== undefined ? { ip: metadata.ip } : {}),
+        ...(metadata.userAgent !== undefined ? { userAgent: metadata.userAgent } : {}),
+        ...(metadata.requestId !== undefined ? { requestId: metadata.requestId } : {}),
+        severity: 'warning',
+      });
       throw this.createInvalidLoginError();
     }
 
@@ -176,6 +191,18 @@ export class AuthService {
       sub: String(user._id),
       jti: accessTokenJti,
       sessionId: String(session._id),
+    });
+
+    void this.auditService?.log({
+      actorId: String(user._id),
+      actorType: 'user',
+      action: AuditAction.AUTH_LOGIN_SUCCESS,
+      resourceType: 'auth',
+      resourceId: String(user._id),
+      ...(metadata.ip !== undefined ? { ip: metadata.ip } : {}),
+      ...(metadata.userAgent !== undefined ? { userAgent: metadata.userAgent } : {}),
+      ...(metadata.requestId !== undefined ? { requestId: metadata.requestId } : {}),
+      severity: 'info',
     });
 
     return createTokenResponse({
@@ -293,12 +320,28 @@ export class AuthService {
 
   async logout(authContext: AuthContext): Promise<AuthGenericResponseDto> {
     await this.revokeCurrentSession(authContext.sessionId, 'logout');
+    void this.auditService?.log({
+      actorId: authContext.userId,
+      actorType: 'user',
+      action: AuditAction.AUTH_LOGOUT,
+      resourceType: 'auth',
+      resourceId: authContext.userId,
+      severity: 'info',
+    });
 
     return createGenericAuthResponse(LOGOUT_GENERIC_MESSAGE);
   }
 
   async logoutAll(authContext: AuthContext): Promise<AuthGenericResponseDto> {
     await this.sessionRepository.revokeAllForUser(authContext.userId, 'logout_all');
+    void this.auditService?.log({
+      actorId: authContext.userId,
+      actorType: 'user',
+      action: AuditAction.AUTH_LOGOUT_ALL,
+      resourceType: 'auth',
+      resourceId: authContext.userId,
+      severity: 'info',
+    });
 
     return createGenericAuthResponse(LOGOUT_ALL_GENERIC_MESSAGE);
   }

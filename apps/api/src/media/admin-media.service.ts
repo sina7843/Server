@@ -1,9 +1,11 @@
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import type {
   AdminMediaAssetDto,
   AdminMediaListResponseDto,
   AdminMediaUploadResponseDto,
 } from '@dragon/types';
+import { AuditAction } from '@dragon/types';
+import { AuditService } from '../audit/audit.service';
 import { STORAGE_SERVICE, type StorageService } from '../storage/storage.service';
 import { MediaAssetService } from './media-asset.service';
 import { MediaUploadPipeline } from './media-upload-pipeline.service';
@@ -23,6 +25,7 @@ export class AdminMediaService {
     private readonly mediaAssetService: MediaAssetService,
     private readonly pipeline: MediaUploadPipeline,
     @Inject(STORAGE_SERVICE) private readonly storageService: StorageService,
+    @Optional() private readonly auditService?: AuditService,
   ) {}
 
   async uploadMedia(
@@ -50,6 +53,17 @@ export class AdminMediaService {
     });
 
     const url = await this.resolveUrl(asset.objectKey, asset.visibility);
+
+    void this.auditService?.log({
+      actorId: uploadedBy,
+      actorType: 'admin',
+      action: AuditAction.MEDIA_ASSET_UPLOADED,
+      resourceType: 'media_asset',
+      resourceId: String(asset._id),
+      after: { mimeType: asset.mimeType, visibility: asset.visibility, sizeBytes: asset.sizeBytes },
+      severity: 'info',
+    });
+
     const dto = toAdminMediaAssetDto(asset, url);
     return toAdminMediaUploadResponse(dto);
   }
@@ -89,6 +103,15 @@ export class AdminMediaService {
       asset.mimeType,
       asset.objectKey,
     );
+
+    void this.auditService?.log({
+      actorType: 'admin',
+      action: AuditAction.MEDIA_VARIANT_REGENERATED,
+      resourceType: 'media_asset',
+      resourceId: rawId,
+      after: { variantCount: updatedAsset.variants.length },
+      severity: 'info',
+    });
 
     const url = await this.resolveUrl(updatedAsset.objectKey, updatedAsset.visibility);
     return toAdminMediaAssetDto(updatedAsset, url);
@@ -137,6 +160,15 @@ export class AdminMediaService {
 
   async deleteMedia(rawId: string): Promise<void> {
     await this.mediaAssetService.softDelete(rawId);
+
+    void this.auditService?.log({
+      actorType: 'admin',
+      action: AuditAction.MEDIA_ASSET_DELETED,
+      resourceType: 'media_asset',
+      resourceId: rawId,
+      after: { deletedAt: new Date().toISOString() },
+      severity: 'warning',
+    });
   }
 
   private async resolveUrl(objectKey: string, visibility: string): Promise<string> {

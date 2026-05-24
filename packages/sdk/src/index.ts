@@ -17,3 +17,5 @@ export * from './admin-content-types';
 export * from './admin-content';
 export * from './admin-media-types';
 export * from './admin-media';
+export * from './admin-audit-types';
+export * from './admin-audit';

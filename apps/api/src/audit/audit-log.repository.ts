@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { type FilterQuery, Model, Types } from 'mongoose';
 import { AuditLog, type AuditLogDocument } from './audit-log.schema';
-import type { AuditLogId, WriteAuditLogInput } from './audit-log.types';
+import type { AuditLogFilters, AuditLogId, WriteAuditLogInput } from './audit-log.types';
 
 @Injectable()
 export class AuditLogRepository {
@@ -35,5 +35,37 @@ export class AuditLogRepository {
 
   findById(id: AuditLogId): Promise<AuditLogDocument | null> {
     return this.auditLogModel.findById(id).exec();
+  }
+
+  async list(
+    filters: AuditLogFilters,
+    page: number,
+    limit: number,
+  ): Promise<{ items: AuditLogDocument[]; total: number }> {
+    const query: FilterQuery<AuditLog> = {};
+
+    if (filters.actorId !== undefined) query.actorId = new Types.ObjectId(filters.actorId);
+    if (filters.actorType !== undefined) query.actorType = filters.actorType;
+    if (filters.action !== undefined) query.action = filters.action;
+    if (filters.resourceType !== undefined) query.resourceType = filters.resourceType;
+    if (filters.resourceId !== undefined) query.resourceId = filters.resourceId;
+    if (filters.severity !== undefined) query.severity = filters.severity;
+    if (filters.requestId !== undefined) query.requestId = filters.requestId;
+    if (filters.correlationId !== undefined) query.correlationId = filters.correlationId;
+
+    if (filters.dateFrom !== undefined || filters.dateTo !== undefined) {
+      const dateRange: { $gte?: Date; $lte?: Date } = {};
+      if (filters.dateFrom !== undefined) dateRange.$gte = filters.dateFrom;
+      if (filters.dateTo !== undefined) dateRange.$lte = filters.dateTo;
+      query.createdAt = dateRange;
+    }
+
+    const skip = (page - 1) * limit;
+    const [items, total] = await Promise.all([
+      this.auditLogModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
+      this.auditLogModel.countDocuments(query).exec(),
+    ]);
+
+    return { items, total };
   }
 }

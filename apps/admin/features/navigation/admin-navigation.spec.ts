@@ -9,10 +9,11 @@ const ALLOWED_KEYS = [
   'content',
   'media',
   'system-health',
+  'audit',
 ];
 
 describe('ADMIN_NAV_ITEMS', () => {
-  it('contains exactly the allowed Slice 0.5 + 0.6 + 0.7 navigation items', () => {
+  it('contains exactly the allowed Slice 0.5 + 0.6 + 0.7 + 0.8 navigation items', () => {
     expect(ADMIN_NAV_ITEMS.map((i) => i.key)).toEqual(ALLOWED_KEYS);
   });
 
@@ -49,10 +50,23 @@ describe('ADMIN_NAV_ITEMS', () => {
     expect(mediaItem!.path).toBe('/media');
   });
 
-  it('does not contain Audit or Analytics nav items', () => {
+  it('contains audit nav item added in Task 0.8.2', () => {
     const keys = ADMIN_NAV_ITEMS.map((i) => i.key);
 
-    expect(keys).not.toContain('audit');
+    expect(keys).toContain('audit');
+  });
+
+  it('audit nav item uses audit.log.read permission as gate', () => {
+    const auditItem = ADMIN_NAV_ITEMS.find((i) => i.key === 'audit');
+
+    expect(auditItem).toBeDefined();
+    expect(auditItem!.permission).toBe(DragonPermissions.AUDIT_LOG_READ);
+    expect(auditItem!.path).toBe('/audit');
+  });
+
+  it('does not contain Analytics nav items', () => {
+    const keys = ADMIN_NAV_ITEMS.map((i) => i.key);
+
     expect(keys).not.toContain('analytics');
   });
 

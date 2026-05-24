@@ -6,7 +6,7 @@ The audit log subsystem provides append-only, tamper-evident records of security
 
 ## Status
 
-All components implemented as of Slice 0.8.1.
+Foundation implemented in Slice 0.8.1. Admin read APIs and viewer implemented in Slice 0.8.2.
 
 ## Components
 
@@ -134,9 +134,51 @@ Provides and exports: `AuditService`.
 
 **No admin API:** Admin viewer (`GET /admin/v1/audit-logs`) is planned for Task 0.8.2 and is out of scope here.
 
-## Out of Scope (Slice 0.8.1)
+## Admin Audit APIs (Slice 0.8.2)
 
-- Admin audit viewer UI and REST API
+Read-only admin access to audit logs.
+
+### Endpoints
+
+```
+GET /admin/v1/audit-logs        — paginated list with filters
+GET /admin/v1/audit-logs/:id    — single log detail
+```
+
+Both endpoints require `AccessTokenGuard` + `PermissionGuard` with `audit.log.read`.
+
+No `POST`, `PATCH`, or `DELETE` admin audit endpoints exist. Audit logs are append-only.
+
+### Filters (GET /admin/v1/audit-logs)
+
+`actorId`, `actorType`, `action`, `resourceType`, `resourceId`, `severity`, `requestId`, `correlationId`, `dateFrom`, `dateTo`, `page`, `limit` (max 100)
+
+Default sort: newest first (`createdAt: -1`).
+
+### Response shapes
+
+List: `AuditLogListResponseDto` — `{ items: AuditLogListItemDto[], page, limit, total }`
+
+Detail: `AuditLogDetailDto` — full fields including `before`, `after`, `metadata` as already redacted at write time.
+
+### Admin Frontend
+
+- `/audit` — paginated list with all filters
+- `/audit/:id` — detail view with `AuditDiffViewer` for before/after/metadata
+- Requires `audit.log.read` permission (middleware + permission guard)
+- No edit, delete, or export controls anywhere in the UI
+
+### packages/sdk
+
+```ts
+createAdminAuditClient(client).listAuditLogs(params); // GET /admin/v1/audit-logs
+createAdminAuditClient(client).getAuditLog(id); // GET /admin/v1/audit-logs/:id
+```
+
+No mutation methods in the SDK audit client.
+
+## Out of Scope (Slice 0.8.1 and 0.8.2)
+
 - Audit log export
 - Audit log edit or delete endpoints
 - Purge/retention jobs
@@ -144,3 +186,5 @@ Provides and exports: `AuditService`.
 - Anomaly detection
 - Full event sourcing
 - Outbox dispatcher / saga engine
+- Jobs/BullMQ
+- Notifications

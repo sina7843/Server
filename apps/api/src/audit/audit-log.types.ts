@@ -18,3 +18,16 @@ export interface WriteAuditLogInput {
   readonly correlationId?: string;
   readonly severity?: AuditSeverity;
 }
+
+export interface AuditLogFilters {
+  readonly actorId?: string;
+  readonly actorType?: AuditActorType;
+  readonly action?: string;
+  readonly resourceType?: string;
+  readonly resourceId?: string;
+  readonly severity?: AuditSeverity;
+  readonly requestId?: string;
+  readonly correlationId?: string;
+  readonly dateFrom?: Date;
+  readonly dateTo?: Date;
+}

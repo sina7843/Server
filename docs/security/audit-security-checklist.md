@@ -46,3 +46,16 @@
 - [ ] Normal read/write operations use `severity: 'info'`.
 - [ ] Security anomalies (login failures) use `severity: 'warning'`.
 - [ ] Critical policy violations are escalated to `severity: 'critical'` when applicable.
+
+## Admin Audit Read APIs (Slice 0.8.2)
+
+- [ ] Both admin audit endpoints (`GET /admin/v1/audit-logs`, `GET /admin/v1/audit-logs/:id`) require `AccessTokenGuard`.
+- [ ] Both endpoints require `PermissionGuard` with `audit.log.read`.
+- [ ] No `POST`, `PATCH`, or `DELETE` admin audit endpoint exists.
+- [ ] `audit.log.read` is centralized in the permission registry — no raw string scattered in code.
+- [ ] Audit list response uses `AuditLogListItemDto` — does not include `before`, `after`, or `metadata`.
+- [ ] Audit detail response exposes `before`, `after`, `metadata` only as already redacted at write time.
+- [ ] Admin frontend renders JSON payloads as escaped text — no raw HTML rendering from audit metadata.
+- [ ] Admin frontend `/audit` and `/audit/:id` have no edit, delete, or export controls.
+- [ ] Audit nav item is hidden unless the user has `audit.log.read`.
+- [ ] SDK `AdminAuditClient` has no mutation methods (`create`, `update`, `delete`, `export`).

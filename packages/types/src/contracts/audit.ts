@@ -18,6 +18,8 @@ export interface AuditLogDto {
   readonly createdAt: string;
 }
 
+export type AuditLogDetailDto = AuditLogDto;
+
 export interface AuditLogListItemDto {
   readonly id: string;
   readonly actorId?: string;
@@ -27,4 +29,26 @@ export interface AuditLogListItemDto {
   readonly resourceId?: string;
   readonly severity: AuditSeverity;
   readonly createdAt: string;
+}
+
+export interface AuditLogListQueryDto {
+  readonly actorId?: string;
+  readonly actorType?: AuditActorType;
+  readonly action?: string;
+  readonly resourceType?: string;
+  readonly resourceId?: string;
+  readonly severity?: AuditSeverity;
+  readonly requestId?: string;
+  readonly correlationId?: string;
+  readonly dateFrom?: string;
+  readonly dateTo?: string;
+  readonly page?: number;
+  readonly limit?: number;
+}
+
+export interface AuditLogListResponseDto {
+  readonly items: AuditLogListItemDto[];
+  readonly page: number;
+  readonly limit: number;
+  readonly total: number;
 }

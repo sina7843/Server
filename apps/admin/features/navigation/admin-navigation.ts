@@ -58,6 +58,13 @@ export const ADMIN_NAV_ITEMS: readonly AdminNavItem[] = [
     path: '/system/health',
     permission: DragonPermissions.SYSTEM_HEALTH_READ,
   },
+  {
+    key: 'audit',
+    label: 'لاگ‌های حسابرسی',
+    labelEn: 'Audit Logs',
+    path: '/audit',
+    permission: DragonPermissions.AUDIT_LOG_READ,
+  },
 ] as const;
 
 export function filterNavByPermissions(

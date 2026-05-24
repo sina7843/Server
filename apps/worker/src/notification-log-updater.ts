@@ -30,10 +30,7 @@ export const mongoNotificationLogStatusUpdater: NotificationLogStatusUpdater = a
   try {
     await connection
       .collection('notification_logs')
-      .updateOne(
-        { _id: new mongoose.Types.ObjectId(notificationLogId) },
-        { $set: set },
-      );
+      .updateOne({ _id: new mongoose.Types.ObjectId(notificationLogId) }, { $set: set });
   } catch (err) {
     console.error(
       `[NotificationLogUpdater] Failed to update NotificationLog ${notificationLogId} to ${status}:`,

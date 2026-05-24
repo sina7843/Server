@@ -99,8 +99,12 @@ describe('AdminNotificationsController', () => {
 
   it('has no POST, PATCH, or DELETE endpoints', () => {
     const controller = new AdminNotificationsController(createMockService());
-    expect((controller as unknown as Record<string, unknown>).createNotificationLog).toBeUndefined();
-    expect((controller as unknown as Record<string, unknown>).deleteNotificationLog).toBeUndefined();
+    expect(
+      (controller as unknown as Record<string, unknown>).createNotificationLog,
+    ).toBeUndefined();
+    expect(
+      (controller as unknown as Record<string, unknown>).deleteNotificationLog,
+    ).toBeUndefined();
     expect((controller as unknown as Record<string, unknown>).patchNotificationLog).toBeUndefined();
   });
 

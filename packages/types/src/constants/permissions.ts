@@ -50,6 +50,8 @@ export const DragonPermissions = {
 
   AUDIT_LOG_READ: 'audit.log.read',
   ANALYTICS_READ: 'analytics.analytics.read',
+
+  NOTIFICATION_LOG_READ: 'notification.log.read',
 } as const;
 
 export type DragonPermissionKey = (typeof DragonPermissions)[keyof typeof DragonPermissions];

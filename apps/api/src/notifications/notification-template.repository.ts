@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { NotificationTemplate, type NotificationTemplateDocument } from './notification-template.schema';
+import {
+  NotificationTemplate,
+  type NotificationTemplateDocument,
+} from './notification-template.schema';
 
 @Injectable()
 export class NotificationTemplateRepository {

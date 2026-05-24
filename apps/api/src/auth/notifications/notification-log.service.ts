@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { maskPhone } from '../security/masking';
 import { hashToken } from '../security/token-hasher';
-import { NotificationLogRepository, type UpdateNotificationLogInput } from './notification-log.repository';
+import {
+  NotificationLogRepository,
+  type UpdateNotificationLogInput,
+} from './notification-log.repository';
 import type { NotificationLogDocument } from './notification-log.schema';
 import type {
   CreateNotificationLogInput,

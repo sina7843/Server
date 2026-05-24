@@ -11,3 +11,7 @@ Useful docs:
 - [Slice 0.4 verification](./development/slice-0.4-verification.md)
 - [Slice 0.5 verification](./development/slice-0.5-verification.md)
 - [Slice 0.6 verification](./development/slice-0.6-verification.md)
+- [Events and Jobs architecture](./architecture/events-jobs.md)
+- [Notifications architecture](./architecture/notifications.md)
+- [Jobs and Notifications security checklist](./security/jobs-notifications-security-checklist.md)
+- [Slice 0.8 verification](./development/slice-0.8-verification.md)

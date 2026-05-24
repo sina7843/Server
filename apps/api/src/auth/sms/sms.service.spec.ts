@@ -150,7 +150,11 @@ describe('SmsService', () => {
       });
 
       expect(notificationLogService.logSmsQueued).toHaveBeenCalledWith(
-        expect.objectContaining({ provider: 'mock', recipientPhoneNormalized: '+989120000000', purpose: 'phone_verification' }),
+        expect.objectContaining({
+          provider: 'mock',
+          recipientPhoneNormalized: '+989120000000',
+          purpose: 'phone_verification',
+        }),
       );
       expect(jobLogService.enqueue).toHaveBeenCalledWith(
         expect.objectContaining({ queueName: 'sms', jobName: 'sms.send' }),
@@ -168,7 +172,8 @@ describe('SmsService', () => {
         message: 'Your code is 123456',
       });
 
-      const enqueuedPayload = (jobLogService.enqueue as jest.Mock).mock.calls[0]?.[0]?.payload as Record<string, unknown>;
+      const enqueuedPayload = (jobLogService.enqueue as jest.Mock).mock.calls[0]?.[0]
+        ?.payload as Record<string, unknown>;
       expect(enqueuedPayload.smsBody).toBe('Your code is 123456');
       expect(enqueuedPayload.recipientPhoneNormalized).toBe('+989120000000');
     });

@@ -38,7 +38,9 @@ async function main(): Promise<void> {
       console.error('[Worker] MongoDB connection failed, NotificationLog updates disabled:', err);
     }
   } else {
-    console.warn('[Worker] MONGODB_URI not set, JobLog and NotificationLog status updates are disabled');
+    console.warn(
+      '[Worker] MONGODB_URI not set, JobLog and NotificationLog status updates are disabled',
+    );
   }
 
   const connection = getRedisConfigFromEnv();

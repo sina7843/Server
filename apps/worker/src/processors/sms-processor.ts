@@ -61,7 +61,9 @@ async function handleSmsSend(
       await updateNotificationLog(
         notificationLogId,
         'sent',
-        result.providerMessageId !== undefined ? { providerMessageId: result.providerMessageId } : {},
+        result.providerMessageId !== undefined
+          ? { providerMessageId: result.providerMessageId }
+          : {},
       );
     } else {
       await updateNotificationLog(notificationLogId, 'failed', {

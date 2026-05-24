@@ -13,6 +13,22 @@
         <span class="nav-item-label">سلامت سیستم</span>
         <span class="nav-item-arrow">←</span>
       </NuxtLink>
+      <NuxtLink
+        v-if="hasPermission(Permissions.SYSTEM_JOB_READ)"
+        to="/system/jobs"
+        class="nav-item"
+      >
+        <span class="nav-item-label">جاب‌ها</span>
+        <span class="nav-item-arrow">←</span>
+      </NuxtLink>
+      <NuxtLink
+        v-if="hasPermission(Permissions.NOTIFICATION_LOG_READ)"
+        to="/system/notifications"
+        class="nav-item"
+      >
+        <span class="nav-item-label">اعلان‌ها</span>
+        <span class="nav-item-arrow">←</span>
+      </NuxtLink>
     </nav>
   </div>
 </template>

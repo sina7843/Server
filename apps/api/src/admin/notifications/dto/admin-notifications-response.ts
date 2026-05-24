@@ -5,7 +5,9 @@ import type {
 } from '@dragon/types';
 import type { NotificationLogDocument } from '../../../auth/notifications/notification-log.schema';
 
-export function toNotificationLogListItemDto(doc: NotificationLogDocument): NotificationLogListItemDto {
+export function toNotificationLogListItemDto(
+  doc: NotificationLogDocument,
+): NotificationLogListItemDto {
   const item: NotificationLogListItemDto = {
     id: String(doc._id),
     channel: doc.channel,

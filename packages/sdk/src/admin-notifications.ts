@@ -1,10 +1,15 @@
 import type { ApiClient } from './client';
 import type { NotificationLogDto, NotificationLogListResponseDto } from '@dragon/types';
-import type { AdminNotificationsClient, AdminNotificationsListParams } from './admin-notifications-types';
+import type {
+  AdminNotificationsClient,
+  AdminNotificationsListParams,
+} from './admin-notifications-types';
 
 export function createAdminNotificationsClient(client: ApiClient): AdminNotificationsClient {
   return {
-    listNotificationLogs(params?: AdminNotificationsListParams): Promise<NotificationLogListResponseDto> {
+    listNotificationLogs(
+      params?: AdminNotificationsListParams,
+    ): Promise<NotificationLogListResponseDto> {
       const search = new URLSearchParams();
       if (params?.channel) search.set('channel', params.channel);
       if (params?.status) search.set('status', params.status);

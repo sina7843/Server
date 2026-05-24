@@ -1,8 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type {
-  NotificationLogDto,
-  NotificationLogListResponseDto,
-} from '@dragon/types';
+import type { NotificationLogDto, NotificationLogListResponseDto } from '@dragon/types';
 import { NotificationService } from '../../notifications/notification.service';
 import { parseAdminNotificationQuery } from './dto/admin-notifications-query';
 import {

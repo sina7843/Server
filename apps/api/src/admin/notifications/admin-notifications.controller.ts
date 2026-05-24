@@ -17,7 +17,9 @@ export class AdminNotificationsController {
     try {
       return await this.service.listNotificationLogs(query);
     } catch (err) {
-      throw new BadRequestException(err instanceof Error ? err.message : 'Invalid query parameters');
+      throw new BadRequestException(
+        err instanceof Error ? err.message : 'Invalid query parameters',
+      );
     }
   }
 

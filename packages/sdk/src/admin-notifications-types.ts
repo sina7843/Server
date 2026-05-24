@@ -6,7 +6,13 @@ import type {
   NotificationLogListResponseDto,
 } from '@dragon/types';
 
-export type { NotificationChannel, NotificationStatus, NotificationLogDto, NotificationLogListItemDto, NotificationLogListResponseDto };
+export type {
+  NotificationChannel,
+  NotificationStatus,
+  NotificationLogDto,
+  NotificationLogListItemDto,
+  NotificationLogListResponseDto,
+};
 
 export interface AdminNotificationsListParams {
   readonly channel?: NotificationChannel;
@@ -22,6 +28,8 @@ export interface AdminNotificationsListParams {
 }
 
 export interface AdminNotificationsClient {
-  listNotificationLogs(params?: AdminNotificationsListParams): Promise<NotificationLogListResponseDto>;
+  listNotificationLogs(
+    params?: AdminNotificationsListParams,
+  ): Promise<NotificationLogListResponseDto>;
   getNotificationLog(id: string): Promise<NotificationLogDto>;
 }

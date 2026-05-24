@@ -121,12 +121,7 @@ export class NotificationService {
     }
     const skip = (page - 1) * limit;
     const [items, total] = await Promise.all([
-      this.notificationLogModel
-        .find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .exec(),
+      this.notificationLogModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
       this.notificationLogModel.countDocuments(query).exec(),
     ]);
     return { items, total };

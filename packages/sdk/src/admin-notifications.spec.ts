@@ -49,7 +49,9 @@ describe('createAdminNotificationsClient', () => {
       request.mockResolvedValue({ items: [], page: 1, limit: 20, total: 0 });
       await client.listNotificationLogs({ recipientHash: 'abc123hash' });
       expect(request).toHaveBeenCalledWith(
-        expect.objectContaining({ path: '/admin/v1/system/notifications?recipientHash=abc123hash' }),
+        expect.objectContaining({
+          path: '/admin/v1/system/notifications?recipientHash=abc123hash',
+        }),
       );
     });
 

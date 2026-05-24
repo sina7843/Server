@@ -263,3 +263,174 @@ pnpm format:check
 ### Out of scope for Task 0.8.3
 
 Kafka, RabbitMQ, full event sourcing, saga engine, search indexing, analytics aggregation, backup jobs, monitoring stack, realtime dashboard, WebSocket job dashboard, admin jobs frontend UI (Task 0.8.5), SMS queued sending (Task 0.8.4), notifications, notification center, campaigns.
+
+---
+
+## Task 0.8.4 — Notification/SMS Logging and Queued Sending
+
+### What was built
+
+**packages/types**
+
+- `contracts/notifications.ts` — `NotificationChannel`, `NotificationStatus`, `NotificationTemplateDto`, `NotificationLogDto`, `NotificationLogListItemDto`, `NotificationLogListQueryDto`, `NotificationLogListResponseDto`
+
+**apps/api/src/auth/notifications/**
+
+- `notification-log.schema.ts` — extended with 8 indexes (including sparse for optional fields)
+- `notification-log.repository.ts` — added `findById()`, `updateStatus()`, `list()` methods
+- `notification-log.service.ts` — added `updateStatus()` delegation
+
+**apps/api/src/auth/sms/sms.service.ts**
+
+- Added `enqueueSms(input)` — creates queued `NotificationLog`, enqueues `sms.send` via BullMQ, falls back to `sendSms()` when `JobLogService` not injected
+- `auth.service.ts` and `password-reset.service.ts` now call `enqueueSms()` instead of `sendSms()`
+
+**apps/api/src/jobs/job-payload-redactor.ts**
+
+- Added `smsBody` and `recipientPhoneNormalized` to redacted keys — OTP and raw phone never appear in `payloadSummary`
+
+**apps/api/src/notifications/**
+
+- `notification-template.schema.ts` — schema + unique(key, channel, locale) index
+- `notification-template.repository.ts` — `findTemplate()` and `create()`
+- `notification.service.ts` — admin-facing; `createQueuedSmsLog()` masks/hashes phone; `sanitizeErrorMessage()` blocks sensitive patterns from error fields
+- `notifications.module.ts` — re-registers `NotificationLog`; exports `NotificationService`
+
+**apps/api/src/admin/notifications/**
+
+- `admin-notifications.controller.ts` — `GET /admin/v1/system/notifications` and `GET :id`, both with `notification.log.read` permission
+- `admin-notifications.service.ts` — list and get-by-id
+- `dto/admin-notifications-query.ts` — validated filters
+- `dto/admin-notifications-response.ts` — safe DTO mappers
+
+**Permission wiring**
+
+- `permission-keys.ts` — `NOTIFICATION_LOG_READ: 'notification.log.read'`
+- `role-permission-registry.ts` — `NOTIFICATION_LOG_READ` added to `admin` role
+- `app.module.ts` — `AdminNotificationsModule` registered
+
+**apps/worker/src/**
+
+- `sms/sms-sender.ts` — `sendSmsDirectly()` mock provider
+- `notification-log-updater.ts` — separate MongoDB connection for `notification_logs` updates
+- `processors/sms-processor.ts` — rewritten with 3rd arg `updateNotificationLog`; implements `sms.send`: calls provider, marks sent/failed
+- `queue-worker.ts` — `QueueWorkerOptions.notificationLogUpdater` added
+- `main.ts` — connects notification log MongoDB, passes updater to `startQueueWorkers()`
+
+**packages/sdk**
+
+- `admin-notifications-types.ts` — `AdminNotificationsListParams`, `AdminNotificationsClient`
+- `admin-notifications.ts` — `createAdminNotificationsClient()` with `listNotificationLogs()` and `getNotificationLog()`
+
+### Security invariants
+
+1. Raw OTP is never stored in `payloadSummary` — `smsBody` is a redacted key.
+2. Raw phone is never stored in `payloadSummary` — `recipientPhoneNormalized` is a redacted key.
+3. `recipientMasked` uses `maskPhone()` — only last 4 digits visible.
+4. `recipientHash` uses SHA-256 — irreversible.
+5. `errorMessage` sanitized via `sanitizeErrorMessage()` — blocks credential leak patterns.
+6. No POST/PATCH/DELETE notification endpoint exists.
+7. Both GET endpoints require `notification.log.read`.
+
+### Out of scope for Task 0.8.4
+
+Admin notifications UI (Task 0.8.5), real SMS provider, email provider, notification center, campaigns, push notifications, email designer, bulk messaging, analytics, realtime dashboard.
+
+---
+
+## Task 0.8.5 — Operations Views for Jobs and Notifications
+
+### What was built
+
+**packages/types/src/constants/permissions.ts**
+
+- Added `NOTIFICATION_LOG_READ: 'notification.log.read'` to `DragonPermissions`
+
+**packages/sdk/src/admin-jobs-types.ts**
+
+- Added `JobLogListItemDto` and `JobStatus` to re-exports (were missing)
+
+**apps/admin/features/jobs/**
+
+- `admin-jobs.api.ts` — thin SDK wrappers: `listJobs()`, `getJob()`, `retryJob()`
+- `admin-jobs.api.spec.ts` — ~15 tests: request paths, query params, security invariants, no realtime/cancel methods
+
+**apps/admin/features/notifications/**
+
+- `admin-notifications.api.ts` — thin SDK wrappers: `listNotificationLogs()`, `getNotificationLog()`
+- `admin-notifications.api.spec.ts` — ~15 tests: request paths, query params, recipient safety, no mutation/push/campaign methods
+
+**apps/admin/composables/**
+
+- `useSystemJobs.ts` — list + detail + retry state with loading/error management
+- `useNotificationLogs.ts` — list + detail state with loading/error management
+
+**apps/admin/features/navigation/admin-navigation.ts**
+
+- Added `jobs` nav item (`/system/jobs`, `system.job.read`)
+- Added `notifications` nav item (`/system/notifications`, `notification.log.read`)
+
+**apps/admin/features/navigation/admin-navigation.spec.ts**
+
+- Updated to include `jobs` and `notifications` in `ALLOWED_KEYS`
+- Added permission-gate tests for both new items
+- Removed stale test asserting jobs/notifications were absent
+
+**apps/admin/pages/system/**
+
+- `jobs.vue` — list page with filters (queueName, status, jobName, date range), pagination, loading/empty/error/forbidden states
+- `jobs/[id].vue` — detail page: safe `payloadSummary` as pre-formatted JSON text; retry action with confirmation (visible only for `failed` jobs under `maxAttempts` with `system.job.retry`)
+- `notifications.vue` — list page with filters (channel, status, provider, templateKey, purpose, date range), pagination, all states
+- `notifications/[id].vue` — detail page: `recipientMasked` only, safe `errorCode`/`errorMessage`, no resend action
+- `index.vue` — updated to include permission-aware links to jobs and notifications
+
+**Docs**
+
+- `docs/architecture/events-jobs.md` — updated status; added Admin UI section
+- `docs/architecture/notifications.md` — created; full architecture for Slice 0.8.4–0.8.5
+- `docs/security/jobs-notifications-security-checklist.md` — all items checked
+- `docs/development/slice-0.8-verification.md` — this file, Tasks 0.8.4 and 0.8.5 sections added
+
+### Verification commands
+
+```bash
+pnpm --filter @dragon/admin lint
+pnpm --filter @dragon/admin typecheck
+pnpm --filter @dragon/admin test
+pnpm --filter @dragon/admin build
+
+pnpm --filter @dragon/sdk lint
+pnpm --filter @dragon/sdk typecheck
+pnpm --filter @dragon/sdk test
+pnpm --filter @dragon/sdk build
+
+pnpm --filter @dragon/types lint
+pnpm --filter @dragon/types typecheck
+pnpm --filter @dragon/types test
+pnpm --filter @dragon/types build
+
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm format:check
+```
+
+### Security invariants
+
+1. Jobs nav item hidden without `system.job.read`.
+2. Notifications nav item hidden without `notification.log.read`.
+3. `payloadSummary` rendered as escaped pre-formatted JSON text — no raw HTML injection.
+4. Retry requires `system.job.retry` permission, `status === 'failed'`, and `attempts < maxAttempts`.
+5. Retry requires user confirmation before executing.
+6. Notifications UI shows only `recipientMasked` — no raw phone/email.
+7. Notifications UI shows no raw OTP, SMS body, or provider credentials.
+8. No resend action in Slice 0.8.5.
+9. No `/system/backups` route exists.
+10. No analytics, monitoring, or realtime dashboard exists.
+11. No notification center, campaign, or push notification UI exists.
+12. SDK clients have no WebSocket/realtime, cancel, export, campaign, or backup methods.
+
+### Out of scope for Task 0.8.5
+
+Backup page (`/system/backups`), analytics dashboard, monitoring dashboard, realtime/WebSocket dashboard, WebSocket job subscription, notification center, user notification inbox, campaign UI, email designer, push notification UI, notification preferences UI, bulk messaging, coming-soon placeholder pages.

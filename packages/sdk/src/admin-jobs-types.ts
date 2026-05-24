@@ -1,11 +1,12 @@
 import type {
   JobLogDto,
+  JobLogListItemDto,
   JobLogListResponseDto,
   JobStatus,
   RetryJobResponseDto,
 } from '@dragon/types';
 
-export type { JobLogDto, JobLogListResponseDto, RetryJobResponseDto };
+export type { JobLogDto, JobLogListItemDto, JobLogListResponseDto, JobStatus, RetryJobResponseDto };
 
 export interface AdminJobsListParams {
   readonly queueName?: string;

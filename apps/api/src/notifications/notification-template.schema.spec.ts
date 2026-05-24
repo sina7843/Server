@@ -60,7 +60,8 @@ describe('NotificationTemplate schema', () => {
 
     it('has index on isActive', () => {
       const found = indexes.find(
-        ([fields]) => 'isActive' in (fields as object) && Object.keys(fields as object).length === 1,
+        ([fields]) =>
+          'isActive' in (fields as object) && Object.keys(fields as object).length === 1,
       );
       expect(found).toBeDefined();
     });

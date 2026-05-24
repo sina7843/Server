@@ -65,6 +65,20 @@ export const ADMIN_NAV_ITEMS: readonly AdminNavItem[] = [
     path: '/audit',
     permission: DragonPermissions.AUDIT_LOG_READ,
   },
+  {
+    key: 'jobs',
+    label: 'جاب‌ها',
+    labelEn: 'Jobs',
+    path: '/system/jobs',
+    permission: DragonPermissions.SYSTEM_JOB_READ,
+  },
+  {
+    key: 'notifications',
+    label: 'اعلان‌ها',
+    labelEn: 'Notifications',
+    path: '/system/notifications',
+    permission: DragonPermissions.NOTIFICATION_LOG_READ,
+  },
 ] as const;
 
 export function filterNavByPermissions(

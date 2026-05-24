@@ -3,8 +3,8 @@
 ## Status
 
 Internal event bus and background jobs foundation implemented in Slice 0.8.3.
-Admin jobs UI is Task 0.8.5 (not yet implemented).
-SMS queued sending is Task 0.8.4 (not yet implemented).
+SMS queued sending implemented in Slice 0.8.4.
+Admin jobs UI implemented in Slice 0.8.5.
 
 ## Components
 
@@ -215,7 +215,31 @@ SDK has no realtime/WebSocket methods, no cancel method, no search/analytics job
 
 ---
 
-## Out of Scope (Slice 0.8.3)
+## Admin UI (`apps/admin`)
+
+```
+/system/jobs        — list with filters, pagination, loading/empty/error/forbidden states
+/system/jobs/:id    — detail with payloadSummary (redacted), retry action
+```
+
+**Nav item:** `jobs` — visible only with `system.job.read` permission.
+
+**Retry action rules:**
+
+- Visible only when `job.status === 'failed'` AND `job.attempts < job.maxAttempts`
+- Requires `system.job.retry` permission
+- Requires confirmation before executing
+- Success and error states shown inline
+
+**Security rules in UI:**
+
+- `payloadSummary` rendered as pre-formatted JSON text — no raw HTML injection
+- No raw OTP, password, token, cookie, or provider secret is ever displayed (backend redacts before storing)
+- No cancel, delete, or export action
+
+---
+
+## Out of Scope (Slice 0.8)
 
 - Kafka / RabbitMQ
 - Full event sourcing
@@ -225,8 +249,5 @@ SDK has no realtime/WebSocket methods, no cancel method, no search/analytics job
 - Backup jobs
 - Monitoring stack / realtime dashboard
 - WebSocket job dashboard
-- Admin jobs frontend UI (Task 0.8.5)
-- SMS queued sending integration (Task 0.8.4)
-- Notification/SMS send queuing
 - Notification center
 - Campaigns

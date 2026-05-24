@@ -24,10 +24,7 @@ function createMocks() {
     create: jest.fn(),
   } as unknown as jest.Mocked<NotificationTemplateRepository>;
 
-  const service = new NotificationService(
-    notificationLogModel as never,
-    templateRepository,
-  );
+  const service = new NotificationService(notificationLogModel as never, templateRepository);
 
   return { service, notificationLogModel, templateRepository };
 }
@@ -92,7 +89,9 @@ describe('NotificationService', () => {
 
       expect(notificationLogModel.findByIdAndUpdate).toHaveBeenCalledWith(
         MOCK_LOG_ID,
-        expect.objectContaining({ $set: expect.objectContaining({ status: 'sent', providerMessageId: 'msg-123' }) }),
+        expect.objectContaining({
+          $set: expect.objectContaining({ status: 'sent', providerMessageId: 'msg-123' }),
+        }),
       );
     });
 
@@ -101,7 +100,10 @@ describe('NotificationService', () => {
 
       await service.markSent(MOCK_LOG_ID);
 
-      const call = notificationLogModel.findByIdAndUpdate.mock.calls[0]?.[1] as Record<string, unknown>;
+      const call = notificationLogModel.findByIdAndUpdate.mock.calls[0]?.[1] as Record<
+        string,
+        unknown
+      >;
       const set = (call as { $set: Record<string, unknown> }).$set;
       expect(set.status).toBe('sent');
       expect(set).not.toHaveProperty('providerMessageId');
@@ -116,7 +118,9 @@ describe('NotificationService', () => {
 
       expect(notificationLogModel.findByIdAndUpdate).toHaveBeenCalledWith(
         MOCK_LOG_ID,
-        expect.objectContaining({ $set: expect.objectContaining({ status: 'failed', errorCode: 'provider_error' }) }),
+        expect.objectContaining({
+          $set: expect.objectContaining({ status: 'failed', errorCode: 'provider_error' }),
+        }),
       );
     });
 
@@ -125,7 +129,9 @@ describe('NotificationService', () => {
 
       await service.markFailed(MOCK_LOG_ID, 'err', 'Invalid token abc123 secret exposed');
 
-      const call = notificationLogModel.findByIdAndUpdate.mock.calls[0]?.[1] as { $set: Record<string, unknown> };
+      const call = notificationLogModel.findByIdAndUpdate.mock.calls[0]?.[1] as {
+        $set: Record<string, unknown>;
+      };
       expect(call.$set.errorMessage).toBe('Provider error occurred.');
       expect(call.$set.errorMessage).not.toContain('token');
       expect(call.$set.errorMessage).not.toContain('secret');
@@ -182,7 +188,10 @@ describe('NotificationService', () => {
   describe('security', () => {
     it('does not expose raw phone in createQueuedSmsLog', async () => {
       const { service, notificationLogModel } = createMocks();
-      await service.createQueuedSmsLog({ provider: 'mock', recipientPhoneNormalized: '+989120000000' });
+      await service.createQueuedSmsLog({
+        provider: 'mock',
+        recipientPhoneNormalized: '+989120000000',
+      });
       const created = notificationLogModel.create.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(JSON.stringify(created)).not.toContain('+989120000000');
     });
@@ -190,7 +199,9 @@ describe('NotificationService', () => {
     it('does not include raw OTP in markFailed error field', async () => {
       const { service, notificationLogModel } = createMocks();
       await service.markFailed(MOCK_LOG_ID, 'bad_otp', 'OTP 123456 is invalid');
-      const call = notificationLogModel.findByIdAndUpdate.mock.calls[0]?.[1] as { $set: Record<string, unknown> };
+      const call = notificationLogModel.findByIdAndUpdate.mock.calls[0]?.[1] as {
+        $set: Record<string, unknown>;
+      };
       expect(String(call.$set.errorMessage)).not.toContain('123456');
     });
   });

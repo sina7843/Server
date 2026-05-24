@@ -32,9 +32,11 @@ export function parseAdminNotificationQuery(raw: unknown): {
   }
 
   const provider = typeof q.provider === 'string' ? q.provider.trim() || undefined : undefined;
-  const templateKey = typeof q.templateKey === 'string' ? q.templateKey.trim() || undefined : undefined;
+  const templateKey =
+    typeof q.templateKey === 'string' ? q.templateKey.trim() || undefined : undefined;
   const purpose = typeof q.purpose === 'string' ? q.purpose.trim() || undefined : undefined;
-  const recipientHash = typeof q.recipientHash === 'string' ? q.recipientHash.trim() || undefined : undefined;
+  const recipientHash =
+    typeof q.recipientHash === 'string' ? q.recipientHash.trim() || undefined : undefined;
 
   let dateFrom: Date | undefined;
   let dateTo: Date | undefined;

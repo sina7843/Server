@@ -19,3 +19,5 @@ export * from './admin-media-types';
 export * from './admin-media';
 export * from './admin-audit-types';
 export * from './admin-audit';
+export * from './admin-jobs-types';
+export * from './admin-jobs';

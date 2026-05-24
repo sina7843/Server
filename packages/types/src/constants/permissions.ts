@@ -18,6 +18,7 @@ export const DragonPermissions = {
   SYSTEM_HEALTH_READ: 'system.health.read',
   SYSTEM_BACKUP_READ: 'system.backup.read',
   SYSTEM_JOB_READ: 'system.job.read',
+  SYSTEM_JOB_RETRY: 'system.job.retry',
 
   CONTENT_POST_CREATE: 'content.post.create',
   CONTENT_POST_READ: 'content.post.read',

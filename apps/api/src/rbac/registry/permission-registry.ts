@@ -91,6 +91,7 @@ export const PermissionRegistry = [
     'Read backup status metadata',
   ),
   permission(Permissions.SYSTEM_JOB_READ, 'system', 'job', 'read', 'Read system job metadata'),
+  permission(Permissions.SYSTEM_JOB_RETRY, 'system', 'job', 'retry', 'Retry failed system jobs'),
 
   permission(Permissions.CONTENT_POST_CREATE, 'content', 'post', 'create', 'Create content posts'),
   permission(Permissions.CONTENT_POST_READ, 'content', 'post', 'read', 'Read content posts'),

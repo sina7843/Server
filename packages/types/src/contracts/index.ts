@@ -1,5 +1,6 @@
 export * from './audit';
 export * from './auth';
+export * from './jobs';
 export * from './rbac';
 export * from './profile';
 export * from './admin-users';

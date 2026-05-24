@@ -3,13 +3,16 @@ import { AdminAuditModule } from './admin/audit/admin-audit.module';
 import { AdminAuthModule } from './admin/admin-auth.module';
 import { AdminContentModule } from './admin/content/admin-content.module';
 import { AdminDashboardModule } from './admin/dashboard/admin-dashboard.module';
+import { AdminJobsModule } from './admin/jobs/admin-jobs.module';
 import { AdminSystemModule } from './admin/system/admin-system.module';
 import { AdminUsersModule } from './admin/users/admin-users.module';
 import { AuthModule } from './auth/auth.module';
 import { AppConfigModule } from './config/app-config.module';
 import { ContentModule } from './content/content.module';
 import { DatabaseModule } from './database/database.module';
+import { EventsModule } from './events/events.module';
 import { HealthController } from './health.controller';
+import { JobsModule } from './jobs/jobs.module';
 import { MediaModule } from './media/media.module';
 import { ProfileModule } from './profiles/profile.module';
 import { RbacModule } from './rbac/rbac.module';
@@ -18,6 +21,8 @@ import { RbacModule } from './rbac/rbac.module';
   imports: [
     AppConfigModule,
     DatabaseModule,
+    EventsModule,
+    JobsModule,
     AuthModule,
     RbacModule,
     ProfileModule,
@@ -28,6 +33,7 @@ import { RbacModule } from './rbac/rbac.module';
     AdminSystemModule,
     AdminContentModule,
     AdminAuditModule,
+    AdminJobsModule,
     MediaModule,
   ],
   controllers: [HealthController],

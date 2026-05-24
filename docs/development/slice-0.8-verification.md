@@ -141,3 +141,125 @@ Admin audit viewer API (`GET /admin/v1/audit-logs`, `GET /admin/v1/audit-logs/:i
 ### Out of scope for Task 0.8.2
 
 Export, purge/retention, SIEM, anomaly detection, full event sourcing, Jobs, Notifications.
+
+---
+
+## Task 0.8.3 — Internal Event Bus and BullMQ Jobs Foundation
+
+### What was built
+
+**apps/api/src/events/**
+
+- `domain-event.ts` — `DomainEvent` interface + `createDomainEvent()` factory
+- `event-names.ts` — `EventNames` constant map (domain.entity.action convention)
+- `events.module.ts` — `EventsModule` wrapping `@nestjs/event-emitter`
+- `events.module.spec.ts` — DomainEvent contract and EventNames tests
+
+**apps/api/src/jobs/**
+
+- `queue-registry.ts` — `QueueNames` and `JobNames` constants
+- `job-log.schema.ts` — Mongoose schema, 5 indexes, `updatedAt` enabled
+- `job-log.schema.spec.ts` — schema field and index tests
+- `job-log.repository.ts` — `create()`, `findById()`, `updateStatus()`, `list()` — no delete
+- `job-log.repository.spec.ts` — CRUD tests
+- `job-payload-redactor.ts` — Injectable recursive secret redactor
+- `job-payload-redactor.spec.ts` — ~25 tests covering all secret keys, nesting, arrays, non-mutation
+- `job-log.service.ts` — `enqueue()`, `findById()`, `updateStatus()`, `list()`
+- `job-log.service.spec.ts` — enqueue tests, redaction, failure handling
+- `jobs.module.ts` — `BullModule.forRootAsync()` + 3 registered queues
+
+**apps/api/src/admin/jobs/**
+
+- `admin-jobs.controller.ts` — `GET /admin/v1/system/jobs`, `GET :id`, `POST :id/retry`
+- `admin-jobs.service.ts` — list, get, retry with bounds check
+- `admin-jobs.module.ts` — imports `JobsModule` and `RbacModule`
+- `dto/admin-jobs-query.ts` — query parser and validator
+- `dto/admin-jobs-response.ts` — DTO mappers
+- `admin-jobs.controller.spec.ts` — controller tests
+
+**apps/api/src/config/**
+
+- `redis.config.ts` — `getBullMQConfig()` with optional env var defaults
+- `redis.config.spec.ts` — config validation tests
+- `app-config.module.ts` — now provides `BULLMQ_CONFIG` globally
+
+**apps/worker/src/**
+
+- `processors/processor-types.ts` — `JobStatusUpdater` type
+- `processors/sms-processor.ts` — `processSmsJob()` (foundation; SMS sending is Task 0.8.4)
+- `processors/sms-processor.spec.ts` — processing/completed/failed tests
+- `processors/media-processor.ts` — `processMediaJob()` (foundation)
+- `processors/media-processor.spec.ts` — tests
+- `processors/maintenance-processor.ts` — `processMaintenanceJob()` (foundation)
+- `processors/maintenance-processor.spec.ts` — tests
+- `job-log-updater.ts` — MongoDB-backed `JobStatusUpdater` + noop variant
+- `queue-worker.ts` — `startQueueWorkers()`, `stopQueueWorkers()`, `getRedisConfigFromEnv()`
+- `main.ts` — updated to start BullMQ workers on startup
+
+**Permission wiring**
+
+- `permission-keys.ts` — `SYSTEM_JOB_RETRY` added
+- `role-permission-registry.ts` — `SYSTEM_JOB_RETRY` added to `admin` role
+- `app.module.ts` — `EventsModule`, `JobsModule`, `AdminJobsModule` registered
+
+**packages/types**
+
+- `contracts/jobs.ts` — `JobStatus`, `QueueNames`, `JobNames`, `DomainEventDto`, `JobLogDto`, `JobLogListItemDto`, `JobLogListQueryDto`, `JobLogListResponseDto`, `RetryJobResponseDto`
+
+**packages/sdk**
+
+- `admin-jobs-types.ts` — `AdminJobsListParams`, `AdminJobsClient`
+- `admin-jobs.ts` — `createAdminJobsClient()` with `listJobs()`, `getJob()`, `retryJob()`
+- `admin-jobs.spec.ts` — SDK method tests
+
+**Docs created/updated**
+
+- `docs/architecture/events-jobs.md`
+- `docs/security/jobs-notifications-security-checklist.md`
+- `docs/development/slice-0.8-verification.md` (this file)
+- `apps/api/.env.example` — Redis/BullMQ vars added
+- `apps/worker/.env.example` — Redis/BullMQ/MongoDB vars added
+
+### Verification commands
+
+```bash
+pnpm --filter @dragon/api lint
+pnpm --filter @dragon/api typecheck
+pnpm --filter @dragon/api test
+pnpm --filter @dragon/api build
+
+pnpm --filter @dragon/worker lint
+pnpm --filter @dragon/worker typecheck
+pnpm --filter @dragon/worker test
+pnpm --filter @dragon/worker build
+
+pnpm --filter @dragon/sdk lint
+pnpm --filter @dragon/sdk typecheck
+pnpm --filter @dragon/sdk test
+pnpm --filter @dragon/sdk build
+
+pnpm --filter @dragon/types lint
+pnpm --filter @dragon/types typecheck
+pnpm --filter @dragon/types test
+pnpm --filter @dragon/types build
+
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm format:check
+```
+
+### Security invariants
+
+1. `JobPayloadRedactor` redacts all known secret keys recursively — no raw OTP, password, or token in `payloadSummary`.
+2. Retry endpoint enforces `attempts < maxAttempts` — no infinite retry.
+3. Retry endpoint requires `system.job.retry` — requests without it get 403.
+4. No delete or cancel job endpoint exists.
+5. `JobLogListItemDto` does not expose `payloadSummary`.
+6. Worker connects to MongoDB and Redis via env vars only — no hardcoded credentials.
+7. Worker starts safely without MongoDB (`MONGODB_URI` optional — falls back to noop updater).
+
+### Out of scope for Task 0.8.3
+
+Kafka, RabbitMQ, full event sourcing, saga engine, search indexing, analytics aggregation, backup jobs, monitoring stack, realtime dashboard, WebSocket job dashboard, admin jobs frontend UI (Task 0.8.5), SMS queued sending (Task 0.8.4), notifications, notification center, campaigns.

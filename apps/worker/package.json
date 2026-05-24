@@ -30,5 +30,9 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "testEnvironment": "node"
+  },
+  "dependencies": {
+    "bullmq": "5.77.2",
+    "mongoose": "8.16.0"
   }
 }

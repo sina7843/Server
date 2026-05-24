@@ -24,6 +24,7 @@ export const RolePermissionRegistryMap = {
     Permissions.SYSTEM_HEALTH_READ,
     Permissions.SYSTEM_BACKUP_READ,
     Permissions.SYSTEM_JOB_READ,
+    Permissions.SYSTEM_JOB_RETRY,
 
     Permissions.AUDIT_LOG_READ,
   ],

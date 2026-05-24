@@ -32,6 +32,7 @@ export interface CreatePostInput {
   readonly seo?: Partial<PostSeoData>;
   readonly categoryIds?: Array<Types.ObjectId | string>;
   readonly tagIds?: Array<Types.ObjectId | string>;
+  readonly mediaRefs?: PostMediaRefData[];
 }
 
 export interface UpdatePostInput {
@@ -43,6 +44,7 @@ export interface UpdatePostInput {
   readonly categoryIds?: Array<Types.ObjectId | string>;
   readonly tagIds?: Array<Types.ObjectId | string>;
   readonly coverMediaId?: string | null;
+  readonly mediaRefs?: PostMediaRefData[];
 }
 
 export interface UpdatePostSlugInput {

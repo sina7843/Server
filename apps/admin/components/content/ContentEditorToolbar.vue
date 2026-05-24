@@ -162,6 +162,19 @@
         del⊞
       </button>
     </template>
+
+    <span class="tb-sep" />
+
+    <!-- Image -->
+    <button
+      type="button"
+      class="tb-btn"
+      :class="{ 'tb-btn--active': editor.isActive('image') }"
+      title="درج تصویر"
+      @click="$emit('insert-image')"
+    >
+      🖼
+    </button>
   </div>
 </template>
 
@@ -170,6 +183,10 @@ import type { Editor } from '@tiptap/vue-3';
 
 const props = defineProps<{
   editor: Editor | undefined;
+}>();
+
+const emit = defineEmits<{
+  'insert-image': [];
 }>();
 
 const linkInputOpen = ref(false);

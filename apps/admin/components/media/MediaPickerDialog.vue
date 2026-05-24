@@ -26,6 +26,7 @@
             کتابخانه
           </button>
           <button
+            v-if="canUpload"
             class="tab-btn"
             :class="{ 'tab-btn--active': activeTab === 'upload' }"
             type="button"
@@ -85,6 +86,7 @@
 
 <script setup lang="ts">
 import type { AdminMediaAssetDto } from '@dragon/sdk';
+import { DragonPermissions as Permissions } from '@dragon/sdk';
 
 const props = defineProps<{
   open: boolean;
@@ -94,6 +96,9 @@ const emit = defineEmits<{
   select: [asset: AdminMediaAssetDto];
   cancel: [];
 }>();
+
+const { hasPermission } = useAdminPermissions();
+const canUpload = computed(() => hasPermission(Permissions.MEDIA_ASSET_UPLOAD));
 
 const { assets, assetsTotal, assetsPage, assetsLimit, assetsLoading, assetsError, loadMedia } =
   useAdminMedia();

@@ -203,12 +203,49 @@ describe('HtmlSanitizer', () => {
     expect(result).toContain('<p>ok</p>');
   });
 
-  it('removes img tags (images not yet supported)', () => {
+  // ─── Image tag handling ───────────────────────────────────────────────────────
+
+  it('preserves img with safe https src', () => {
+    const result = sanitizer.sanitize('<img src="https://cdn.example.com/photo.jpg" alt="photo">');
+    expect(result).toContain('<img');
+    expect(result).toContain('src="https://cdn.example.com/photo.jpg"');
+    expect(result).toContain('alt="photo"');
+  });
+
+  it('preserves data-media-id attribute on img', () => {
     const result = sanitizer.sanitize(
-      '<img src="https://example.com/img.jpg" alt="photo"><p>text</p>',
+      '<img src="https://cdn.example.com/photo.jpg" data-media-id="64f000000000000000000001">',
     );
+    expect(result).toContain('data-media-id="64f000000000000000000001"');
+  });
+
+  it('preserves data-alignment attribute on img', () => {
+    const result = sanitizer.sanitize(
+      '<img src="https://cdn.example.com/photo.jpg" data-alignment="center">',
+    );
+    expect(result).toContain('data-alignment="center"');
+  });
+
+  it('strips onerror event handler from img', () => {
+    const result = sanitizer.sanitize('<img src="https://cdn.example.com/x.jpg" onerror="evil()">');
+    expect(result).not.toContain('onerror');
+  });
+
+  it('blocks img with javascript: src — converts to span', () => {
+    const result = sanitizer.sanitize('<img src="javascript:alert(1)" alt="xss">');
     expect(result).not.toContain('<img');
-    expect(result).toContain('<p>text</p>');
+    expect(result).not.toContain('javascript:');
+  });
+
+  it('blocks img with data: src — converts to span', () => {
+    const result = sanitizer.sanitize('<img src="data:image/png;base64,abc123">');
+    expect(result).not.toContain('<img');
+    expect(result).not.toContain('data:');
+  });
+
+  it('blocks img with relative src — only absolute http/https allowed', () => {
+    const result = sanitizer.sanitize('<img src="/media/photo.jpg" alt="photo">');
+    expect(result).not.toContain('<img');
   });
 
   // ─── Edge cases ───────────────────────────────────────────────────────────────

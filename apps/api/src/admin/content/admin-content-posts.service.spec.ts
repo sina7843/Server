@@ -137,7 +137,7 @@ describe('AdminContentPostsService — sanitization', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('rejects bodyJson with image node', async () => {
+    it('rejects image node without mediaId', async () => {
       await expect(
         service.createPost(
           {
@@ -150,6 +150,35 @@ describe('AdminContentPostsService — sanitization', () => {
           'author1',
         ),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('accepts image node with valid mediaId and extracts it into mediaRefs', async () => {
+      sanitizeSpy.mockReturnValue('<p>ok</p>');
+      const post = makePost();
+      (postService.create as jest.Mock).mockResolvedValue(post);
+      const mediaId = 'a'.repeat(24);
+
+      await service.createPost(
+        {
+          ...BASE_CREATE_INPUT,
+          bodyJson: {
+            type: 'doc',
+            content: [
+              {
+                type: 'image',
+                attrs: { mediaId, src: 'https://cdn.example.com/photo.jpg', alt: 'A photo' },
+              },
+            ],
+          },
+        },
+        'author1',
+      );
+
+      expect(postService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          mediaRefs: expect.arrayContaining([expect.objectContaining({ usage: 'inline' })]),
+        }),
+      );
     });
 
     it('normalizes empty bodyJson ({}) to valid doc and accepts it', async () => {
@@ -201,6 +230,7 @@ describe('AdminContentPostsService — sanitization', () => {
       const rawHtml = '<script>xss</script><p>hello</p>';
       sanitizeSpy.mockReturnValue('<p>hello</p>');
       const post = makePost({ bodyHtml: '<p>hello</p>' });
+      (postService.findById as jest.Mock).mockResolvedValue(makePost());
       (postService.update as jest.Mock).mockResolvedValue(post);
 
       await service.updatePost('507f1f77bcf86cd799439011', { bodyHtml: rawHtml }, 'editor1');
@@ -214,6 +244,7 @@ describe('AdminContentPostsService — sanitization', () => {
 
     it('does not call sanitize when bodyHtml is not in update', async () => {
       const post = makePost();
+      (postService.findById as jest.Mock).mockResolvedValue(makePost());
       (postService.update as jest.Mock).mockResolvedValue(post);
 
       await service.updatePost('507f1f77bcf86cd799439011', { title: 'New title' }, 'editor1');
@@ -237,9 +268,26 @@ describe('AdminContentPostsService — sanitization', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
+    it('includes mediaRefs with cover ref when coverMediaId is updated', async () => {
+      const coverMediaId = 'c'.repeat(24);
+      const post = makePost();
+      (postService.findById as jest.Mock).mockResolvedValue(makePost());
+      (postService.update as jest.Mock).mockResolvedValue(post);
+
+      await service.updatePost('507f1f77bcf86cd799439011', { coverMediaId }, 'editor1');
+
+      expect(postService.update).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          mediaRefs: expect.arrayContaining([expect.objectContaining({ usage: 'cover' })]),
+        }),
+      );
+    });
+
     it('snapshots revision with sanitized bodyHtml', async () => {
       sanitizeSpy.mockReturnValue('<p>safe</p>');
       const post = makePost({ bodyHtml: '<p>safe</p>' });
+      (postService.findById as jest.Mock).mockResolvedValue(makePost());
       (postService.update as jest.Mock).mockResolvedValue(post);
 
       await service.updatePost(

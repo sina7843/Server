@@ -1,7 +1,12 @@
 <template>
   <div class="rte-outer">
-    <ContentEditorToolbar :editor="editor" />
+    <ContentEditorToolbar :editor="editor" @insert-image="showImagePicker = true" />
     <EditorContent :editor="editor" class="rte-content" />
+    <MediaPickerDialog
+      :open="showImagePicker"
+      @select="onMediaSelected"
+      @cancel="showImagePicker = false"
+    />
   </div>
 </template>
 
@@ -10,6 +15,8 @@ import { useEditor, EditorContent } from '@tiptap/vue-3';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table';
+import type { AdminMediaAssetDto } from '@dragon/sdk';
+import { MediaImage } from './MediaImageExtension';
 
 const props = defineProps<{
   modelValue: Record<string, unknown>;
@@ -19,6 +26,8 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: Record<string, unknown>): void;
   (e: 'html', value: string): void;
 }>();
+
+const showImagePicker = ref(false);
 
 function isSafeUrl(url: string): boolean {
   if (!url || typeof url !== 'string') return false;
@@ -43,6 +52,7 @@ const editor = useEditor({
     TableRow,
     TableCell,
     TableHeader,
+    MediaImage,
   ],
   content: Object.keys(props.modelValue).length > 0 ? props.modelValue : null,
   onUpdate({ editor: e }) {
@@ -50,6 +60,20 @@ const editor = useEditor({
     emit('html', e.getHTML());
   },
 });
+
+function onMediaSelected(asset: AdminMediaAssetDto) {
+  showImagePicker.value = false;
+  if (!editor.value) return;
+  editor.value
+    .chain()
+    .focus()
+    .setImage({
+      src: asset.url ?? '',
+      mediaId: asset.id,
+      alt: asset.originalName ?? '',
+    } as Parameters<typeof editor.value.commands.setImage>[0])
+    .run();
+}
 
 watch(
   () => props.modelValue,

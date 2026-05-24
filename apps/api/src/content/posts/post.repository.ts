@@ -75,7 +75,7 @@ export class PostRepository {
       status: input.status ?? 'draft',
       categoryIds: input.categoryIds ?? [],
       tagIds: input.tagIds ?? [],
-      mediaRefs: [],
+      mediaRefs: input.mediaRefs ?? [],
       viewCount: 0,
       seo: {},
     };
@@ -97,6 +97,7 @@ export class PostRepository {
     if (input.seo !== undefined) set.seo = input.seo;
     if (input.categoryIds !== undefined) set.categoryIds = input.categoryIds;
     if (input.tagIds !== undefined) set.tagIds = input.tagIds;
+    if (input.mediaRefs !== undefined) set.mediaRefs = input.mediaRefs;
 
     const unset: Record<string, 1> = {};
     if (input.coverMediaId === null) {

@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Types } from 'mongoose';
 import { validateObjectId } from '../../rbac/dto/rbac-validation';
 import { PostService } from '../../content/posts/post.service';
 import type { PostDocument } from '../../content/posts/post.schema';
@@ -8,6 +9,7 @@ import { RichTextValidator } from '../../content/rich-text/rich-text-validator';
 import { HtmlSanitizer } from '../../content/rich-text/html-sanitizer';
 import type { AdminContentListQueryDto } from './dto/admin-content-query';
 import type { AdminCreatePostBodyDto, AdminUpdatePostBodyDto } from './dto/admin-post-body';
+import type { PostMediaRefData } from '../../content/posts/post.types';
 
 const EMPTY_TIPTAP_DOC: Record<string, unknown> = {
   type: 'doc',
@@ -16,6 +18,43 @@ const EMPTY_TIPTAP_DOC: Record<string, unknown> = {
 
 function normalizeBodyJson(bodyJson: Record<string, unknown>): Record<string, unknown> {
   return Object.keys(bodyJson).length === 0 ? { ...EMPTY_TIPTAP_DOC } : bodyJson;
+}
+
+function extractInlineMediaRefs(bodyJson: Record<string, unknown>): PostMediaRefData[] {
+  const refs: PostMediaRefData[] = [];
+
+  function walk(node: unknown): void {
+    if (typeof node !== 'object' || node === null || Array.isArray(node)) return;
+    const n = node as Record<string, unknown>;
+    if (n.type === 'image') {
+      const attrs = n.attrs as Record<string, unknown> | undefined;
+      const mediaId = attrs?.mediaId;
+      if (typeof mediaId === 'string' && /^[0-9a-f]{24}$/.test(mediaId)) {
+        refs.push({
+          mediaId: new Types.ObjectId(mediaId),
+          usage: 'inline',
+          ...(typeof attrs?.alt === 'string' && attrs.alt ? { alt: attrs.alt } : {}),
+        });
+      }
+    }
+    if (Array.isArray(n.content)) {
+      for (const child of n.content) {
+        walk(child);
+      }
+    }
+  }
+
+  walk(bodyJson);
+  return refs;
+}
+
+function buildMediaRefs(
+  bodyJson: Record<string, unknown>,
+  coverMediaId: string | null,
+): PostMediaRefData[] {
+  const inlineRefs = extractInlineMediaRefs(bodyJson);
+  if (!coverMediaId) return inlineRefs;
+  return [{ mediaId: new Types.ObjectId(coverMediaId), usage: 'cover' }, ...inlineRefs];
 }
 
 function toPostSnapshot(post: PostDocument): Record<string, unknown> {
@@ -70,6 +109,9 @@ export class AdminContentPostsService {
 
     const safeBodyHtml = this.htmlSanitizer.sanitize(input.bodyHtml);
 
+    const effectiveBodyJson = bodyJson ?? EMPTY_TIPTAP_DOC;
+    const mediaRefs = buildMediaRefs(effectiveBodyJson, null);
+
     const post = await this.postService.create({
       type: input.type,
       title: input.title,
@@ -82,6 +124,7 @@ export class AdminContentPostsService {
       categoryIds: input.categoryIds,
       tagIds: input.tagIds,
       seo: input.seo,
+      mediaRefs,
     });
 
     await this.revisionService.snapshot('post', String(post._id), toPostSnapshot(post), authorId);
@@ -115,6 +158,19 @@ export class AdminContentPostsService {
       }
     }
 
+    const currentPost = await this.postService.findById(id);
+    if (!currentPost) throw new NotFoundException('Post not found.');
+
+    const effectiveBodyJson =
+      normalizedBodyJson ?? (currentPost.bodyJson as Record<string, unknown>);
+    const effectiveCoverMediaId: string | null =
+      input.coverMediaId !== undefined
+        ? (input.coverMediaId ?? null)
+        : currentPost.coverMediaId
+          ? String(currentPost.coverMediaId)
+          : null;
+    const mediaRefs = buildMediaRefs(effectiveBodyJson, effectiveCoverMediaId);
+
     const effectiveInput: AdminUpdatePostBodyDto =
       normalizedBodyJson !== undefined ? { ...input, bodyJson: normalizedBodyJson } : input;
 
@@ -134,14 +190,16 @@ export class AdminContentPostsService {
       const { slug: omittedSlug, ...rest } = safeInput;
       const hasOtherFields = omittedSlug !== undefined && Object.keys(rest).length > 0;
 
-      const result = hasOtherFields ? await this.postService.update(id, rest) : updated;
+      const result = hasOtherFields
+        ? await this.postService.update(id, { ...rest, mediaRefs })
+        : await this.postService.update(id, { mediaRefs });
 
       const post = result ?? updated;
       await this.revisionService.snapshot('post', id, toPostSnapshot(post), editorId);
       return post;
     }
 
-    const updated = await this.postService.update(id, safeInput);
+    const updated = await this.postService.update(id, { ...safeInput, mediaRefs });
     if (!updated) throw new NotFoundException('Post not found.');
     await this.revisionService.snapshot('post', id, toPostSnapshot(updated), editorId);
     return updated;

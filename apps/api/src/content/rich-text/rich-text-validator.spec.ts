@@ -270,13 +270,91 @@ describe('RichTextValidator', () => {
     expect(result.errors.some((e) => e.message.includes('Unknown mark type'))).toBe(true);
   });
 
-  it('rejects image nodes (no safe image policy yet)', () => {
+  it('accepts a valid image node with mediaId and https src', () => {
+    const result = validator.validate({
+      type: 'doc',
+      content: [
+        {
+          type: 'image',
+          attrs: {
+            mediaId: 'a'.repeat(24),
+            src: 'https://cdn.example.com/photo.jpg',
+            alt: 'A photo',
+          },
+        },
+      ],
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it('accepts image node without optional src and alt', () => {
+    const result = validator.validate({
+      type: 'doc',
+      content: [{ type: 'image', attrs: { mediaId: 'b'.repeat(24) } }],
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it('accepts image node with allowed alignment', () => {
+    for (const alignment of ['left', 'center', 'right', 'full']) {
+      const result = validator.validate({
+        type: 'doc',
+        content: [{ type: 'image', attrs: { mediaId: 'c'.repeat(24), alignment } }],
+      });
+      expect(result.valid).toBe(true);
+    }
+  });
+
+  it('rejects image node without mediaId', () => {
     const result = validator.validate({
       type: 'doc',
       content: [{ type: 'image', attrs: { src: 'https://example.com/img.jpg' } }],
     });
     expect(result.valid).toBe(false);
-    expect(result.errors.some((e) => e.message.toLowerCase().includes('image'))).toBe(true);
+    expect(result.errors.some((e) => e.message.toLowerCase().includes('mediaid'))).toBe(true);
+  });
+
+  it('rejects image node with invalid mediaId (too short)', () => {
+    const result = validator.validate({
+      type: 'doc',
+      content: [{ type: 'image', attrs: { mediaId: 'tooshort' } }],
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it('rejects image node with unsafe src (javascript:)', () => {
+    const result = validator.validate({
+      type: 'doc',
+      content: [{ type: 'image', attrs: { mediaId: 'd'.repeat(24), src: 'javascript:alert(1)' } }],
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.message.toLowerCase().includes('src'))).toBe(true);
+  });
+
+  it('rejects image node with relative src (only http/https allowed for images)', () => {
+    const result = validator.validate({
+      type: 'doc',
+      content: [{ type: 'image', attrs: { mediaId: 'e'.repeat(24), src: '/media/photo.jpg' } }],
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it('rejects image node with alt text exceeding 500 characters', () => {
+    const result = validator.validate({
+      type: 'doc',
+      content: [{ type: 'image', attrs: { mediaId: 'f'.repeat(24), alt: 'x'.repeat(501) } }],
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.message.toLowerCase().includes('alt'))).toBe(true);
+  });
+
+  it('rejects image node with invalid alignment value', () => {
+    const result = validator.validate({
+      type: 'doc',
+      content: [{ type: 'image', attrs: { mediaId: 'g'.repeat(24), alignment: 'top' } }],
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.message.toLowerCase().includes('alignment'))).toBe(true);
   });
 
   it('rejects embed nodes', () => {

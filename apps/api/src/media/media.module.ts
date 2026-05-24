@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from '../auth/auth.module';
 import { RbacModule } from '../rbac/rbac.module';
@@ -19,7 +19,7 @@ import { MediaUploadPipeline } from './media-upload-pipeline.service';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: MediaAsset.name, schema: MediaAssetSchema }]),
-    AuthModule,
+    forwardRef(() => AuthModule),
     RbacModule,
   ],
   controllers: [AdminMediaController],

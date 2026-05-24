@@ -228,3 +228,131 @@ Expected: **91 API test suites, 782 API tests, 0 failures**.
 | `regenerateVariants` download failure → status='failed'          | `admin-media.service.spec.ts` — "sets status to 'failed' if download throws"                          |
 | SDK `regenerateVariants` builds correct POST request             | `admin-media.spec.ts` — "builds POST /admin/v1/media/:id/regenerate-variants"                         |
 | `MEDIA_ASSET_REGENERATE` permission registered                   | `apps/api/src/rbac/registry/permission-registry.ts`                                                   |
+
+---
+
+## Task 0.7.4 — Media Manager and Picker Frontend
+
+### What was built
+
+- `MEDIA_ASSET_REGENERATE` added to `DragonPermissions` in `packages/types`
+- `coverMediaId` added to `UpdatePostRequest`/`AdminPostDetailDto` + wired through API + DB
+- `apps/admin/features/media/admin-media.api.ts` + spec (8 admin suites, 108 tests)
+- `useAdminMedia` composable
+- Media nav item at `/media`, gated by `MEDIA_ASSET_READ`
+- Components: `MediaStatusBadge`, `MediaCard`, `MediaGrid`, `MediaUploadForm`, `MediaDetailView`, `MediaPickerDialog`
+- Pages: `/media` (list+filters+pagination), `/media/upload`, `/media/:id` (detail+edit+delete+regenerate)
+- `ContentPostFormView`: cover image picker via `MediaPickerDialog` (edit mode only)
+
+### What was NOT built (intentionally out of scope)
+
+- TipTap inline image (backend validator did not yet support image nodes)
+
+### Verification Commands
+
+```bash
+pnpm --filter @dragon/api test
+pnpm --filter @dragon/admin test
+pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm format:check
+```
+
+Expected: **91 API suites, 782 tests; 8 admin suites, 108 tests; 19 SDK tests** — all pass.
+
+---
+
+## Task 0.7.5 — Avatar / Media Integration
+
+### What was built
+
+- `AvatarService`: `setAvatar`, `uploadAndSetAvatar`, `deleteAvatar`, `resolveAvatarUrls`
+- `POST /api/v1/me/avatar` — set existing media asset as avatar
+- `POST /api/v1/me/avatar/upload` — direct file upload → creates MediaAsset → sets as avatar
+- `DELETE /api/v1/me/avatar`
+- `avatarUrl?` and `avatarVariants?` added to `MyUserProfileDto` and `PublicUserProfileDto`
+- Private media does NOT leak through public profile (`resolveAvatarUrls` returns `undefined` for private assets)
+- SDK: `setAvatar(mediaAssetId)`, `uploadAvatar(file)`, `deleteAvatar()`
+- Web: `ProfileAvatar` component, `PublicProfileCard`, account/profile avatar section with upload+remove
+
+### What was NOT built
+
+- No manual `avatarMediaId` input anywhere in UI (security constraint)
+- No avatar cosmetics or customization features
+
+### Verification Commands
+
+```bash
+pnpm --filter @dragon/api test
+pnpm --filter @dragon/admin test
+pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm format:check
+```
+
+Expected: **93 API suites, 808 tests; 8 admin suites, 108 tests; 3 SDK suites, 22 tests** — all pass.
+
+---
+
+## Task 0.7.6 — Security Closeout
+
+### What was built
+
+- `validateImageContent()` — sharp-based real byte verification before storage upload (rejects fake images)
+- `MediaUploadPipeline` shared service — validation + storage + DB + variants in one place
+- `AdminMediaService` delegates to pipeline; `resolveUrl` returns `''` (NOT `getPublicUrl`) on signed-URL failure for private assets
+- `AvatarService.uploadAndSetAvatar` replaced weak direct path with `pipeline.upload()`
+- `avatarMediaId` removed from `PATCH /api/v1/me/profile` (forbidden field); all avatar changes through `/api/v1/me/avatar`
+- `avatarMediaId` removed from `UpdateMyProfileDto` in types package
+
+### Security Invariants Locked In
+
+| Invariant                                                              | Verification                                                                                                |
+| ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Fake image content rejected before storage                             | `media-upload.config.spec.ts` — `validateImageContent` tests                                                |
+| Private media URL never falls back to public URL on signed-URL failure | `admin-media.service.spec.ts` — "does not fallback to public URL when getSignedUrl fails for private asset" |
+| Avatar upload path identical to admin media path                       | `avatar.service.spec.ts` — "does not call storageService.upload directly"                                   |
+| `avatarMediaId` cannot be set via `PATCH /me/profile`                  | `update-my-profile.dto.spec.ts` — "rejects avatarMediaId as a forbidden internal field"                     |
+
+### Verification Commands
+
+```bash
+pnpm --filter @dragon/api test
+pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm format:check
+```
+
+Expected: **93 API suites, 815 tests** — all pass.
+
+---
+
+## Media Integration Fixes (Post-0.7.6)
+
+### What was built
+
+- **Route protection**: Admin media pages (`/media`, `/media/upload`, `/media/:id`) now have `middleware: ['admin-auth-required', 'admin-permission-required']` with appropriate permissions
+- **MediaPickerDialog upload tab**: Hidden when user lacks `MEDIA_ASSET_UPLOAD` permission
+- **TipTap inline image**: `@tiptap/extension-image` installed; `MediaImageExtension` custom extension adds `mediaId` attr and `data-media-id` rendering; toolbar image button opens `MediaPickerDialog`; selected asset inserted into editor
+- **Backend rich-text validator**: `image` node now allowed with required `mediaId` (24-char hex ObjectId), optional safe `src` (http/https only), optional `alt` (≤500 chars), optional `alignment` (left/center/right/full)
+- **Backend HTML sanitizer**: `<img>` tag now allowed with `src`, `alt`, `title`, `data-media-id`, `data-alignment`, `class`; unsafe srcs (javascript:, data:, relative paths) converted to `<span>`
+- **mediaRefs extraction**: `extractInlineMediaRefs` walks TipTap bodyJson for image nodes; `buildMediaRefs` combines inline + cover refs; both `createPost` and `updatePost` compute and persist `mediaRefs`; `UpdatePostInput`/`CreatePostInput` extended with `mediaRefs?`
+- **Module circular dependency**: `MediaModule` uses `forwardRef(() => AuthModule)` to break the `ProfileModule → MediaModule → AuthModule → ProfileModule` circular dep
+
+### What was NOT built (intentionally out of scope)
+
+- No video processing, no direct-to-S3, no multipart upload
+- No TipTap caption/alignment UI controls (attrs are in schema but no toolbar controls)
+- No media marketplace
+
+### Verification Commands
+
+```bash
+pnpm install
+pnpm --filter @dragon/api lint
+pnpm --filter @dragon/api typecheck
+pnpm --filter @dragon/api test
+pnpm --filter @dragon/admin lint
+pnpm --filter @dragon/admin typecheck
+pnpm --filter @dragon/admin test
+pnpm --filter @dragon/admin build
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm format:check
+```

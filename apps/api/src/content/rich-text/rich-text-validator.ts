@@ -22,6 +22,7 @@ const ALLOWED_NODES = new Set<string>([
   'codeBlock',
   'horizontalRule',
   'hardBreak',
+  'image',
   'table',
   'tableRow',
   'tableHeader',
@@ -81,15 +82,6 @@ export class RichTextValidator {
 
     const t = n.type;
 
-    if (t === 'image') {
-      errors.push({
-        message:
-          'Image nodes are not allowed. Image insertion is disabled until a safe Media API is available.',
-        path,
-      });
-      return;
-    }
-
     if (t === 'embed' || t === 'iframe' || t === 'video' || t === 'audio') {
       errors.push({ message: `Node type "${t}" is not allowed.`, path });
       return;
@@ -105,6 +97,10 @@ export class RichTextValidator {
       if (!attrs || typeof attrs.level !== 'number' || !ALLOWED_HEADING_LEVELS.has(attrs.level)) {
         errors.push({ message: 'Heading node must have a level attribute of 1–6.', path });
       }
+    }
+
+    if (t === 'image') {
+      this.validateImageNode(n, path, errors);
     }
 
     if (t === 'text') {
@@ -160,6 +156,56 @@ export class RichTextValidator {
       if (!this.isSafeUrl(attrs.href)) {
         errors.push({ message: 'Unsafe or disallowed URL in link href.', path });
       }
+    }
+  }
+
+  private validateImageNode(
+    n: Record<string, unknown>,
+    path: string,
+    errors: RichTextValidationError[],
+  ): void {
+    const attrs = n.attrs as Record<string, unknown> | undefined;
+
+    if (!attrs || typeof attrs.mediaId !== 'string' || !/^[0-9a-f]{24}$/.test(attrs.mediaId)) {
+      errors.push({
+        message: 'Image node must have a valid mediaId (24-character hex ObjectId).',
+        path,
+      });
+    }
+
+    if (attrs?.src !== undefined && attrs.src !== null) {
+      if (typeof attrs.src !== 'string' || !this.isSafeImageUrl(attrs.src)) {
+        errors.push({ message: 'Image src must be a safe http or https URL.', path });
+      }
+    }
+
+    if (attrs?.alt !== undefined && attrs.alt !== null) {
+      if (typeof attrs.alt !== 'string' || attrs.alt.length > 500) {
+        errors.push({
+          message: 'Image alt text must be a string of at most 500 characters.',
+          path,
+        });
+      }
+    }
+
+    if (attrs?.alignment !== undefined && attrs.alignment !== null) {
+      const ALLOWED_ALIGNMENTS = new Set(['left', 'center', 'right', 'full']);
+      if (!ALLOWED_ALIGNMENTS.has(attrs.alignment as string)) {
+        errors.push({
+          message: 'Image alignment must be one of: left, center, right, full.',
+          path,
+        });
+      }
+    }
+  }
+
+  private isSafeImageUrl(url: string): boolean {
+    if (typeof url !== 'string' || url.trim().length === 0) return false;
+    try {
+      const parsed = new URL(url.trim());
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+      return false;
     }
   }
 

@@ -21,7 +21,11 @@
 import type { AdminMediaAssetDto } from '@dragon/sdk';
 import { DragonPermissions as Permissions } from '@dragon/sdk';
 
-definePageMeta({ layout: 'admin' });
+definePageMeta({
+  layout: 'admin',
+  middleware: ['admin-auth-required', 'admin-permission-required'],
+  requiredPermission: Permissions.MEDIA_ASSET_UPLOAD,
+});
 
 const { hasPermission } = useAdminPermissions();
 const router = useRouter();

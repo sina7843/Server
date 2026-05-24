@@ -36,6 +36,34 @@ describe('profile mapper', () => {
     });
   });
 
+  it('includes avatarUrl when avatarData is provided', () => {
+    const result = toMyUserProfileDto(profile, {
+      avatarUrl: 'https://cdn.example.com/avatar.jpg',
+    });
+
+    expect(result.avatarUrl).toBe('https://cdn.example.com/avatar.jpg');
+    expect(result).not.toHaveProperty('avatarVariants');
+  });
+
+  it('includes avatarVariants when provided with avatarData', () => {
+    const result = toMyUserProfileDto(profile, {
+      avatarUrl: 'https://cdn.example.com/avatar.jpg',
+      avatarVariants: { thumbnail: 'https://cdn.example.com/thumb.jpg' },
+    });
+
+    expect(result.avatarUrl).toBe('https://cdn.example.com/avatar.jpg');
+    expect(result.avatarVariants).toEqual({ thumbnail: 'https://cdn.example.com/thumb.jpg' });
+  });
+
+  it('toPublicUserProfileDto includes avatarUrl when avatarData is provided', () => {
+    const result = toPublicUserProfileDto(profile, {
+      avatarUrl: 'https://cdn.example.com/avatar.jpg',
+    });
+
+    expect(result.avatarUrl).toBe('https://cdn.example.com/avatar.jpg');
+    expect(result.visibility).toBe('public');
+  });
+
   it('does not expose phone, email, passwordHash, token, or session fields', () => {
     const mapped = toMyUserProfileDto({
       ...profile,

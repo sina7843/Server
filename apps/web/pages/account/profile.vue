@@ -17,6 +17,41 @@
     <section v-else-if="profile">
       <p v-if="saveState === 'saved'" role="status">Profile saved.</p>
       <p v-if="saveState === 'error'" role="alert">Profile could not be saved.</p>
+
+      <div class="avatar-section">
+        <ProfileAvatar
+          :avatar-url="profile.avatarUrl"
+          :display-name="profile.displayName"
+          :username="profile.username"
+          class="avatar-large"
+        />
+        <div class="avatar-actions">
+          <label
+            class="avatar-upload-btn"
+            :class="{ 'avatar-upload-btn--loading': avatarState === 'uploading' }"
+          >
+            <input
+              ref="avatarInputRef"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              class="avatar-file-input"
+              :disabled="avatarState === 'uploading'"
+              @change="onAvatarFileChange"
+            />
+            {{ avatarState === 'uploading' ? 'Uploading…' : 'Change avatar' }}
+          </label>
+          <button
+            v-if="profile.avatarUrl"
+            class="avatar-remove-btn"
+            :disabled="avatarState === 'uploading'"
+            @click="removeAvatar"
+          >
+            Remove
+          </button>
+        </div>
+        <p v-if="avatarState === 'error'" class="avatar-error" role="alert">{{ avatarError }}</p>
+      </div>
+
       <ProfileEditForm
         :profile="profile"
         :submitting="saveState === 'saving'"
@@ -42,6 +77,9 @@ const profileApi = useProfile();
 const profile = ref<MyUserProfileDto | null>(null);
 const state = ref<'loading' | 'ready' | 'unauthorized' | 'error'>('loading');
 const saveState = ref<'idle' | 'saving' | 'saved' | 'error'>('idle');
+const avatarState = ref<'idle' | 'uploading' | 'error'>('idle');
+const avatarError = ref('');
+const avatarInputRef = ref<HTMLInputElement | null>(null);
 
 async function loadProfile() {
   try {
@@ -65,6 +103,39 @@ async function saveProfile(payload: UpdateMyProfileDto) {
   }
 }
 
+async function onAvatarFileChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+
+  if (!file) return;
+
+  avatarState.value = 'uploading';
+  avatarError.value = '';
+
+  try {
+    profile.value = await profileApi.value.uploadAvatar(file);
+    avatarState.value = 'idle';
+  } catch (err) {
+    avatarError.value = err instanceof Error ? err.message : 'Avatar upload failed.';
+    avatarState.value = 'error';
+  } finally {
+    if (avatarInputRef.value) avatarInputRef.value.value = '';
+  }
+}
+
+async function removeAvatar() {
+  avatarState.value = 'uploading';
+  avatarError.value = '';
+
+  try {
+    profile.value = await profileApi.value.deleteAvatar();
+    avatarState.value = 'idle';
+  } catch (err) {
+    avatarError.value = err instanceof Error ? err.message : 'Could not remove avatar.';
+    avatarState.value = 'error';
+  }
+}
+
 await loadProfile();
 </script>
 
@@ -74,5 +145,76 @@ await loadProfile();
   gap: 1.5rem;
   margin: 2rem auto;
   max-width: 48rem;
+}
+
+.avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.avatar-large {
+  width: 5rem;
+  height: 5rem;
+}
+
+.avatar-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.avatar-file-input {
+  display: none;
+}
+
+.avatar-upload-btn {
+  display: inline-block;
+  padding: 0.45rem 1rem;
+  border: 1px solid #3b82f6;
+  border-radius: 0.375rem;
+  background: #fff;
+  color: #3b82f6;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+
+.avatar-upload-btn:hover:not(.avatar-upload-btn--loading) {
+  background: #eff6ff;
+}
+
+.avatar-upload-btn--loading {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.avatar-remove-btn {
+  padding: 0.45rem 1rem;
+  border: 1px solid #fca5a5;
+  border-radius: 0.375rem;
+  background: #fff;
+  color: #dc2626;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.avatar-remove-btn:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+.avatar-remove-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.avatar-error {
+  font-size: 0.8rem;
+  color: #dc2626;
+  margin: 0;
+  width: 100%;
 }
 </style>

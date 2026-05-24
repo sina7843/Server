@@ -2,6 +2,8 @@ export interface PublicUserProfileDto {
   readonly username: string;
   readonly displayName: string;
   readonly avatarMediaId?: string;
+  readonly avatarUrl?: string;
+  readonly avatarVariants?: { readonly thumbnail?: string; readonly medium?: string };
   readonly bio?: string;
   readonly visibility: 'public';
   readonly publicUrl: string;

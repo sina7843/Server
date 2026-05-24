@@ -42,6 +42,6 @@ import { ImageProcessorService } from './image-processor.service';
     ImageProcessorService,
     AdminMediaService,
   ],
-  exports: [MediaAssetService],
+  exports: [MediaAssetService, MediaAssetRepository, STORAGE_SERVICE],
 })
 export class MediaModule {}

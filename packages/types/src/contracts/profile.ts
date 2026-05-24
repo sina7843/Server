@@ -9,10 +9,17 @@ export interface ProfileIdentityContract {
   readonly publicUrl: string;
 }
 
+export interface AvatarVariantsDto {
+  readonly thumbnail?: string;
+  readonly medium?: string;
+}
+
 export interface PublicUserProfileDto {
   readonly username: string;
   readonly displayName: string;
   readonly avatarMediaId?: string;
+  readonly avatarUrl?: string;
+  readonly avatarVariants?: AvatarVariantsDto;
   readonly bio?: string;
   readonly visibility: 'public';
   readonly publicUrl: string;
@@ -40,6 +47,8 @@ export interface MyUserProfileDto {
   readonly username: string;
   readonly displayName: string;
   readonly avatarMediaId?: string;
+  readonly avatarUrl?: string;
+  readonly avatarVariants?: AvatarVariantsDto;
   readonly bio?: string;
   readonly visibility: ProfileVisibility;
   readonly publicUrl: string;

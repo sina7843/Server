@@ -51,4 +51,46 @@ describe('createProfilesClient', () => {
     });
     expect(profiles).not.toHaveProperty('token');
   });
+
+  it('builds setAvatar request with mediaAssetId', async () => {
+    const request = jest.fn().mockResolvedValue({ username: 'dragon' });
+    const profiles = createProfilesClient({ request });
+
+    await profiles.setAvatar('abc123def456abc123def456');
+
+    expect(request).toHaveBeenCalledWith({
+      method: 'POST',
+      path: '/api/v1/me/avatar',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ mediaAssetId: 'abc123def456abc123def456' }),
+    });
+  });
+
+  it('builds deleteAvatar request', async () => {
+    const request = jest.fn().mockResolvedValue({ username: 'dragon' });
+    const profiles = createProfilesClient({ request });
+
+    await profiles.deleteAvatar();
+
+    expect(request).toHaveBeenCalledWith({
+      method: 'DELETE',
+      path: '/api/v1/me/avatar',
+    });
+  });
+
+  it('builds uploadAvatar request with FormData', async () => {
+    const request = jest.fn().mockResolvedValue({ username: 'dragon' });
+    const profiles = createProfilesClient({ request });
+
+    const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
+    await profiles.uploadAvatar(file);
+
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'POST',
+        path: '/api/v1/me/avatar/upload',
+        body: expect.any(FormData),
+      }),
+    );
+  });
 });

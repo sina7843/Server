@@ -1,7 +1,7 @@
 <template>
   <article class="public-profile-card">
     <ProfileAvatar
-      :avatar-media-id="profile.avatarMediaId"
+      :avatar-url="profile.avatarUrl"
       :display-name="profile.displayName"
       :username="profile.username"
     />

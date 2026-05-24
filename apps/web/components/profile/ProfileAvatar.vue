@@ -1,9 +1,7 @@
 <template>
   <div class="profile-avatar" :aria-label="label">
-    <span v-if="!avatarMediaId" class="profile-avatar__fallback">
-      {{ initials }}
-    </span>
-    <span v-else class="profile-avatar__reference">
+    <img v-if="avatarUrl" :src="avatarUrl" :alt="label" class="profile-avatar__img" />
+    <span v-else class="profile-avatar__fallback">
       {{ initials }}
     </span>
   </div>
@@ -14,12 +12,12 @@ const props = withDefaults(
   defineProps<{
     displayName?: string;
     username?: string;
-    avatarMediaId?: string;
+    avatarUrl?: string;
   }>(),
   {
     displayName: '',
     username: '',
-    avatarMediaId: undefined,
+    avatarUrl: undefined,
   },
 );
 
@@ -48,8 +46,13 @@ const initials = computed(() => {
   width: 4rem;
 }
 
-.profile-avatar__fallback,
-.profile-avatar__reference {
+.profile-avatar__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar__fallback {
   font-weight: 700;
 }
 </style>

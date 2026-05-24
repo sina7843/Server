@@ -90,6 +90,34 @@ describe('PostRepository', () => {
     );
   });
 
+  it('creates a post with coverMediaId when provided', async () => {
+    const { create, repository } = createRepository();
+    await repository.create({
+      type: 'article',
+      title: 'Test Article',
+      slug: 'test-article',
+      slugNormalized: 'test-article',
+      authorId: 'author-id',
+      coverMediaId: '64f000000000000000000001',
+    });
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({ coverMediaId: '64f000000000000000000001' }),
+    );
+  });
+
+  it('does not set coverMediaId field when not provided', async () => {
+    const { create, repository } = createRepository();
+    await repository.create({
+      type: 'article',
+      title: 'Test Article',
+      slug: 'test-article',
+      slugNormalized: 'test-article',
+      authorId: 'author-id',
+    });
+    const calledWith = create.mock.calls[0][0] as Record<string, unknown>;
+    expect(calledWith['coverMediaId']).toBeUndefined();
+  });
+
   it('marks post as published with publishedAt timestamp', async () => {
     const { findByIdAndUpdate, repository } = createRepository();
     const publishedAt = new Date('2026-01-01T00:00:00.000Z');

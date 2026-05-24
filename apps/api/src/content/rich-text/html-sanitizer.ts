@@ -52,7 +52,7 @@ export class HtmlSanitizer {
         th: ['colspan', 'rowspan', 'scope'],
         td: ['colspan', 'rowspan'],
         span: ['class'],
-        img: ['src', 'alt', 'title', 'data-media-id', 'data-alignment', 'class'],
+        img: ['src', 'alt', 'title', 'data-media-id', 'data-alignment', 'data-caption', 'class'],
       },
       allowedSchemes: ['http', 'https', 'mailto'],
       allowedSchemesByTag: {
@@ -98,11 +98,25 @@ export class HtmlSanitizer {
             return { tagName: 'span', attribs: {} };
           }
 
+          const VALID_OBJECTID = /^[0-9a-f]{24}$/i;
+          const VALID_ALIGNMENTS = new Set(['left', 'center', 'right', 'full']);
+
           const out: Record<string, string> = { src };
           if (attribs.alt) out.alt = attribs.alt;
           if (attribs.title) out.title = attribs.title;
-          if (attribs['data-media-id']) out['data-media-id'] = attribs['data-media-id'];
-          if (attribs['data-alignment']) out['data-alignment'] = attribs['data-alignment'];
+          if (attribs['data-media-id'] && VALID_OBJECTID.test(attribs['data-media-id'])) {
+            out['data-media-id'] = attribs['data-media-id'];
+          }
+          if (attribs['data-alignment'] && VALID_ALIGNMENTS.has(attribs['data-alignment'])) {
+            out['data-alignment'] = attribs['data-alignment'];
+          }
+          if (
+            attribs['data-caption'] &&
+            typeof attribs['data-caption'] === 'string' &&
+            attribs['data-caption'].length <= 1000
+          ) {
+            out['data-caption'] = attribs['data-caption'];
+          }
           if (attribs.class) out.class = attribs.class;
 
           return { tagName: 'img', attribs: out };

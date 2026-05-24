@@ -20,8 +20,11 @@ function normalizeBodyJson(bodyJson: Record<string, unknown>): Record<string, un
   return Object.keys(bodyJson).length === 0 ? { ...EMPTY_TIPTAP_DOC } : bodyJson;
 }
 
+const ALLOWED_ALIGNMENTS = new Set<string>(['left', 'center', 'right', 'full']);
+
 function extractInlineMediaRefs(bodyJson: Record<string, unknown>): PostMediaRefData[] {
   const refs: PostMediaRefData[] = [];
+  const seen = new Set<string>();
 
   function walk(node: unknown): void {
     if (typeof node !== 'object' || node === null || Array.isArray(node)) return;
@@ -30,11 +33,21 @@ function extractInlineMediaRefs(bodyJson: Record<string, unknown>): PostMediaRef
       const attrs = n.attrs as Record<string, unknown> | undefined;
       const mediaId = attrs?.mediaId;
       if (typeof mediaId === 'string' && /^[0-9a-f]{24}$/.test(mediaId)) {
-        refs.push({
-          mediaId: new Types.ObjectId(mediaId),
-          usage: 'inline',
-          ...(typeof attrs?.alt === 'string' && attrs.alt ? { alt: attrs.alt } : {}),
-        });
+        const key = `${mediaId}:inline`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          refs.push({
+            mediaId: new Types.ObjectId(mediaId),
+            usage: 'inline',
+            ...(typeof attrs?.alt === 'string' && attrs.alt ? { alt: attrs.alt } : {}),
+            ...(typeof attrs?.caption === 'string' && attrs.caption
+              ? { caption: attrs.caption }
+              : {}),
+            ...(typeof attrs?.alignment === 'string' && ALLOWED_ALIGNMENTS.has(attrs.alignment)
+              ? { alignment: attrs.alignment as 'left' | 'center' | 'right' | 'full' }
+              : {}),
+          });
+        }
       }
     }
     if (Array.isArray(n.content)) {
@@ -54,7 +67,17 @@ function buildMediaRefs(
 ): PostMediaRefData[] {
   const inlineRefs = extractInlineMediaRefs(bodyJson);
   if (!coverMediaId) return inlineRefs;
-  return [{ mediaId: new Types.ObjectId(coverMediaId), usage: 'cover' }, ...inlineRefs];
+  const coverRef: PostMediaRefData = { mediaId: new Types.ObjectId(coverMediaId), usage: 'cover' };
+  const seen = new Set<string>([`${coverMediaId}:cover`]);
+  const result: PostMediaRefData[] = [coverRef];
+  for (const ref of inlineRefs) {
+    const key = `${String(ref.mediaId)}:${ref.usage}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(ref);
+    }
+  }
+  return result;
 }
 
 function toPostSnapshot(post: PostDocument): Record<string, unknown> {
@@ -110,7 +133,8 @@ export class AdminContentPostsService {
     const safeBodyHtml = this.htmlSanitizer.sanitize(input.bodyHtml);
 
     const effectiveBodyJson = bodyJson ?? EMPTY_TIPTAP_DOC;
-    const mediaRefs = buildMediaRefs(effectiveBodyJson, null);
+    const effectiveCoverMediaId = input.coverMediaId ?? null;
+    const mediaRefs = buildMediaRefs(effectiveBodyJson, effectiveCoverMediaId);
 
     const post = await this.postService.create({
       type: input.type,
@@ -124,6 +148,7 @@ export class AdminContentPostsService {
       categoryIds: input.categoryIds,
       tagIds: input.tagIds,
       seo: input.seo,
+      ...(effectiveCoverMediaId ? { coverMediaId: effectiveCoverMediaId } : {}),
       mediaRefs,
     });
 

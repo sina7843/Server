@@ -181,6 +181,101 @@ describe('AdminContentPostsService — sanitization', () => {
       );
     });
 
+    it('includes cover ref in mediaRefs when coverMediaId is provided on create', async () => {
+      sanitizeSpy.mockReturnValue('<p>ok</p>');
+      const post = makePost();
+      (postService.create as jest.Mock).mockResolvedValue(post);
+      const coverMediaId = 'b'.repeat(24);
+
+      await service.createPost({ ...BASE_CREATE_INPUT, coverMediaId }, 'author1');
+
+      expect(postService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          coverMediaId,
+          mediaRefs: expect.arrayContaining([expect.objectContaining({ usage: 'cover' })]),
+        }),
+      );
+    });
+
+    it('does not add a cover ref when coverMediaId is null on create', async () => {
+      sanitizeSpy.mockReturnValue('<p>ok</p>');
+      const post = makePost();
+      (postService.create as jest.Mock).mockResolvedValue(post);
+
+      await service.createPost({ ...BASE_CREATE_INPUT, coverMediaId: null }, 'author1');
+
+      const call = (postService.create as jest.Mock).mock.calls[0][0] as Record<string, unknown>;
+      const mediaRefs = call['mediaRefs'] as Array<Record<string, unknown>>;
+      expect(mediaRefs.every((r) => r['usage'] !== 'cover')).toBe(true);
+    });
+
+    it('extracts caption and alignment from inline image node into mediaRefs', async () => {
+      sanitizeSpy.mockReturnValue('<p>ok</p>');
+      const post = makePost();
+      (postService.create as jest.Mock).mockResolvedValue(post);
+      const mediaId = 'a'.repeat(24);
+
+      await service.createPost(
+        {
+          ...BASE_CREATE_INPUT,
+          bodyJson: {
+            type: 'doc',
+            content: [
+              {
+                type: 'image',
+                attrs: {
+                  mediaId,
+                  src: 'https://cdn.example.com/photo.jpg',
+                  alt: 'A photo',
+                  caption: 'My caption',
+                  alignment: 'center',
+                },
+              },
+            ],
+          },
+        },
+        'author1',
+      );
+
+      expect(postService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          mediaRefs: expect.arrayContaining([
+            expect.objectContaining({
+              usage: 'inline',
+              caption: 'My caption',
+              alignment: 'center',
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('deduplicates inline image nodes with the same mediaId', async () => {
+      sanitizeSpy.mockReturnValue('<p>ok</p>');
+      const post = makePost();
+      (postService.create as jest.Mock).mockResolvedValue(post);
+      const mediaId = 'a'.repeat(24);
+
+      await service.createPost(
+        {
+          ...BASE_CREATE_INPUT,
+          bodyJson: {
+            type: 'doc',
+            content: [
+              { type: 'image', attrs: { mediaId, src: 'https://cdn.example.com/1.jpg' } },
+              { type: 'image', attrs: { mediaId, src: 'https://cdn.example.com/2.jpg' } },
+            ],
+          },
+        },
+        'author1',
+      );
+
+      const call = (postService.create as jest.Mock).mock.calls[0][0] as Record<string, unknown>;
+      const mediaRefs = call['mediaRefs'] as Array<Record<string, unknown>>;
+      const inlineRefs = mediaRefs.filter((r) => r['usage'] === 'inline');
+      expect(inlineRefs).toHaveLength(1);
+    });
+
     it('normalizes empty bodyJson ({}) to valid doc and accepts it', async () => {
       sanitizeSpy.mockReturnValue('<p>ok</p>');
       const post = makePost();

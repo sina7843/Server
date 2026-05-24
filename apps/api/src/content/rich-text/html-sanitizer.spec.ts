@@ -212,18 +212,48 @@ describe('HtmlSanitizer', () => {
     expect(result).toContain('alt="photo"');
   });
 
-  it('preserves data-media-id attribute on img', () => {
+  it('preserves valid data-media-id attribute on img', () => {
     const result = sanitizer.sanitize(
       '<img src="https://cdn.example.com/photo.jpg" data-media-id="64f000000000000000000001">',
     );
     expect(result).toContain('data-media-id="64f000000000000000000001"');
   });
 
-  it('preserves data-alignment attribute on img', () => {
+  it('strips invalid data-media-id (too short)', () => {
     const result = sanitizer.sanitize(
-      '<img src="https://cdn.example.com/photo.jpg" data-alignment="center">',
+      '<img src="https://cdn.example.com/photo.jpg" data-media-id="tooshort">',
     );
-    expect(result).toContain('data-alignment="center"');
+    expect(result).not.toContain('data-media-id');
+  });
+
+  it('strips invalid data-media-id (non-hex characters)', () => {
+    const result = sanitizer.sanitize(
+      '<img src="https://cdn.example.com/photo.jpg" data-media-id="zzzzzzzzzzzzzzzzzzzzzzzz">',
+    );
+    expect(result).not.toContain('data-media-id');
+  });
+
+  it('preserves valid data-alignment attribute on img', () => {
+    for (const alignment of ['left', 'center', 'right', 'full']) {
+      const result = sanitizer.sanitize(
+        `<img src="https://cdn.example.com/photo.jpg" data-alignment="${alignment}">`,
+      );
+      expect(result).toContain(`data-alignment="${alignment}"`);
+    }
+  });
+
+  it('strips invalid data-alignment value', () => {
+    const result = sanitizer.sanitize(
+      '<img src="https://cdn.example.com/photo.jpg" data-alignment="top">',
+    );
+    expect(result).not.toContain('data-alignment');
+  });
+
+  it('preserves data-caption on img when within length limit', () => {
+    const result = sanitizer.sanitize(
+      '<img src="https://cdn.example.com/photo.jpg" data-caption="A nice photo">',
+    );
+    expect(result).toContain('data-caption="A nice photo"');
   });
 
   it('strips onerror event handler from img', () => {

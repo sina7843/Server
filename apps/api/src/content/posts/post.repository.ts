@@ -82,6 +82,9 @@ export class PostRepository {
 
     if (input.excerpt !== undefined) doc.excerpt = input.excerpt;
     if (input.seo !== undefined) doc.seo = input.seo;
+    if (input.coverMediaId !== undefined && input.coverMediaId !== null) {
+      doc.coverMediaId = input.coverMediaId;
+    }
 
     const created = await this.postModel.create(doc);
     return created as PostDocument;

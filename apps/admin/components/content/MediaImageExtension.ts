@@ -22,6 +22,23 @@ export const MediaImage = Image.extend({
           return { alt: attributes['alt'] };
         },
       },
+      caption: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('data-caption'),
+        renderHTML: (attributes: Record<string, unknown>) => {
+          if (!attributes['caption']) return {};
+          return { 'data-caption': attributes['caption'] };
+        },
+      },
+      alignment: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('data-alignment'),
+        renderHTML: (attributes: Record<string, unknown>) => {
+          const VALID = new Set(['left', 'center', 'right', 'full']);
+          if (!attributes['alignment'] || !VALID.has(attributes['alignment'] as string)) return {};
+          return { 'data-alignment': attributes['alignment'] };
+        },
+      },
     };
   },
 }).configure({ inline: false, allowBase64: false });

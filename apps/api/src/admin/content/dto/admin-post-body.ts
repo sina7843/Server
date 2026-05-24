@@ -20,6 +20,7 @@ export interface AdminCreatePostBodyDto {
     readonly canonicalUrl?: string;
     readonly noIndex?: boolean;
   };
+  readonly coverMediaId?: string | null;
 }
 
 export interface AdminUpdatePostBodyDto {
@@ -49,6 +50,7 @@ const KNOWN_CREATE_FIELDS = new Set([
   'categoryIds',
   'tagIds',
   'seo',
+  'coverMediaId',
 ]);
 
 const KNOWN_UPDATE_FIELDS = new Set([
@@ -175,6 +177,18 @@ export function parseAdminCreatePostBody(raw: unknown): AdminCreatePostBodyDto {
 
   const seo = validateSeoInput(body.seo);
 
+  let coverMediaId: string | null | undefined;
+  if (body.coverMediaId !== undefined) {
+    if (body.coverMediaId !== null && typeof body.coverMediaId !== 'string') {
+      throw new BadRequestException('coverMediaId must be a string or null.');
+    }
+    const cov = body.coverMediaId === '' ? null : (body.coverMediaId as string | null);
+    if (cov !== null && !/^[0-9a-f]{24}$/i.test(cov)) {
+      throw new BadRequestException('coverMediaId must be a valid 24-character ObjectId.');
+    }
+    coverMediaId = cov;
+  }
+
   return {
     type: body.type as ContentPostType,
     title: body.title.trim(),
@@ -185,6 +199,7 @@ export function parseAdminCreatePostBody(raw: unknown): AdminCreatePostBodyDto {
     categoryIds,
     tagIds,
     seo,
+    ...(coverMediaId !== undefined ? { coverMediaId } : {}),
   };
 }
 

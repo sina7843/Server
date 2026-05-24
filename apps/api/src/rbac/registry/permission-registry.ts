@@ -183,6 +183,13 @@ export const PermissionRegistry = [
 
   permission(Permissions.AUDIT_LOG_READ, 'audit', 'log', 'read', 'Read audit logs'),
   permission(
+    Permissions.NOTIFICATION_LOG_READ,
+    'notification',
+    'log',
+    'read',
+    'Read notification logs',
+  ),
+  permission(
     Permissions.ANALYTICS_READ,
     'analytics',
     'analytics',

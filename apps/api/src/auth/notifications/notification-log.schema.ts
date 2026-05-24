@@ -56,4 +56,9 @@ export const NotificationLogSchema = SchemaFactory.createForClass(NotificationLo
 
 NotificationLogSchema.index({ recipientHash: 1, createdAt: -1 });
 NotificationLogSchema.index({ status: 1, createdAt: -1 });
-NotificationLogSchema.index({ providerMessageId: 1 });
+NotificationLogSchema.index({ provider: 1, createdAt: -1 });
+NotificationLogSchema.index({ templateKey: 1, createdAt: -1 }, { sparse: true });
+NotificationLogSchema.index({ requestId: 1 }, { sparse: true });
+NotificationLogSchema.index({ correlationId: 1 }, { sparse: true });
+NotificationLogSchema.index({ createdAt: -1 });
+NotificationLogSchema.index({ providerMessageId: 1 }, { sparse: true });

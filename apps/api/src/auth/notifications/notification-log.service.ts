@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { maskPhone } from '../security/masking';
 import { hashToken } from '../security/token-hasher';
-import { NotificationLogRepository } from './notification-log.repository';
+import { NotificationLogRepository, type UpdateNotificationLogInput } from './notification-log.repository';
 import type { NotificationLogDocument } from './notification-log.schema';
 import type {
   CreateNotificationLogInput,
   CreateSmsNotificationLogInput,
+  NotificationStatus,
 } from './notification-log.types';
 
 @Injectable()
@@ -26,6 +27,14 @@ export class NotificationLogService {
 
   logSmsSkipped(input: Omit<CreateSmsNotificationLogInput, 'status'>) {
     return this.createSmsLog({ ...input, status: 'skipped' });
+  }
+
+  updateStatus(
+    id: string,
+    status: NotificationStatus,
+    updates?: UpdateNotificationLogInput,
+  ): Promise<void> {
+    return this.notificationLogRepository.updateStatus(id, status, updates);
   }
 
   private createSmsLog(input: CreateSmsNotificationLogInput): Promise<NotificationLogDocument> {

@@ -5,6 +5,12 @@ import {
   mongoJobStatusUpdater,
   createNoopStatusUpdater,
 } from './job-log-updater';
+import {
+  connectNotificationLogMongo,
+  disconnectNotificationLogMongo,
+  mongoNotificationLogStatusUpdater,
+  createNoopNotificationLogStatusUpdater,
+} from './notification-log-updater';
 import { startQueueWorkers, stopQueueWorkers, getRedisConfigFromEnv } from './queue-worker';
 
 async function main(): Promise<void> {
@@ -13,6 +19,7 @@ async function main(): Promise<void> {
 
   const mongoUri = process.env['MONGODB_URI'];
   let statusUpdater = createNoopStatusUpdater();
+  let notificationLogUpdater = createNoopNotificationLogStatusUpdater();
 
   if (mongoUri) {
     try {
@@ -22,19 +29,28 @@ async function main(): Promise<void> {
     } catch (err) {
       console.error('[Worker] MongoDB connection failed, JobLog updates disabled:', err);
     }
+
+    try {
+      await connectNotificationLogMongo(mongoUri);
+      notificationLogUpdater = mongoNotificationLogStatusUpdater;
+      console.log('[Worker] Connected to MongoDB for NotificationLog updates');
+    } catch (err) {
+      console.error('[Worker] MongoDB connection failed, NotificationLog updates disabled:', err);
+    }
   } else {
-    console.warn('[Worker] MONGODB_URI not set, JobLog status updates are disabled');
+    console.warn('[Worker] MONGODB_URI not set, JobLog and NotificationLog status updates are disabled');
   }
 
   const connection = getRedisConfigFromEnv();
   const prefix = process.env['BULLMQ_PREFIX'] ?? 'dragon';
 
-  startQueueWorkers({ connection, prefix, statusUpdater });
+  startQueueWorkers({ connection, prefix, statusUpdater, notificationLogUpdater });
 
   const shutdown = async (): Promise<void> => {
     console.log('[Worker] Shutdown requested');
     await stopQueueWorkers();
     await disconnectJobLogMongo();
+    await disconnectNotificationLogMongo();
     process.exit(0);
   };
 

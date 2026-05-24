@@ -1,5 +1,5 @@
 import { Worker } from 'bullmq';
-import type { JobStatusUpdater } from './processors/processor-types';
+import type { JobStatusUpdater, NotificationLogStatusUpdater } from './processors/processor-types';
 import { processSmsJob } from './processors/sms-processor';
 import { processMediaJob } from './processors/media-processor';
 import { processMaintenanceJob } from './processors/maintenance-processor';
@@ -15,17 +15,19 @@ export interface QueueWorkerOptions {
   connection: RedisConnectionConfig;
   prefix?: string;
   statusUpdater: JobStatusUpdater;
+  notificationLogUpdater: NotificationLogStatusUpdater;
 }
 
 let activeWorkers: Worker[] = [];
 
 export function startQueueWorkers(options: QueueWorkerOptions): Worker[] {
-  const { connection, prefix = 'dragon', statusUpdater } = options;
+  const { connection, prefix = 'dragon', statusUpdater, notificationLogUpdater } = options;
 
-  const smsWorker = new Worker('sms', (job) => processSmsJob(job, statusUpdater), {
-    connection,
-    prefix,
-  });
+  const smsWorker = new Worker(
+    'sms',
+    (job) => processSmsJob(job, statusUpdater, notificationLogUpdater),
+    { connection, prefix },
+  );
 
   const mediaWorker = new Worker('media', (job) => processMediaJob(job, statusUpdater), {
     connection,

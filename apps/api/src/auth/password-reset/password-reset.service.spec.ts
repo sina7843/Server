@@ -56,6 +56,7 @@ describe('PasswordResetService', () => {
     } as unknown as jest.Mocked<OtpChallengeRepository>;
     const smsService = {
       sendSms: jest.fn().mockResolvedValue({ provider: 'mock', status: 'sent' }),
+      enqueueSms: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<SmsService>;
     const sessionRepository = {
       revokeAllForUser: jest.fn().mockResolvedValue({ modifiedCount: 2 }),
@@ -88,7 +89,7 @@ describe('PasswordResetService', () => {
 
       expect(response.success).toBe(true);
       expect(otpChallengeRepository.createChallenge).not.toHaveBeenCalled();
-      expect(smsService.sendSms).not.toHaveBeenCalled();
+      expect(smsService.enqueueSms).not.toHaveBeenCalled();
     });
 
     it('creates password_reset OTP only for active verified user and sends SMS', async () => {
@@ -104,7 +105,7 @@ describe('PasswordResetService', () => {
           codeHash: expect.stringContaining('$argon2id$'),
         }),
       );
-      expect(smsService.sendSms).toHaveBeenCalledWith(
+      expect(smsService.enqueueSms).toHaveBeenCalledWith(
         expect.objectContaining({
           recipientPhoneNormalized: '+989120000000',
           purpose: 'password_reset',
@@ -124,7 +125,7 @@ describe('PasswordResetService', () => {
         await service.forgotPassword({ phone: '+989120000000' });
 
         expect(otpChallengeRepository.createChallenge).not.toHaveBeenCalled();
-        expect(smsService.sendSms).not.toHaveBeenCalled();
+        expect(smsService.enqueueSms).not.toHaveBeenCalled();
       },
     );
   });
@@ -141,7 +142,7 @@ describe('PasswordResetService', () => {
 
     expect(response.success).toBe(true);
     expect(otpChallengeRepository.createChallenge).not.toHaveBeenCalled();
-    expect(smsService.sendSms).not.toHaveBeenCalled();
+    expect(smsService.enqueueSms).not.toHaveBeenCalled();
   });
 
   it('does not create or send reset OTP when IP limit is reached', async () => {
@@ -156,7 +157,7 @@ describe('PasswordResetService', () => {
 
     expect(response.success).toBe(true);
     expect(otpChallengeRepository.createChallenge).not.toHaveBeenCalled();
-    expect(smsService.sendSms).not.toHaveBeenCalled();
+    expect(smsService.enqueueSms).not.toHaveBeenCalled();
   });
 
   it('stores request metadata on password_reset OTP challenge when available', async () => {

@@ -51,6 +51,7 @@ describe('AuthService', () => {
         status: 'sent',
         providerMessageId: 'mock-register',
       }),
+      enqueueSms: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<SmsService>;
     const sessionRepository = {
       createSession: jest.fn().mockResolvedValue({ _id: 'session-1' }),
@@ -206,7 +207,7 @@ describe('AuthService', () => {
           message: REGISTER_GENERIC_MESSAGE,
         });
         expect(otpChallengeRepository.createChallenge).not.toHaveBeenCalled();
-        expect(smsService.sendSms).not.toHaveBeenCalled();
+        expect(smsService.enqueueSms).not.toHaveBeenCalled();
       },
     );
 
@@ -226,7 +227,7 @@ describe('AuthService', () => {
           nextResendAt: expect.any(Date),
         }),
       );
-      expect(smsService.sendSms).toHaveBeenCalledWith(
+      expect(smsService.enqueueSms).toHaveBeenCalledWith(
         expect.objectContaining({
           recipientPhoneNormalized: '+989120000000',
           purpose: 'phone_verification',
@@ -248,7 +249,7 @@ describe('AuthService', () => {
       await service.register({ phone: '+989120000000', password: 'strong-pass' });
 
       expect(otpChallengeRepository.createChallenge).not.toHaveBeenCalled();
-      expect(smsService.sendSms).not.toHaveBeenCalled();
+      expect(smsService.enqueueSms).not.toHaveBeenCalled();
     });
 
     it('does not create or send OTP when phone daily limit is reached', async () => {
@@ -263,7 +264,7 @@ describe('AuthService', () => {
 
       expect(response).toEqual(createGenericAuthResponse());
       expect(otpChallengeRepository.createChallenge).not.toHaveBeenCalled();
-      expect(smsService.sendSms).not.toHaveBeenCalled();
+      expect(smsService.enqueueSms).not.toHaveBeenCalled();
       expect(otpChallengeRepository.countRecentChallengesByPhone).toHaveBeenCalledWith(
         '+989120000000',
         'phone_verification',
@@ -283,7 +284,7 @@ describe('AuthService', () => {
 
       expect(response).toEqual(createGenericAuthResponse());
       expect(otpChallengeRepository.createChallenge).not.toHaveBeenCalled();
-      expect(smsService.sendSms).not.toHaveBeenCalled();
+      expect(smsService.enqueueSms).not.toHaveBeenCalled();
       expect(otpChallengeRepository.countRecentChallengesByIp).toHaveBeenCalledWith(
         '203.0.113.10',
         'phone_verification',

@@ -481,7 +481,7 @@ export class AuthService {
     };
 
     await this.otpChallengeRepository.createChallenge(challengeInput);
-    await this.smsService.sendSms({
+    await this.smsService.enqueueSms({
       recipientPhoneNormalized: phoneNormalized,
       message: `Your Dragon verification code is ${code}.`,
       purpose: PHONE_VERIFICATION_PURPOSE,

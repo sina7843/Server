@@ -24,6 +24,8 @@ describe('JobPayloadRedactor', () => {
       'authorization',
       'cookie',
       'cookies',
+      'smsBody',
+      'recipientPhoneNormalized',
     ];
 
     for (const key of secretKeys) {

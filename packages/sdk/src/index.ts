@@ -21,3 +21,5 @@ export * from './admin-audit-types';
 export * from './admin-audit';
 export * from './admin-jobs-types';
 export * from './admin-jobs';
+export * from './admin-notifications-types';
+export * from './admin-notifications';

@@ -100,7 +100,7 @@ export class PasswordResetService {
       ...definedMetadata(metadata),
     });
 
-    await this.smsService.sendSms({
+    await this.smsService.enqueueSms({
       recipientPhoneNormalized: phoneNormalized,
       message: `Your Dragon password reset code is ${code}.`,
       purpose: PASSWORD_RESET_PURPOSE,

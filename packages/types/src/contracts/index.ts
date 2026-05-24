@@ -7,3 +7,4 @@ export * from './admin-users';
 export * from './admin-dashboard';
 export * from './content';
 export * from './media';
+export * from './notifications';

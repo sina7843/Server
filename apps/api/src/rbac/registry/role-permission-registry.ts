@@ -27,6 +27,7 @@ export const RolePermissionRegistryMap = {
     Permissions.SYSTEM_JOB_RETRY,
 
     Permissions.AUDIT_LOG_READ,
+    Permissions.NOTIFICATION_LOG_READ,
   ],
 
   content_manager: [

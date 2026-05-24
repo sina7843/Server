@@ -49,6 +49,7 @@ export const Permissions = {
   MEDIA_ASSET_REGENERATE: 'media.asset.regenerate',
 
   AUDIT_LOG_READ: 'audit.log.read',
+  NOTIFICATION_LOG_READ: 'notification.log.read',
   ANALYTICS_READ: 'analytics.analytics.read',
 } as const;
 

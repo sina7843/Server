@@ -20,6 +20,8 @@ const REDACTED_KEYS = new Set([
   'authorization',
   'cookie',
   'cookies',
+  'smsBody',
+  'recipientPhoneNormalized',
 ]);
 
 const REDACTED_SENTINEL = '[REDACTED]';

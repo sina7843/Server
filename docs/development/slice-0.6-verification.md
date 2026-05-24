@@ -480,15 +480,15 @@ Expected: **83 API test suites, 652 API tests** (4 new tests added), 98 admin te
 
 ### Key Invariants
 
-| Invariant                                           | How to verify                                                                                                 |
-| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `{}` bodyJson normalized to empty TipTap doc        | `admin-content-posts.service.spec.ts` — "normalizes empty bodyJson ({}) to valid doc and accepts it"          |
-| `{ unknown: "bad" }` rejected on post create        | `admin-content-posts.service.spec.ts` — "rejects bodyJson without type field"                                 |
-| `{ unknown: "bad" }` rejected on post update        | `admin-content-posts.service.spec.ts` — "rejects bodyJson without type field on update"                       |
-| `{ unknown: "bad" }` rejected on page create        | `admin-content-pages.service.spec.ts` — "rejects bodyJson without type field"                                 |
-| `{ unknown: "bad" }` rejected on page update        | `admin-content-pages.service.spec.ts` — "rejects bodyJson without type field on update"                       |
-| Toolbar has no underline/strike/inline-code/hr      | `ContentEditorToolbar.vue` — no `toggleUnderline`, `toggleStrike`, `toggleCode`, `setHorizontalRule` calls    |
-| No Underline extension in editor                    | `ContentRichTextEditor.vue` — no `import Underline` and not in extensions array                               |
+| Invariant                                      | How to verify                                                                                              |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `{}` bodyJson normalized to empty TipTap doc   | `admin-content-posts.service.spec.ts` — "normalizes empty bodyJson ({}) to valid doc and accepts it"       |
+| `{ unknown: "bad" }` rejected on post create   | `admin-content-posts.service.spec.ts` — "rejects bodyJson without type field"                              |
+| `{ unknown: "bad" }` rejected on post update   | `admin-content-posts.service.spec.ts` — "rejects bodyJson without type field on update"                    |
+| `{ unknown: "bad" }` rejected on page create   | `admin-content-pages.service.spec.ts` — "rejects bodyJson without type field"                              |
+| `{ unknown: "bad" }` rejected on page update   | `admin-content-pages.service.spec.ts` — "rejects bodyJson without type field on update"                    |
+| Toolbar has no underline/strike/inline-code/hr | `ContentEditorToolbar.vue` — no `toggleUnderline`, `toggleStrike`, `toggleCode`, `setHorizontalRule` calls |
+| No Underline extension in editor               | `ContentRichTextEditor.vue` — no `import Underline` and not in extensions array                            |
 
 ---
 
@@ -513,11 +513,11 @@ pnpm build                              # ✓ 9 tasks, all successful
 
 ### Key Invariants
 
-| Invariant                                              | How to verify                                                                |
-| ------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| `apps/admin` is SPA (`ssr: false`)                     | `apps/admin/nuxt.config.ts` — `ssr: false` present                          |
-| `apps/web` remains SSR (`ssr: true`)                   | `apps/web/nuxt.config.ts` — `ssr: true` present                             |
-| Admin `runtimeConfig.public.apiBaseUrl` defined        | `apps/admin/nuxt.config.ts` — `runtimeConfig.public.apiBaseUrl`             |
-| Web `runtimeConfig.public.apiBaseUrl` defined          | `apps/web/nuxt.config.ts` — `runtimeConfig.public.apiBaseUrl`               |
-| Web `runtimeConfig.public.siteUrl` defined             | `apps/web/nuxt.config.ts` — `runtimeConfig.public.siteUrl`                  |
-| Admin app-level noindex meta set                       | `apps/admin/app.vue` — `useHead` with `robots: noindex,nofollow,noarchive`  |
+| Invariant                                       | How to verify                                                              |
+| ----------------------------------------------- | -------------------------------------------------------------------------- |
+| `apps/admin` is SPA (`ssr: false`)              | `apps/admin/nuxt.config.ts` — `ssr: false` present                         |
+| `apps/web` remains SSR (`ssr: true`)            | `apps/web/nuxt.config.ts` — `ssr: true` present                            |
+| Admin `runtimeConfig.public.apiBaseUrl` defined | `apps/admin/nuxt.config.ts` — `runtimeConfig.public.apiBaseUrl`            |
+| Web `runtimeConfig.public.apiBaseUrl` defined   | `apps/web/nuxt.config.ts` — `runtimeConfig.public.apiBaseUrl`              |
+| Web `runtimeConfig.public.siteUrl` defined      | `apps/web/nuxt.config.ts` — `runtimeConfig.public.siteUrl`                 |
+| Admin app-level noindex meta set                | `apps/admin/app.vue` — `useHead` with `robots: noindex,nofollow,noarchive` |

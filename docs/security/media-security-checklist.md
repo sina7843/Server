@@ -1,6 +1,6 @@
 # Media Security Checklist
 
-> Tasks 0.7.1 and 0.7.2 — Storage abstraction and media upload API.
+> Tasks 0.7.1–0.7.8 — Storage abstraction, media upload API, image processing, admin media UI, avatar integration, security closeout, and content integration.
 
 ## Object Key Safety (Task 0.7.1 ✓)
 
@@ -51,6 +51,34 @@
 - [x] Soft delete only — hard delete not exposed; `deletedAt` is set; documents remain in DB
 - [x] Private media URLs use signed URLs with configurable TTL — not permanent public links
 - [x] Signed URL generation failure degrades to public URL with a warning log, not a 500
+
+## Route and UI Permission Safety (Tasks 0.7.4 and 0.7.7 ✓)
+
+- [x] Admin media pages (`/media`, `/media/upload`, `/media/:id`) protected with `['admin-auth-required', 'admin-permission-required']` route middleware and `requiredPermission` meta
+- [x] `MediaPickerDialog` upload tab hidden (not just disabled) when user lacks `MEDIA_ASSET_UPLOAD` permission — enforced via `useAdminPermissions()` composable
+- [x] No manual `mediaId` input in any UI — media assets are always selected via `MediaPickerDialog` or uploaded through the standard upload flow
+
+## Image Node and mediaRefs Safety (Tasks 0.7.7 and 0.7.8 ✓)
+
+- [x] TipTap `image` nodes require a valid `mediaId` (24-char hex ObjectId) — backend rich-text validator rejects image nodes without a valid `mediaId`
+- [x] Image `src` in TipTap bodyJson must be http/https — validator rejects javascript:, data:, and relative URLs
+- [x] `<img>` tags in bodyHtml are allowed only with safe src (http/https); unsafe srcs (javascript:, data:, relative) are converted to `<span>` by the HTML sanitizer
+- [x] `data-media-id` on `<img>` is preserved only when it is a valid 24-char hex ObjectId — invalid values are stripped by the sanitizer
+- [x] `data-alignment` on `<img>` is preserved only when it matches the allowlist (left/center/right/full) — invalid values are stripped
+- [x] `data-caption` on `<img>` is preserved only when within 1000-character limit — longer values are stripped
+- [x] `mediaRefs` array is computed from coverMediaId (usage=cover) and inline image nodes (usage=inline) on every create and update — deduplicated by `mediaId+usage`
+- [x] `coverMediaId` is validated as a 24-char hex ObjectId on both create and update DTO parsing — invalid values return 400, not 500
+
+## Avatar Security (Task 0.7.5 and 0.7.6 ✓)
+
+- [x] Avatar upload path goes through `MediaUploadPipeline` — same validation, storage, and variant generation as admin media upload
+- [x] `avatarMediaId` cannot be set via `PATCH /api/v1/me/profile` — field is forbidden and rejected with 400
+- [x] Private avatar media does not leak public URL — `resolveAvatarUrls` returns `undefined` for private assets
+
+## Image Content Verification (Task 0.7.6 ✓)
+
+- [x] `validateImageContent()` verifies file bytes using `sharp` before storage — rejects fake images (e.g. text file with `.jpg` extension)
+- [x] Private media signed URL failure does not fall back to public URL — returns `''` with a warning log
 
 ## Limitations / Known Gaps
 

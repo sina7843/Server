@@ -278,7 +278,11 @@ export function parseAdminUpdatePostBody(raw: unknown): AdminUpdatePostBodyDto {
     if (body.coverMediaId !== null && typeof body.coverMediaId !== 'string') {
       throw new BadRequestException('coverMediaId must be a string or null.');
     }
-    result.coverMediaId = body.coverMediaId === '' ? null : (body.coverMediaId as string | null);
+    const cov = body.coverMediaId === '' ? null : (body.coverMediaId as string | null);
+    if (cov !== null && !/^[0-9a-f]{24}$/i.test(cov)) {
+      throw new BadRequestException('coverMediaId must be a valid 24-character ObjectId.');
+    }
+    result.coverMediaId = cov;
   }
 
   return result as AdminUpdatePostBodyDto;

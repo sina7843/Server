@@ -13,27 +13,29 @@
 - **`apps/api/src/storage/s3/s3-base.adapter.ts`** — `S3BaseAdapter` (shared S3-compatible implementation using AWS SDK v3)
 - **`apps/api/src/storage/s3/minio-storage.adapter.ts`** — `MinioStorageAdapter`
 - **`apps/api/src/storage/s3/arvan-s3-storage.adapter.ts`** — `ArvanS3StorageAdapter`
-- **`apps/api/src/storage/storage.module.ts`** — `StorageModule` (not imported in AppModule yet — no upload endpoint)
+- **`apps/api/src/storage/storage.module.ts`** — `StorageModule` (imported into `AppModule` via `MediaModule` in Task 0.7.2)
 - **Dependencies added**: `@aws-sdk/client-s3@3.799.0`, `@aws-sdk/s3-request-presigner@3.799.0`
 - **`apps/api/.env.example`** — updated with storage env vars (placeholders only)
 - **`infra/docker/.env.example`** — updated with `MINIO_DEFAULT_BUCKETS`
 
-### What was NOT built (intentionally out of scope)
+### What was NOT built in Task 0.7.1 (built in later tasks)
 
-- No MediaAsset schema
-- No media upload endpoint (`POST /admin/v1/media/upload`)
-- No admin media API
-- No admin media UI
-- No media picker
-- No image variant generation
-- No content cover integration
-- No TipTap inline image integration
-- No avatar integration
+- MediaAsset schema — built in Task 0.7.2
+- Media upload endpoint — built in Task 0.7.2
+- Admin media API — built in Task 0.7.2
+- Image variant generation — built in Task 0.7.3
+- Admin media UI / media picker — built in Task 0.7.4
+- Content cover integration — built in Task 0.7.4
+- TipTap inline image integration — built in Task 0.7.7
+- Avatar integration — built in Task 0.7.5
+- `StorageModule` imported into `AppModule` — done in Task 0.7.2
+
+### Intentionally out of scope (remains unimplemented)
+
 - No direct-to-S3 presigned upload
 - No multipart upload
 - No video processing
 - No CDN optimization
-- `StorageModule` is not imported into `AppModule` — deferred to Task 0.7.2
 
 ### Verification Commands
 
@@ -112,15 +114,19 @@ Expected: **87 API test suites, 713 API tests, 0 failures** (61 new storage test
 - **`apps/api/.env.example`** — added `MEDIA_MAX_FILE_SIZE_BYTES`
 - **`@types/multer`** installed as dev dependency in `@dragon/api`
 
-### What was NOT built (intentionally out of scope)
+### What was NOT built in Task 0.7.2 (built in later tasks)
 
-- No image variant generation (Task 0.7.3)
-- No `POST /admin/v1/media/:id/regenerate-variants` endpoint
+- Image variant generation — built in Task 0.7.3
+- `POST /admin/v1/media/:id/regenerate-variants` endpoint — built in Task 0.7.3
+- Admin media UI / media picker — built in Task 0.7.4
+- Content cover integration — built in Task 0.7.4
+- TipTap inline image integration — built in Task 0.7.7
+
+### Intentionally out of scope (remains unimplemented)
+
 - No direct-to-S3 presigned upload
 - No multipart upload
-- No admin media UI / media picker
 - No video support
-- No content cover or TipTap inline image integration
 
 ### Verification Commands
 
@@ -185,13 +191,17 @@ Expected: **90 API test suites, 763 API tests, 0 failures**.
 - **`sharp`** installed as a dependency in `@dragon/api`; `@types/sharp` installed as dev dependency
 - Storage adapter specs updated with `download` tests
 
-### What was NOT built (intentionally out of scope)
+### What was NOT built in Task 0.7.3 (built in later tasks)
+
+- Admin media UI — built in Task 0.7.4
+- Content cover integration — built in Task 0.7.4
+- TipTap inline image integration — built in Task 0.7.7
+
+### Intentionally out of scope (remains unimplemented)
 
 - No BullMQ / queue-based processing (processing is synchronous in the upload request)
 - No WebP transcoding (variants keep the original MIME type)
 - No video processing
-- No admin media UI
-- No content cover or TipTap inline image integration
 
 ### Verification Commands
 
@@ -356,3 +366,41 @@ pnpm test
 pnpm build
 pnpm format:check
 ```
+
+Expected: **94 API test suites, 849 API tests, 0 failures**.
+
+---
+
+## Task 0.7.8 — Slice 0.7 Final Closeout Cleanup
+
+### What was built
+
+- **HTML sanitizer `<img>` attribute validation**: `data-media-id` validated as 24-char hex ObjectId; `data-alignment` validated against allowlist (left/center/right/full); `data-caption` preserved with 1000-char limit
+- **`mediaRefs` extraction improvements**: `extractInlineMediaRefs` now copies `caption` and `alignment` from TipTap image node attrs; deduplication by `mediaId+usage` key in both `extractInlineMediaRefs` and `buildMediaRefs`
+- **`coverMediaId` support on post create**: Added to `AdminCreatePostBodyDto` and `KNOWN_CREATE_FIELDS`; validated as 24-char hex ObjectId or null (empty string → null); passed into `buildMediaRefs`; persisted in repository
+- **`MediaImageExtension` caption/alignment attrs**: TipTap extension now supports `caption` and `alignment` attrs with `data-caption`/`data-alignment` HTML mapping; alignment validated against allowlist
+- **`parseAdminUpdatePostBody` coverMediaId format validation**: Update DTO parser now validates coverMediaId as 24-char hex ObjectId — invalid value returns 400 instead of silently passing through
+- **DTO parser tests**: `admin-post-body.spec.ts` covers create + update paths for coverMediaId (valid, null, empty string, short, non-hex, number)
+
+### What was NOT built (intentionally out of scope)
+
+- No TipTap caption/alignment UI controls (no toolbar; attrs exist in schema only)
+- No video processing, no direct-to-S3, no multipart upload
+- No media marketplace
+
+### Verification Commands
+
+```bash
+pnpm --filter @dragon/api lint
+pnpm --filter @dragon/api typecheck
+pnpm --filter @dragon/api test
+pnpm --filter @dragon/api build
+
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm format:check
+```
+
+Expected: **94 API test suites, 856 API tests, 0 failures**.

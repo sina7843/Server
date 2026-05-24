@@ -5,11 +5,14 @@
 Task 0.7.1 — Storage abstraction and providers — **Complete**
 Task 0.7.2 — MediaAsset persistence and secure upload APIs — **Complete**
 Task 0.7.3 — Image processing and variants — **Complete**
+Task 0.7.4 — Admin media UI and media picker — **Complete**
+Task 0.7.5 — Avatar / media integration — **Complete**
+Task 0.7.6 — Security closeout — **Complete**
+Task 0.7.7 — Media integration fixes (TipTap inline image, mediaRefs, sanitizer) — **Complete**
+Task 0.7.8 — Final closeout cleanup — **Complete**
 
-Not yet implemented (Later tasks):
+Not yet implemented (intentionally out of scope):
 
-- Admin media UI / media picker
-- Content cover integration / TipTap inline image
 - Direct-to-S3 presigned upload
 - Multipart upload
 - Video processing / transcoding
@@ -208,9 +211,15 @@ Added `download(objectKey: string): Promise<Buffer>` to the `StorageService` int
 
 ---
 
+## Admin Media UI and Content Integration (Tasks 0.7.4 and 0.7.7)
+
+- **Admin media pages**: `/media` (list + filters), `/media/upload`, `/media/:id` (detail + edit + regenerate + delete) — all gated by `MEDIA_ASSET_READ`/`MEDIA_ASSET_UPLOAD` permissions via route middleware
+- **MediaPickerDialog**: reusable component for selecting or uploading a media asset; upload tab is hidden when user lacks `MEDIA_ASSET_UPLOAD` permission
+- **Content cover integration**: `ContentPostFormView` uses `MediaPickerDialog` to set/clear `coverMediaId` on a post; persisted via `PATCH /admin/v1/content/posts/:id`
+- **TipTap inline image**: `MediaImageExtension` extends `@tiptap/extension-image` with `mediaId`, `alt`, `caption`, `alignment` attrs; toolbar button opens `MediaPickerDialog`; selected asset is inserted as an image node; `mediaId` is required and validated backend-side
+
 ## Later — Not Yet Implemented
 
 - **Direct-to-S3 presigned upload**: client uploads directly to S3; backend issues a short-lived presigned PUT URL. Deferred.
 - **Multipart upload**: for large files. Deferred.
-- **Admin media UI / media picker**: Deferred.
 - **Video processing / transcoding**: Out of scope.

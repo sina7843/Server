@@ -4,7 +4,7 @@
 
 Backend foundation implemented in Slice 0.9.3.
 Admin analytics APIs exist.
-Frontend dashboard is Task 0.9.4 — not implemented yet.
+Frontend analytics dashboard implemented in Slice 0.9.4 — `/analytics` route in admin app.
 No funnels, cohorts, retention, A/B testing, revenue analytics, real-time analytics, data warehouse, or BI.
 No fake metrics.
 
@@ -191,20 +191,41 @@ SDK has no real-time method, no BI/funnel/cohort/revenue method, no WebSocket me
 - **No advanced analytics.** No funnels, cohorts, retention, A/B testing, revenue analytics, or user journeys.
 - **No real-time analytics.** Aggregations run on-demand against MongoDB. Not suitable for dashboards requiring sub-second freshness.
 - **No data warehouse.** All events are stored in MongoDB alongside operational data.
-- **No analytics frontend dashboard.** Admin UI for analytics is Task 0.9.4.
+- **No advanced analytics frontend.** Admin `/analytics` dashboard exists (Task 0.9.4) showing real metric cards and top content table. Advanced BI/funnels/charts are not implemented.
 - **No Persian/Farsi NLP.** Not implemented.
 - **No retention policy enforcement.** Retention policy is documented as follows: analytics events are indefinitely retained in Phase 0. A TTL index or batch cleanup job can be added in a future slice when a retention window is agreed.
 - **No throttle/dedupe on content.viewed.** Phase 0 counts all view events. Dedupe by session/user can be added later.
 
-## Out of Scope (Slice 0.9.3)
+## Admin Dashboard (Slice 0.9.4)
 
-- Frontend analytics dashboard (Task 0.9.4)
+Route: `/analytics` in `apps/admin`.
+
+Sections:
+
+- **Auth**: registrations + logins
+- **OTP**: requested / verified / failed
+- **Content**: views + published count + top content table (title, type, views)
+- **Media**: upload count
+
+Each section loads independently via `useAnalytics` composable → `admin-analytics.api` feature → SDK `createAdminAnalyticsClient`. Partial failure is handled with `Promise.allSettled` — one failing section shows `ErrorState` with retry while others remain visible.
+
+Date range filter passes `dateFrom` / `dateTo` to all section loaders.
+
+Privacy guarantees:
+
+- No raw IP, phone, email, OTP, token, or password displayed.
+- Top content table uses `title` and `type` from DTO — no `objectKey`, `bucket`, or `storageProvider`.
+- Zero counts are displayed as real data, not suppressed.
+
+## Out of Scope (Slice 0.9.3 + 0.9.4)
+
 - Funnels / cohorts / retention analytics
 - A/B testing
 - Revenue analytics
 - Real-time analytics / WebSocket dashboard
 - Data warehouse / BI tools
-- Advanced charting
+- Advanced charting (no chart libraries added)
+- Fake/placeholder metrics or trend percentages
 - Search-over-analytics events
 - Marketing analytics
-- Fake/placeholder metrics
+- Predictive / recommendation analytics

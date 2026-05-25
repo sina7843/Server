@@ -79,6 +79,13 @@ export const ADMIN_NAV_ITEMS: readonly AdminNavItem[] = [
     path: '/system/notifications',
     permission: DragonPermissions.NOTIFICATION_LOG_READ,
   },
+  {
+    key: 'analytics',
+    label: 'آنالیتیکس',
+    labelEn: 'Analytics',
+    path: '/analytics',
+    permission: DragonPermissions.ANALYTICS_READ,
+  },
 ] as const;
 
 export function filterNavByPermissions(

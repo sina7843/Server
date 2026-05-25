@@ -357,3 +357,141 @@ Docs match implemented scope
 ### Out of scope for Task 0.9.3
 
 Frontend analytics dashboard (Task 0.9.4), funnels, cohorts, retention, A/B testing, revenue analytics, real-time analytics, data warehouse, BI tools, WebSocket analytics, marketing analytics, external analytics platforms.
+
+---
+
+## Task 0.9.4 — Analytics Dashboard Frontend
+
+### What was built
+
+**apps/admin/pages/analytics/index.vue**
+
+- `/analytics` route requiring `admin-auth-required` + `admin-permission-required` middleware
+- `requiredPermission: DragonPermissions.ANALYTICS_READ`
+- `ForbiddenState` shown if user lacks `analytics.read`
+- Date range filter (dateFrom / dateTo) synced to composable params
+- Four independent sections with per-section loading / error / retry states (partial failure supported)
+- Auth section: registrations + logins cards
+- OTP section: requested / verified / failed cards
+- Content section: views + published cards + `AnalyticsTopContentTable`
+- Media section: uploads card
+- `loadAll()` uses `Promise.allSettled` — one failing section never blocks others
+- No fake metrics, no fake charts, no generated sample data
+
+**apps/admin/composables/useAnalytics.ts**
+
+- Module-level `ref` state per section: summary, auth, otp, contentTop, media
+- Loading/error state per section
+- `loadAuth`, `loadOtp`, `loadContentTop`, `loadMedia`, `loadSummary`, `loadAll`
+- All calls go through `~/features/analytics/admin-analytics.api` → SDK `createAdminAnalyticsClient`
+- `loadAll` uses `Promise.allSettled` for partial failure resilience
+
+**apps/admin/features/analytics/admin-analytics.api.ts**
+
+- `getAnalyticsSummary`, `getAnalyticsAuth`, `getAnalyticsOtp`, `getAnalyticsContentTop`, `getAnalyticsMedia`
+- Each wraps the corresponding SDK `createAdminAnalyticsClient` method
+- Functions prefixed `analytics*` to avoid Nuxt auto-import conflicts with media API
+
+**apps/admin/features/analytics/admin-analytics.api.spec.ts**
+
+- Tests each endpoint: correct URL, date range params, no sensitive data in response
+- Tests zero/empty responses as valid real data
+- Safety invariants: no real-time method, no BI/funnel/cohort/revenue method, no fake data method
+
+**apps/admin/components/analytics/AnalyticsMetricCard.vue**
+
+- Props: `label`, `value` (number), `loading`, `error`
+- Shows `…` skeleton during loading, error badge on failure, real count otherwise
+- Zero is displayed as real data (not hidden)
+
+**apps/admin/components/analytics/AnalyticsTopContentTable.vue**
+
+- Props: `items` (readonly AnalyticsContentTopItemDto[]), `loading`, `error`
+- Columns: title/resourceId, type, view count
+- Uses `LoadingState` / `ErrorState` / `EmptyState` components
+- No objectKey, bucket, storageProvider, phone, email, token displayed
+
+**apps/admin/features/navigation/admin-navigation.ts**
+
+- Added `analytics` nav item: label "آنالیتیکس", path `/analytics`, permission `DragonPermissions.ANALYTICS_READ`
+
+**apps/admin/features/navigation/admin-navigation.spec.ts**
+
+- Updated `ALLOWED_KEYS` to include `'analytics'` (11 items total)
+- Updated test description to "Slice 0.5–0.9"
+- Added analytics nav item tests: exists, uses ANALYTICS_READ, points to /analytics
+- Added: appears only with `analytics.analytics.read`, not without
+- Added: no BI/funnels/cohorts/revenue nav items
+
+### Verification commands
+
+```bash
+pnpm install
+
+pnpm --filter @dragon/admin lint
+pnpm --filter @dragon/admin typecheck
+pnpm --filter @dragon/admin test
+pnpm --filter @dragon/admin build
+
+pnpm --filter @dragon/sdk lint
+pnpm --filter @dragon/sdk typecheck
+pnpm --filter @dragon/sdk test
+pnpm --filter @dragon/sdk build
+
+pnpm --filter @dragon/types lint
+pnpm --filter @dragon/types typecheck
+pnpm --filter @dragon/types test
+pnpm --filter @dragon/types build
+
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm format:check
+```
+
+### Manual verification checklist
+
+```text
+apps/admin/pages/analytics/index.vue exists
+apps/admin/composables/useAnalytics.ts exists
+apps/admin/features/analytics/admin-analytics.api.ts exists
+AnalyticsMetricCard.vue exists under apps/admin/components/analytics/
+AnalyticsTopContentTable.vue exists under apps/admin/components/analytics/
+Analytics nav item exists in ADMIN_NAV_ITEMS
+Analytics nav item uses DragonPermissions.ANALYTICS_READ
+Analytics nav visible only with analytics.read permission
+/analytics route requires admin-auth-required middleware
+/analytics route requires admin-permission-required middleware
+/analytics requires analytics.read (requiredPermission)
+ForbiddenState shown without analytics.read
+Dashboard uses useAnalytics composable
+useAnalytics uses admin-analytics.api (not direct fetch)
+admin-analytics.api uses SDK createAdminAnalyticsClient
+Date range filter exists
+loadAll uses Promise.allSettled (partial failure support)
+Per-section ErrorState with retry shown on section failure
+Metric cards show 0 for zero-value real data (not hidden)
+Top content table shows LoadingState / ErrorState / EmptyState
+No fake metrics exist
+No fake charts exist
+No generated sample data exists
+No BI/funnels/cohorts/revenue/A-B testing UI exists
+No real-time/WebSocket dashboard exists
+No raw phone/email/IP/token/password displayed
+Docs match implemented scope
+```
+
+### Security invariants (frontend)
+
+1. `/analytics` route requires `analytics.read` via middleware — unauthenticated users redirected to `/login`.
+2. `ForbiddenState` shown in-page if `hasPermission(ANALYTICS_READ)` is false.
+3. No raw IP, phone, email, token, OTP, or password displayed anywhere in the dashboard.
+4. Top content table shows only `title`, `type`, and `views` — no `objectKey`, `bucket`, or `storageProvider`.
+5. All API calls go through SDK — no hardcoded fetch paths in pages or components.
+6. Dashboard shows real 0 counts — not suppressed or faked.
+7. Partial failure: failed section shows `ErrorState` with retry, not fake data.
+
+### Out of scope for Task 0.9.4
+
+Advanced BI dashboard, funnels, cohorts, retention analytics, A/B testing, revenue analytics, marketing analytics, real-time dashboard, WebSocket dashboard, fake charts, fake metrics, future-module analytics, predictive analytics, recommendation analytics, data warehouse UI.

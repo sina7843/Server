@@ -106,7 +106,30 @@
 - [ ] No funnels, cohorts, retention, A/B testing, or revenue analytics exist.
 - [ ] No external analytics platform (Mixpanel, Amplitude, GA) is integrated.
 
-## Out of Scope (Slice 0.9.1 + 0.9.2 + 0.9.3)
+## Analytics Frontend Safety (Slice 0.9.4)
+
+- [ ] `/analytics` route requires `AccessTokenGuard` (middleware: `admin-auth-required`).
+- [ ] `/analytics` route requires `analytics.read` permission (middleware: `admin-permission-required`).
+- [ ] `ForbiddenState` is shown in-page when `hasPermission(ANALYTICS_READ)` is false.
+- [ ] Dashboard uses `useAnalytics` composable — no direct fetch calls in page or components.
+- [ ] `useAnalytics` uses `admin-analytics.api` feature — no hardcoded API paths.
+- [ ] `admin-analytics.api` uses SDK `createAdminAnalyticsClient` — no raw fetch in feature layer.
+- [ ] Analytics nav item uses `DragonPermissions.ANALYTICS_READ` — no raw permission string.
+- [ ] No raw IP displayed in dashboard.
+- [ ] No raw phone or email displayed in dashboard.
+- [ ] No OTP, token, password, or session secret displayed in dashboard.
+- [ ] Top content table shows `title`, `type`, `views` only — no `objectKey`, `bucket`, `storageProvider`.
+- [ ] Zero counts are displayed as real data, not suppressed or replaced with "N/A".
+- [ ] Partial endpoint failure: failing section shows `ErrorState` with retry, not fake data.
+- [ ] `loadAll` uses `Promise.allSettled` — one failing section does not block others.
+- [ ] No fake metrics, no generated sample data, no fake trend percentages.
+- [ ] No BI/funnels/cohorts/retention/A-B testing UI exists.
+- [ ] No revenue or marketing analytics UI exists.
+- [ ] No real-time dashboard or WebSocket behavior exists.
+- [ ] No fake charts or chart libraries added.
+- [ ] No future-module analytics (tournament, shop, academy, streaming, boardgame) added.
+
+## Out of Scope (Slice 0.9.1 + 0.9.2 + 0.9.3 + 0.9.4)
 
 - [ ] No real-time search indexing exists.
 - [ ] No Meilisearch / Elasticsearch / OpenSearch client exists.
@@ -115,6 +138,5 @@
 - [ ] No recommendation engine or related content endpoint exists.
 - [ ] No search-over-audit-logs endpoint exists (covered by existing audit filter API).
 - [ ] No global admin command palette exists.
-- [ ] No frontend analytics dashboard (Task 0.9.4).
 - [ ] No funnels / cohorts / retention / A-B / revenue analytics.
 - [ ] No data warehouse or BI tooling.

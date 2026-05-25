@@ -12,10 +12,11 @@ const ALLOWED_KEYS = [
   'audit',
   'jobs',
   'notifications',
+  'analytics',
 ];
 
 describe('ADMIN_NAV_ITEMS', () => {
-  it('contains exactly the allowed Slice 0.5–0.8 navigation items', () => {
+  it('contains exactly the allowed Slice 0.5–0.9 navigation items', () => {
     expect(ADMIN_NAV_ITEMS.map((i) => i.key)).toEqual(ALLOWED_KEYS);
   });
 
@@ -83,9 +84,16 @@ describe('ADMIN_NAV_ITEMS', () => {
     expect(notifItem!.path).toBe('/system/notifications');
   });
 
-  it('does not contain Analytics nav items', () => {
+  it('contains analytics nav item added in Task 0.9.4', () => {
     const keys = ADMIN_NAV_ITEMS.map((i) => i.key);
-    expect(keys).not.toContain('analytics');
+    expect(keys).toContain('analytics');
+  });
+
+  it('analytics nav item uses analytics.analytics.read permission as gate', () => {
+    const analyticsItem = ADMIN_NAV_ITEMS.find((i) => i.key === 'analytics');
+    expect(analyticsItem).toBeDefined();
+    expect(analyticsItem!.permission).toBe(DragonPermissions.ANALYTICS_READ);
+    expect(analyticsItem!.path).toBe('/analytics');
   });
 
   it('does not contain Backup nav item', () => {
@@ -100,6 +108,14 @@ describe('ADMIN_NAV_ITEMS', () => {
     expect(keys).not.toContain('academy');
     expect(keys).not.toContain('streaming');
     expect(keys).not.toContain('boardgame');
+  });
+
+  it('does not contain BI/funnels/cohorts/revenue nav items', () => {
+    const keys = ADMIN_NAV_ITEMS.map((i) => i.key);
+    expect(keys).not.toContain('funnels');
+    expect(keys).not.toContain('cohorts');
+    expect(keys).not.toContain('revenue');
+    expect(keys).not.toContain('retention');
   });
 });
 
@@ -214,5 +230,19 @@ describe('filterNavByPermissions', () => {
     const result = filterNavByPermissions(ADMIN_NAV_ITEMS, permissions, false);
     const keys = result.map((i) => i.key);
     expect(keys).not.toContain('notifications');
+  });
+
+  it('shows Analytics nav only with analytics.analytics.read permission', () => {
+    const permissions = new Set([DragonPermissions.ANALYTICS_READ]);
+    const result = filterNavByPermissions(ADMIN_NAV_ITEMS, permissions, false);
+    expect(result).toHaveLength(1);
+    expect(result[0]!.key).toBe('analytics');
+  });
+
+  it('does not show Analytics nav without analytics.analytics.read permission', () => {
+    const permissions = new Set([DragonPermissions.USER_READ, DragonPermissions.AUDIT_LOG_READ]);
+    const result = filterNavByPermissions(ADMIN_NAV_ITEMS, permissions, false);
+    const keys = result.map((i) => i.key);
+    expect(keys).not.toContain('analytics');
   });
 });

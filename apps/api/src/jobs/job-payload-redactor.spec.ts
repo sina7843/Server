@@ -142,4 +142,59 @@ describe('JobPayloadRedactor', () => {
       expect(JSON.stringify(result)).not.toContain('my-token-value');
     });
   });
+
+  describe('case-insensitive redaction', () => {
+    it('redacts Password (mixed case)', () => {
+      const result = redactor.redact({ Password: 'secret' });
+      expect(result['Password']).toBe('[REDACTED]');
+    });
+
+    it('redacts PASSWORD (uppercase)', () => {
+      const result = redactor.redact({ PASSWORD: 'secret' });
+      expect(result['PASSWORD']).toBe('[REDACTED]');
+    });
+
+    it('redacts RefreshToken (mixed case)', () => {
+      const result = redactor.redact({ RefreshToken: 'tok' });
+      expect(result['RefreshToken']).toBe('[REDACTED]');
+    });
+
+    it('redacts AccessToken (mixed case)', () => {
+      const result = redactor.redact({ AccessToken: 'jwt-tok' });
+      expect(result['AccessToken']).toBe('[REDACTED]');
+    });
+
+    it('redacts Secret (mixed case)', () => {
+      const result = redactor.redact({ Secret: 'mysecret' });
+      expect(result['Secret']).toBe('[REDACTED]');
+    });
+
+    it('redacts Authorization (mixed case)', () => {
+      const result = redactor.redact({ Authorization: 'Bearer tok' });
+      expect(result['Authorization']).toBe('[REDACTED]');
+    });
+
+    it('redacts COOKIE (uppercase)', () => {
+      const result = redactor.redact({ COOKIE: 'sess=abc' });
+      expect(result['COOKIE']).toBe('[REDACTED]');
+    });
+
+    it('redacts Otp (mixed case)', () => {
+      const result = redactor.redact({ Otp: '123456' });
+      expect(result['Otp']).toBe('[REDACTED]');
+    });
+
+    it('does not lowercase non-secret key names in output', () => {
+      const result = redactor.redact({ UserName: 'alice', IP: '1.2.3.4' });
+      expect('UserName' in result).toBe(true);
+      expect(result['UserName']).toBe('alice');
+    });
+
+    it('case-insensitive redaction works in nested objects', () => {
+      const result = redactor.redact({ user: { id: 'abc', RefreshToken: 'tok' } });
+      const nested = result.user as Record<string, unknown>;
+      expect(nested['RefreshToken']).toBe('[REDACTED]');
+      expect(nested['id']).toBe('abc');
+    });
+  });
 });

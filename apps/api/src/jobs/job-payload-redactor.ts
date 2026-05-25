@@ -1,27 +1,27 @@
 import { Injectable } from '@nestjs/common';
 
-const REDACTED_KEYS = new Set([
+const REDACTED_KEYS: ReadonlySet<string> = new Set([
   'password',
-  'passwordHash',
-  'rawOtp',
+  'passwordhash',
+  'rawotp',
   'otp',
   'code',
-  'codeHash',
-  'refreshToken',
-  'refreshTokenHash',
-  'accessToken',
-  'accessTokenJti',
-  'resetToken',
+  'codehash',
+  'refreshtoken',
+  'refreshtokenhash',
+  'accesstoken',
+  'accesstokenjti',
+  'resettoken',
   'secret',
   'secrets',
-  'clientSecret',
-  'providerSecret',
-  'providerCredentials',
+  'clientsecret',
+  'providersecret',
+  'providercredentials',
   'authorization',
   'cookie',
   'cookies',
-  'smsBody',
-  'recipientPhoneNormalized',
+  'smsbody',
+  'recipientphonenormalized',
 ]);
 
 const REDACTED_SENTINEL = '[REDACTED]';
@@ -35,7 +35,7 @@ function redactValue(value: unknown): unknown {
 
   const result: Record<string, unknown> = {};
   for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
-    result[key] = REDACTED_KEYS.has(key) ? REDACTED_SENTINEL : redactValue(val);
+    result[key] = REDACTED_KEYS.has(key.toLowerCase()) ? REDACTED_SENTINEL : redactValue(val);
   }
   return result;
 }

@@ -22,6 +22,7 @@ import { MediaModule } from './media/media.module';
 import { ProfileModule } from './profiles/profile.module';
 import { RbacModule } from './rbac/rbac.module';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
+import { SecurityHeadersMiddleware } from './common/middleware/security-headers.middleware';
 
 @Module({
   imports: [
@@ -51,6 +52,6 @@ import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(RequestIdMiddleware).forRoutes('*');
+    consumer.apply(SecurityHeadersMiddleware, RequestIdMiddleware).forRoutes('*');
   }
 }

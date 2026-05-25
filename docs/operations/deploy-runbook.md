@@ -2,9 +2,13 @@
 
 ## Status
 
-This runbook covers Task 0.10.2 deployment (Docker Compose production stack).
-Health check hardening is Task 0.10.3.
-Backup is Task 0.10.4 — not implemented yet.
+This runbook covers the full Slice 0.10 deployment:
+
+- Task 0.10.1 — Production containerization and Nginx reverse proxy
+- Task 0.10.2 — Docker Compose production stack
+- Task 0.10.3 — Health endpoints and structured logging
+- Task 0.10.4 — Backup foundation (MongoDB dump + Object Storage upload)
+- Task 0.10.5 — Admin system health and backups UI
 
 ## Target environment
 
@@ -203,10 +207,38 @@ As load grows, services can be extracted in this order without re-architecting t
 5. **Search service** — add Meilisearch as a separate service; replace `MongoSearchAdapter`
 6. **Kubernetes** — only if real orchestration need arises (not planned for Phase 0)
 
-## Not implemented in this task
+## Backup before deploy (recommended)
 
-- Backup and restore — see Task 0.10.4
-- Health check endpoints — see Task 0.10.3
-- Structured JSON logging — see Task 0.10.3
+Take a backup before deploying a new version so you have a known-good snapshot to restore from if needed:
+
+```bash
+ACCESS_TOKEN="your-super-admin-jwt"
+curl -s -X POST "https://api.YOUR_DOMAIN/admin/v1/system/backups/run" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{}' | jq .
+
+# Wait for completion then verify
+curl -s "https://api.YOUR_DOMAIN/admin/v1/system/backups/latest" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" | jq '{status, startedAt, completedAt, sizeBytes}'
+```
+
+This requires `system.backup.run` permission (super_admin only) and Object Storage to be configured. See `docs/operations/backup-runbook.md` for manual VPS shell script alternative.
+
+## Check admin health after deploy
+
+```bash
+# API dependencies via public health endpoint
+curl -s "https://api.YOUR_DOMAIN/health/dependencies" | jq .
+
+# Check requestId propagation
+curl -I "https://api.YOUR_DOMAIN/health/live" | grep x-request-id
+```
+
+Then open `https://admin.YOUR_DOMAIN/system/health` in a browser to verify the admin health UI shows dependency panels.
+
+## Not implemented in Phase 0
+
+- Backup encryption at rest (required before production — see `docs/security/backup-security-checklist.md`)
 - TLS certificate auto-renewal (set up certbot cron manually)
 - Automated CI/CD deployment — out of scope for Phase 0

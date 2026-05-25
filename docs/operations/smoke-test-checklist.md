@@ -141,6 +141,30 @@ docker compose -f infra/docker/docker-compose.prod.yml logs --tail=20 api | grep
 # Expected: JSON objects like {"requestId":"...","method":"GET","url":"/health/live","status":200,"ms":4}
 ```
 
-## Not yet implemented (Task 0.10.4)
+## 14. Admin system health and backups
 
-- Backup and restore verification
+```bash
+# Verify admin loads
+curl -s -o /dev/null -w "%{http_code}" https://admin.YOUR_DOMAIN/system/health
+# Expected: 200
+
+curl -s -o /dev/null -w "%{http_code}" https://admin.YOUR_DOMAIN/system/backups
+# Expected: 200
+```
+
+- [ ] Admin `/system/health` page loads and shows dependency panels (MongoDB, Redis, Storage, SMS)
+- [ ] Admin `/system/backups` page loads and shows latest backup status (if Object Storage configured)
+- [ ] No credentials or connection strings are visible on health or backup pages
+
+## 15. Backup status (if Object Storage is configured)
+
+```bash
+ACCESS_TOKEN="your-super-admin-jwt"
+curl -s "https://api.YOUR_DOMAIN/admin/v1/system/backups/latest" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" | jq '{status, startedAt, completedAt}'
+```
+
+- [ ] Latest backup exists with `status: "completed"` (indicates a successful off-server artifact)
+- [ ] `GET /admin/v1/system/backups` returns a list without exposing credentials or connection strings
+
+Skip the backup check if Object Storage is not yet configured — backups are not completed when running with `STORAGE_PROVIDER=local`.

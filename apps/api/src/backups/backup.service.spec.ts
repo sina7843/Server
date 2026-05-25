@@ -162,8 +162,17 @@ describe('BackupService artifact semantics', () => {
     } as unknown as jest.Mocked<BackupLogRepository>;
 
     const auditService = { log: jest.fn().mockResolvedValue(undefined) } as unknown as AuditService;
-    const mockStorageService = { upload: jest.fn() } as unknown as import('../storage/storage.service').StorageService;
-    const localConfig = { provider: 'local' as const, bucket: '', publicBaseUrl: '', signedUrlTtlSeconds: 3600 };
+    const mockStorageService = {
+      upload: jest.fn(),
+    } as unknown as import('../storage/storage.service').StorageService;
+    const localConfig = {
+      provider: 'local' as const,
+      bucket: '',
+      publicBaseUrl: '',
+      signedUrlTtlSeconds: 3600,
+      localRoot: '/tmp',
+      localPublicBaseUrl: 'http://localhost',
+    };
     const service = new BackupService(repository, auditService, mockStorageService, localConfig);
 
     await service.runMongoBackup('admin');

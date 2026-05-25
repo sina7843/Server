@@ -160,9 +160,10 @@ describe('createAdminBackupsClient.runBackup', () => {
 
   it('SDK has no restore method', () => {
     const client = makeClient();
-    expect(typeof (client as Record<string, unknown>)['restore']).toBe('undefined');
-    expect(typeof (client as Record<string, unknown>)['deleteBackup']).toBe('undefined');
-    expect(typeof (client as Record<string, unknown>)['downloadBackup']).toBe('undefined');
+    const clientAsAny = client as unknown as Record<string, unknown>;
+    expect(typeof clientAsAny['restore']).toBe('undefined');
+    expect(typeof clientAsAny['deleteBackup']).toBe('undefined');
+    expect(typeof clientAsAny['downloadBackup']).toBe('undefined');
   });
 
   it('throws ApiClientError on 403', async () => {

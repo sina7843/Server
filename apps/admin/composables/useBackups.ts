@@ -40,8 +40,7 @@ export function useBackups() {
       const client = useAdminApiClient();
       _latest.value = await backupsApi.getLatestBackup(client);
     } catch (err) {
-      _latestError.value =
-        err instanceof Error ? err.message : 'خطا در بارگذاری آخرین پشتیبان.';
+      _latestError.value = err instanceof Error ? err.message : 'خطا در بارگذاری آخرین پشتیبان.';
     } finally {
       _latestLoading.value = false;
     }
@@ -57,8 +56,7 @@ export function useBackups() {
       await backupsApi.runBackup(client);
       _runSuccess.value = true;
     } catch (err) {
-      _runError.value =
-        err instanceof Error ? err.message : 'خطا در راه‌اندازی پشتیبان‌گیری.';
+      _runError.value = err instanceof Error ? err.message : 'خطا در راه‌اندازی پشتیبان‌گیری.';
     } finally {
       _running.value = false;
     }

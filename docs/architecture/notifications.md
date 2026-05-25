@@ -34,7 +34,10 @@ Stores one document per notification attempt. Append-friendly with status update
 
 - Raw phone/email never stored — only `recipientMasked` and `recipientHash`
 - Raw OTP never stored — `smsBody` is a redacted key in `JobPayloadRedactor`
-- `errorMessage` is passed through `sanitizeErrorMessage()` — blocks `password`, `token`, `secret`, `credential`, `key`, `otp` patterns
+- `errorMessage` is sanitized before storage in **both** notification paths:
+  - Main path (`NotificationService`): `sanitizeErrorMessage()` in `notification.service.ts`
+  - Legacy auth path (`NotificationLogRepository.updateStatus()`): `sanitizeNotificationErrorMessage()` applied before any DB write
+  - Sensitive patterns blocked: `password`, `token`, `secret`, `credential`, `key`, `otp`, `authorization`, `cookie` — replaced with generic `"Provider error occurred."`; safe messages truncated to 500 characters
 - `providerMessageId` never contains provider credentials
 
 **Indexes:**
@@ -106,6 +109,10 @@ GET /admin/v1/system/notifications/:id   — notification detail
 - `NotificationLogListItemDto` — no `recipientHash`, no `errorMessage`
 - `NotificationLogDto` — has `recipientMasked` only; no raw phone/email
 - No resend, no delete, no mutation endpoint
+
+**Input validation:**
+
+- `GET /admin/v1/system/notifications/:id` — the `:id` parameter is validated as a MongoDB ObjectId before any repository call. An invalid id returns `400 Bad Request`; a valid but non-existent id returns `404 Not Found`. Mongoose CastError is never surfaced to the caller.
 
 ---
 

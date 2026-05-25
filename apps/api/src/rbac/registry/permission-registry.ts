@@ -196,4 +196,21 @@ export const PermissionRegistry = [
     'read',
     'Read analytics metadata',
   ),
+
+  permission(
+    Permissions.SEARCH_CONTENT_READ,
+    'search',
+    'content',
+    'read',
+    'Search published and admin content',
+  ),
+  permission(Permissions.SEARCH_USER_READ, 'search', 'user', 'read', 'Search admin user records'),
+  permission(Permissions.SEARCH_MEDIA_READ, 'search', 'media', 'read', 'Search media assets'),
+  permission(
+    Permissions.SEARCH_REINDEX,
+    'search',
+    'index',
+    'reindex',
+    'Trigger search reindex job',
+  ),
 ] as const satisfies readonly RegisteredPermission[];

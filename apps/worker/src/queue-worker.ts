@@ -3,6 +3,7 @@ import type { JobStatusUpdater, NotificationLogStatusUpdater } from './processor
 import { processSmsJob } from './processors/sms-processor';
 import { processMediaJob } from './processors/media-processor';
 import { processMaintenanceJob } from './processors/maintenance-processor';
+import { processSearchJob } from './processors/search-processor';
 
 export interface RedisConnectionConfig {
   host: string;
@@ -40,13 +41,18 @@ export function startQueueWorkers(options: QueueWorkerOptions): Worker[] {
     { connection, prefix },
   );
 
-  for (const worker of [smsWorker, mediaWorker, maintenanceWorker]) {
+  const searchWorker = new Worker('search', (job) => processSearchJob(job, statusUpdater), {
+    connection,
+    prefix,
+  });
+
+  for (const worker of [smsWorker, mediaWorker, maintenanceWorker, searchWorker]) {
     worker.on('error', (err) => {
       console.error(`[Worker:${worker.name}] Error:`, err.message);
     });
   }
 
-  activeWorkers = [smsWorker, mediaWorker, maintenanceWorker];
+  activeWorkers = [smsWorker, mediaWorker, maintenanceWorker, searchWorker];
 
   console.log(`[QueueWorker] Started ${activeWorkers.length} queue workers`);
 

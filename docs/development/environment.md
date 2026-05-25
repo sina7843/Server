@@ -60,6 +60,14 @@ No new environment variables were introduced in Slice 0.8.1. The audit log subsy
 
 The `audit_logs` collection is created automatically by Mongoose on first write.
 
+## Slice 0.9
+
+No new environment variables are introduced in Slice 0.9.1. The search foundation uses `MongoSearchAdapter`, which reads directly from existing MongoDB collections (`posts`, `pages`, `users`, `media_assets`) using the connection already configured in Slice 0.1.
+
+No external search engine (Meilisearch, Elasticsearch, OpenSearch) is configured. When a real search engine is added in a later phase, new environment variables for its host, API key, and index names will be documented here.
+
+The `search` BullMQ queue uses the Redis connection already configured in Slice 0.8.3. No additional Redis environment variables are required.
+
 ## Out of scope
 
 Production secret management, deployment configuration, monitoring, backup, and real provider credentials are not implemented in these foundation slices.

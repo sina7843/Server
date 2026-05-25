@@ -73,8 +73,11 @@
 
 ## Notification Error Safety
 
-- [x] `errorMessage` passed through `sanitizeErrorMessage()` before storage.
-- [x] `sanitizeErrorMessage()` returns generic message if errorMessage matches `password|token|secret|credential|key|otp` patterns.
+- [x] `errorMessage` is sanitized before storage in **both** notification paths:
+  - Main path (`NotificationService` in `apps/api/src/notifications/`): `sanitizeErrorMessage()`
+  - Legacy auth path (`NotificationLogRepository.updateStatus()` in `apps/api/src/auth/notifications/`): `sanitizeNotificationErrorMessage()`
+- [x] Sanitizer returns generic `"Provider error occurred."` if `errorMessage` matches `password|token|secret|credential|key|otp|authorization|cookie` patterns (case-insensitive).
+- [x] Safe messages that pass pattern check are truncated to 500 characters.
 - [x] No provider credentials (API keys, secrets) ever stored in `errorMessage` or `errorCode`.
 - [x] Provider message ID (`providerMessageId`) does not contain credentials — safe to store and display.
 
@@ -83,6 +86,7 @@
 - [x] Both GET endpoints require `notification.log.read` permission.
 - [x] Both endpoints require `AccessTokenGuard`.
 - [x] No POST, PATCH, DELETE, or resend endpoint exists.
+- [x] `GET /admin/v1/system/notifications/:id` validates `:id` as a MongoDB ObjectId — invalid ids return 400 Bad Request, not a Mongoose CastError/500.
 - [x] `NotificationLogListItemDto` does not include `recipientHash` or `errorMessage`.
 - [x] `NotificationLogDto` exposes `recipientMasked` only — no raw phone/email.
 - [x] Missing auth returns 401 Unauthorized.

@@ -11,7 +11,7 @@
 - [ ] HTTP authorization headers and cookies (`authorization`, `cookie`, `cookies`) are never logged.
 - [ ] The AuditRedactor applies recursively: secrets inside nested objects and arrays are also redacted.
 - [ ] The AuditRedactor does not mutate its input object.
-- [ ] Headers are matched case-insensitively for `authorization` and `cookie`.
+- [ ] All secret keys are matched **case-insensitively** at every nesting depth — not only in `headers`. Examples: `Password`, `PASSWORD`, `RefreshToken`, `Authorization`, `COOKIE`, `Otp`, `CodeHash`, `ProviderCredentials` are all redacted.
 
 ## Write Safety
 
@@ -59,3 +59,19 @@
 - [ ] Admin frontend `/audit` and `/audit/:id` have no edit, delete, or export controls.
 - [ ] Audit nav item is hidden unless the user has `audit.log.read`.
 - [ ] SDK `AdminAuditClient` has no mutation methods (`create`, `update`, `delete`, `export`).
+
+## Integration Hook Coverage
+
+- [ ] `auth.register_requested` is fired on registration — without raw phone or password.
+- [ ] `auth.password_reset_requested` is fired on forgot-password — without raw phone or token.
+- [ ] `auth.password_reset_completed` is fired after successful password reset — without new password or reset token.
+- [ ] `otp.created` is fired after a challenge is created — without raw OTP code or codeHash.
+- [ ] `otp.verified` is fired after successful OTP check — without raw OTP code.
+- [ ] `otp.failed` is fired after a failed OTP attempt (severity: warning) — without raw OTP code.
+- [ ] `otp.rate_limited` is fired when rate limit is hit (severity: warning) — without raw phone.
+- [ ] `user.status_changed` is fired when an admin changes a user's status — `before`/`after` contain only `status`, no phone or tokens.
+- [ ] `user.session_revoked` is fired when an admin revokes a session — metadata contains only `sessionId`.
+- [ ] `content.page_created/updated/published/archived/soft_deleted` are fired on page mutations.
+- [ ] `content.category_created/updated/deleted` are fired on category mutations.
+- [ ] `content.tag_created/updated/deleted` are fired on tag mutations.
+- [ ] All new hooks use `actorType: 'user'` when user identity is available, `actorType: 'admin'` for admin-initiated operations, and `actorType: 'system'` when no safe identity is known.

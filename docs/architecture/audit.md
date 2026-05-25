@@ -58,7 +58,7 @@ Applies secret-key redaction before any data is persisted. Operates recursively 
 
 `password`, `passwordHash`, `rawOtp`, `otp`, `code`, `codeHash`, `refreshToken`, `refreshTokenHash`, `accessToken`, `accessTokenJti`, `resetToken`, `secret`, `secrets`, `clientSecret`, `providerSecret`, `providerCredentials`, `authorization`, `cookie`, `cookies`
 
-Special handling for `headers` objects: `authorization` and `cookie` keys are matched case-insensitively.
+All keys are matched **case-insensitively** regardless of nesting depth or object type. Examples that are all redacted: `Password`, `PASSWORD`, `RefreshToken`, `Authorization`, `COOKIE`, `Otp`, `CodeHash`, `ProviderCredentials`.
 
 ### AuditService
 
@@ -76,12 +76,24 @@ Provides and exports: `AuditService`.
 
 ### Auth
 
-| Trigger                             | Action constant      |
-| ----------------------------------- | -------------------- |
-| Login success                       | `auth.login_success` |
-| Login failure (bad OTP/credentials) | `auth.login_failed`  |
-| Session logout                      | `auth.logout`        |
-| Logout all sessions                 | `auth.logout_all`    |
+| Trigger                             | Action constant                 |
+| ----------------------------------- | ------------------------------- |
+| Registration requested              | `auth.register_requested`       |
+| Login success                       | `auth.login_success`            |
+| Login failure (bad OTP/credentials) | `auth.login_failed`             |
+| Session logout                      | `auth.logout`                   |
+| Logout all sessions                 | `auth.logout_all`               |
+| Password reset requested            | `auth.password_reset_requested` |
+| Password reset completed            | `auth.password_reset_completed` |
+
+### OTP
+
+| Trigger                            | Action constant    | Severity |
+| ---------------------------------- | ------------------ | -------- |
+| OTP challenge created              | `otp.created`      | info     |
+| OTP verified successfully          | `otp.verified`     | info     |
+| OTP verification failed (bad code) | `otp.failed`       | warning  |
+| OTP rate limit hit                 | `otp.rate_limited` | warning  |
 
 ### Profile
 
@@ -104,6 +116,13 @@ Provides and exports: `AuditService`.
 | Permission attached to role   | `rbac.permission_attached` | info     |
 | Permission detached from role | `rbac.permission_detached` | warning  |
 
+### Admin Users
+
+| Trigger              | Action constant        | Severity |
+| -------------------- | ---------------------- | -------- |
+| User status changed  | `user.status_changed`  | warning  |
+| User session revoked | `user.session_revoked` | warning  |
+
 ### Content
 
 | Trigger           | Action constant             | Severity |
@@ -113,6 +132,17 @@ Provides and exports: `AuditService`.
 | Post published    | `content.post_published`    | info     |
 | Post archived     | `content.post_archived`     | info     |
 | Post soft-deleted | `content.post_soft_deleted` | warning  |
+| Page created      | `content.page_created`      | info     |
+| Page updated      | `content.page_updated`      | info     |
+| Page published    | `content.page_published`    | info     |
+| Page archived     | `content.page_archived`     | info     |
+| Page soft-deleted | `content.page_soft_deleted` | warning  |
+| Category created  | `content.category_created`  | info     |
+| Category updated  | `content.category_updated`  | info     |
+| Category deleted  | `content.category_deleted`  | warning  |
+| Tag created       | `content.tag_created`       | info     |
+| Tag updated       | `content.tag_updated`       | info     |
+| Tag deleted       | `content.tag_deleted`       | warning  |
 
 ### Media
 

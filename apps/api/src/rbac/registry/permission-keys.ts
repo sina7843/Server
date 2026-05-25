@@ -51,6 +51,11 @@ export const Permissions = {
   AUDIT_LOG_READ: 'audit.log.read',
   NOTIFICATION_LOG_READ: 'notification.log.read',
   ANALYTICS_READ: 'analytics.analytics.read',
+
+  SEARCH_CONTENT_READ: 'search.content.read',
+  SEARCH_USER_READ: 'search.user.read',
+  SEARCH_MEDIA_READ: 'search.media.read',
+  SEARCH_REINDEX: 'search.index.reindex',
 } as const;
 
 export type PermissionKey = (typeof Permissions)[keyof typeof Permissions];

@@ -8,3 +8,4 @@ export * from './admin-dashboard';
 export * from './content';
 export * from './media';
 export * from './notifications';
+export * from './search';

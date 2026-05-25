@@ -26,6 +26,10 @@ export const EventNames = {
 
   JOB_FAILED: 'job.failed',
   JOB_RETRIED: 'job.retried',
+
+  SEARCH_REINDEX_REQUESTED: 'search.reindex_requested',
+  SEARCH_INDEX_CONTENT: 'search.index_content',
+  SEARCH_REMOVE_CONTENT: 'search.remove_content',
 } as const;
 
 export type EventName = (typeof EventNames)[keyof typeof EventNames];

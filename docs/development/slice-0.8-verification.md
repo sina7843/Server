@@ -434,3 +434,70 @@ pnpm format:check
 ### Out of scope for Task 0.8.5
 
 Backup page (`/system/backups`), analytics dashboard, monitoring dashboard, realtime/WebSocket dashboard, WebSocket job subscription, notification center, user notification inbox, campaign UI, email designer, push notification UI, notification preferences UI, bulk messaging, coming-soon placeholder pages.
+
+---
+
+## Slice 0.8 Audit & Notification Hardening Fixes
+
+Post-slice hardening applied after Task 0.8.5. No new routes, dependencies, or features were introduced.
+
+### Fix 1 — Missing Audit Hooks
+
+Added audit integration points that were out of scope during initial implementation tasks:
+
+**Auth registration and password reset** (`auth.service.ts`, `password-reset.service.ts`):
+
+- `auth.register_requested` — fired at registration entry point; `actorType: 'system'`; metadata: `phoneMasked` only
+- `otp.created` — fired after OTP challenge creation; no raw OTP or codeHash
+- `otp.verified` — fired after successful OTP check; `actorType: 'user'` when userId available
+- `otp.failed` — fired after failed OTP attempt; severity: `warning`; no raw OTP
+- `otp.rate_limited` — fired when rate limit is hit; severity: `warning`; metadata: `phoneMasked`, `purpose`
+- `auth.password_reset_requested` — fired on forgot-password; no raw phone or token
+- `auth.password_reset_completed` — fired after successful reset; no new password or reset token
+
+New `AuditAction` constant added to `packages/types/src/constants/audit.ts`: `USER_SESSION_REVOKED`.
+
+**Admin users** (`admin-users.service.ts`, `admin-users.controller.ts`, `admin-users.module.ts`):
+
+- `user.status_changed` — `before: { status }`, `after: { status }`; no phone, no tokens
+- `user.session_revoked` — metadata: `{ sessionId }`; no phone, no tokens
+- `AuditModule` imported into `AdminUsersModule`
+
+**Content pages** (`admin-content-pages.service.ts`, `admin-content-pages.controller.ts`):
+
+- `content.page_created`, `content.page_updated`, `content.page_published`, `content.page_archived`, `content.page_soft_deleted`
+
+**Content categories** (`admin-content-categories.controller.ts`):
+
+- `content.category_created`, `content.category_updated`, `content.category_deleted`
+
+**Content tags** (`admin-content-tags.controller.ts`):
+
+- `content.tag_created`, `content.tag_updated`, `content.tag_deleted`
+
+### Fix 2 — Notification Error Sanitization (Legacy Auth Path)
+
+New file: `apps/api/src/auth/notifications/notification-error-sanitizer.ts`
+
+`sanitizeNotificationErrorMessage()` applies the same pattern-based sanitization as the main `NotificationService` path. Applied in:
+
+- `notification-log.service.ts` `createSmsLog()` — when `input.errorMessage` is present
+- `notification-log.repository.ts` `updateStatus()` — before any `errorMessage` DB write
+
+Sensitive patterns: `password|token|secret|credential|key|otp|authorization|cookie` (case-insensitive). Safe messages truncated to 500 characters.
+
+### Fix 3 — ObjectId Validation for Admin Notification Detail
+
+`admin-notifications.service.ts` `getNotificationLog(rawId)` now calls `validateObjectId(rawId, 'id')` before the repository call. An invalid ObjectId string returns `400 Bad Request`; a valid ObjectId with no matching document returns `404 Not Found`. Mongoose CastError is never surfaced.
+
+### Fix 4 — AuditRedactor Case-Insensitive Globally
+
+`audit-redactor.ts` now matches all keys case-insensitively at every nesting depth (not only for `authorization`/`cookie` inside `headers` objects). Implementation: all entries in `REDACTED_KEYS` are stored lowercase; the lookup uses `key.toLowerCase()`.
+
+### Security invariants after hardening
+
+1. Raw OTP, codeHash, password, newPassword, resetToken, refreshToken, and accessToken are never stored in any audit log entry — enforced by OTP/auth hook design and AuditRedactor.
+2. `phoneNormalized` (full phone) is never stored in audit metadata — only `phoneMasked` via `maskPhone()`.
+3. `errorMessage` in `notification_logs` is sanitized before storage across both notification paths.
+4. Invalid ObjectIds passed to `GET /admin/v1/system/notifications/:id` return 400, not 500.
+5. AuditRedactor secret-key redaction is case-insensitive for all keys at all nesting depths.

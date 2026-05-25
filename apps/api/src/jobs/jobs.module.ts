@@ -28,6 +28,7 @@ import { QueueNames } from './queue-registry';
       { name: QueueNames.SMS },
       { name: QueueNames.MEDIA },
       { name: QueueNames.MAINTENANCE },
+      { name: QueueNames.SEARCH },
     ),
   ],
   providers: [JobLogRepository, JobPayloadRedactor, JobLogService],

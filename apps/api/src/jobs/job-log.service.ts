@@ -33,6 +33,8 @@ export class JobLogService {
         return this.mediaQueue;
       case QueueNames.MAINTENANCE:
         return this.maintenanceQueue;
+      default:
+        throw new Error(`No injected queue for: ${String(name)}`);
     }
   }
 

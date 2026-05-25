@@ -28,6 +28,11 @@ export const RolePermissionRegistryMap = {
 
     Permissions.AUDIT_LOG_READ,
     Permissions.NOTIFICATION_LOG_READ,
+
+    Permissions.SEARCH_USER_READ,
+    Permissions.SEARCH_CONTENT_READ,
+    Permissions.SEARCH_MEDIA_READ,
+    Permissions.SEARCH_REINDEX,
   ],
 
   content_manager: [
@@ -56,6 +61,9 @@ export const RolePermissionRegistryMap = {
     Permissions.MEDIA_ASSET_READ,
     Permissions.MEDIA_ASSET_UPLOAD,
     Permissions.MEDIA_ASSET_UPDATE,
+
+    Permissions.SEARCH_CONTENT_READ,
+    Permissions.SEARCH_MEDIA_READ,
   ],
 
   support: [

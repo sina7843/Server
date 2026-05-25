@@ -129,6 +129,76 @@ describe('BackupService.getLatestBackup', () => {
   });
 });
 
+describe('BackupService artifact semantics', () => {
+  it('marks backup failed when no Object Storage is configured (null storageService)', async () => {
+    const doc = makeDoc();
+    const repository: jest.Mocked<BackupLogRepository> = {
+      create: jest.fn().mockResolvedValue(doc),
+      findById: jest.fn(),
+      markCompleted: jest.fn(),
+      markFailed: jest.fn().mockResolvedValue(undefined),
+      list: jest.fn(),
+      findLatest: jest.fn(),
+    } as unknown as jest.Mocked<BackupLogRepository>;
+
+    const auditService = { log: jest.fn().mockResolvedValue(undefined) } as unknown as AuditService;
+    const service = new BackupService(repository, auditService, null, null);
+
+    await service.runMongoBackup('admin');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(repository.markCompleted).not.toHaveBeenCalled();
+  });
+
+  it('marks backup failed when storage provider is local', async () => {
+    const doc = makeDoc();
+    const repository: jest.Mocked<BackupLogRepository> = {
+      create: jest.fn().mockResolvedValue(doc),
+      findById: jest.fn(),
+      markCompleted: jest.fn(),
+      markFailed: jest.fn().mockResolvedValue(undefined),
+      list: jest.fn(),
+      findLatest: jest.fn(),
+    } as unknown as jest.Mocked<BackupLogRepository>;
+
+    const auditService = { log: jest.fn().mockResolvedValue(undefined) } as unknown as AuditService;
+    const mockStorageService = { upload: jest.fn() } as unknown as import('../storage/storage.service').StorageService;
+    const localConfig = { provider: 'local' as const, bucket: '', publicBaseUrl: '', signedUrlTtlSeconds: 3600 };
+    const service = new BackupService(repository, auditService, mockStorageService, localConfig);
+
+    await service.runMongoBackup('admin');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(repository.markCompleted).not.toHaveBeenCalled();
+  });
+
+  it('error messages for missing storage do not expose credentials', async () => {
+    const doc = makeDoc();
+    const repository: jest.Mocked<BackupLogRepository> = {
+      create: jest.fn().mockResolvedValue(doc),
+      findById: jest.fn(),
+      markCompleted: jest.fn(),
+      markFailed: jest.fn().mockResolvedValue(undefined),
+      list: jest.fn(),
+      findLatest: jest.fn(),
+    } as unknown as jest.Mocked<BackupLogRepository>;
+
+    const auditService = { log: jest.fn().mockResolvedValue(undefined) } as unknown as AuditService;
+    const service = new BackupService(repository, auditService, null, null);
+
+    await service.runMongoBackup('admin');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    if (repository.markFailed.mock.calls.length > 0) {
+      const errorArg = repository.markFailed.mock.calls[0]?.[1] ?? '';
+      expect(errorArg).not.toMatch(/mongodb(\+srv)?:\/\/[^\s]*/i);
+      expect(errorArg).not.toContain('password=');
+      expect(errorArg).not.toContain('secret');
+      expect(errorArg).not.toContain('CHANGE_ME');
+    }
+  });
+});
+
 describe('BackupService error sanitization', () => {
   it('sanitizes MongoDB URIs in error messages', async () => {
     const doc = makeDoc();

@@ -125,35 +125,37 @@ export class BackupService {
       const stats = await fs.stat(tarPath);
       const sizeBytes = stats.size;
 
-      let fileKey: string | undefined;
-      let bucket: string | undefined;
-
-      if (this.storageService && this.storageConfig && this.storageConfig.provider !== 'local') {
-        const prefix = (process.env['BACKUP_STORAGE_BUCKET_PREFIX'] ?? 'backups/mongodb').replace(
-          /\/+$/,
-          '',
+      if (!this.storageService || !this.storageConfig || this.storageConfig.provider === 'local') {
+        throw new Error(
+          'Object Storage not configured for backup retention. ' +
+            'Set STORAGE_PROVIDER to a non-local provider to enable recoverable backups.',
         );
-        const safeId = randomUUID().replace(/-/g, '');
-        const safeTs = timestamp.replace(/[^a-zA-Z0-9-]/g, '-');
-        fileKey = `${prefix}/${safeTs}-${safeId}.tar.gz`;
-
-        const body = await fs.readFile(tarPath);
-        await this.storageService.upload({
-          objectKey: fileKey,
-          body,
-          mimeType: 'application/gzip',
-          sizeBytes,
-        });
-        bucket = this.storageConfig.bucket;
-
-        await fs.rm(backupDir, { recursive: true, force: true }).catch(() => undefined);
-        await fs.unlink(tarPath).catch(() => undefined);
       }
+
+      const prefix = (process.env['BACKUP_STORAGE_BUCKET_PREFIX'] ?? 'backups/mongodb').replace(
+        /\/+$/,
+        '',
+      );
+      const safeId = randomUUID().replace(/-/g, '');
+      const safeTs = timestamp.replace(/[^a-zA-Z0-9-]/g, '-');
+      const fileKey = `${prefix}/${safeTs}-${safeId}.tar.gz`;
+
+      const body = await fs.readFile(tarPath);
+      await this.storageService.upload({
+        objectKey: fileKey,
+        body,
+        mimeType: 'application/gzip',
+        sizeBytes,
+      });
+      const bucket = this.storageConfig.bucket;
+
+      await fs.rm(backupDir, { recursive: true, force: true }).catch(() => undefined);
+      await fs.unlink(tarPath).catch(() => undefined);
 
       await this.repository.markCompleted(logId, {
         completedAt: new Date(),
-        ...(fileKey !== undefined ? { fileKey } : {}),
-        ...(bucket !== undefined ? { bucket } : {}),
+        fileKey,
+        bucket,
         sizeBytes,
       });
 
@@ -162,7 +164,7 @@ export class BackupService {
         action: 'system.backup_completed',
         resourceType: 'backup_log',
         resourceId: logId,
-        metadata: { sizeBytes, uploaded: fileKey !== undefined },
+        metadata: { sizeBytes },
         severity: 'info',
       });
     } catch (err) {

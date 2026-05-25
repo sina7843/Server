@@ -62,11 +62,13 @@ function createController() {
     searchAdminMedia: jest.fn().mockResolvedValue(mockMediaResult),
     reindex: jest.fn().mockResolvedValue(undefined),
   };
-  const queue = { add: jest.fn().mockResolvedValue({ id: 'job-1' }) };
+  const jobLogService = {
+    enqueue: jest.fn().mockResolvedValue({ _id: 'log-1' }),
+  };
   return {
     service,
-    queue,
-    controller: new AdminSearchController(service as never, queue as never),
+    jobLogService,
+    controller: new AdminSearchController(service as never, jobLogService as never),
   };
 }
 
@@ -163,35 +165,40 @@ describe('AdminSearchController', () => {
 
   describe('POST /admin/v1/search/reindex', () => {
     it('queues a reindex job and returns queued: true', async () => {
-      const { controller, queue } = createController();
+      const { controller, jobLogService } = createController();
       const result = await controller.reindex({});
 
-      expect(queue.add).toHaveBeenCalledWith(
-        'search.reindex_all',
-        expect.any(Object),
-        expect.any(Object),
+      expect(jobLogService.enqueue).toHaveBeenCalledWith(
+        expect.objectContaining({ jobName: 'search.reindex_all' }),
       );
       expect(result.queued).toBe(true);
       expect(result.message).toBeTruthy();
     });
 
     it('passes scope when provided', async () => {
-      const { controller, queue } = createController();
+      const { controller, jobLogService } = createController();
       const result = await controller.reindex({ scope: 'content' });
 
-      expect(queue.add).toHaveBeenCalledWith(
-        'search.reindex_all',
-        expect.objectContaining({ scope: 'content' }),
-        expect.any(Object),
+      expect(jobLogService.enqueue).toHaveBeenCalledWith(
+        expect.objectContaining({ payload: expect.objectContaining({ scope: 'content' }) }),
       );
       expect(result.scope).toBe('content');
     });
 
-    it('ignores invalid scope value', async () => {
+    it('throws BadRequest for invalid scope value', async () => {
       const { controller } = createController();
-      const result = await controller.reindex({ scope: 'invalid_scope' });
+      await expect(controller.reindex({ scope: 'invalid_scope' })).rejects.toThrow(
+        BadRequestException,
+      );
+    });
 
+    it('accepts undefined scope (no scope field in body)', async () => {
+      const { controller, jobLogService } = createController();
+      const result = await controller.reindex({});
+
+      expect(result.queued).toBe(true);
       expect('scope' in result).toBe(false);
+      expect(jobLogService.enqueue).toHaveBeenCalled();
     });
 
     it('does not require Meilisearch or external search engine', async () => {

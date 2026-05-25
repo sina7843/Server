@@ -22,10 +22,22 @@ export interface ParsedAdminSearchQuery {
   readonly limit: number;
 }
 
+export interface IndexSearchInput {
+  readonly type: string;
+  readonly id: string;
+}
+
+export interface RemoveSearchInput {
+  readonly type: string;
+  readonly id: string;
+}
+
 export abstract class SearchService {
   abstract searchPublicContent(query: ParsedPublicContentSearchQuery): Promise<SearchResult>;
   abstract searchAdminContent(query: ParsedAdminSearchQuery): Promise<SearchResult>;
   abstract searchAdminUsers(query: ParsedAdminSearchQuery): Promise<SearchResult>;
   abstract searchAdminMedia(query: ParsedAdminSearchQuery): Promise<SearchResult>;
+  abstract index(input: IndexSearchInput): Promise<void>;
+  abstract remove(input: RemoveSearchInput): Promise<void>;
   abstract reindex(scope?: SearchScope): Promise<void>;
 }

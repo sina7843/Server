@@ -47,6 +47,7 @@ function makeService(
     smsQueue as never,
     makeQueue() as never,
     makeQueue() as never,
+    makeQueue() as never,
   );
 }
 

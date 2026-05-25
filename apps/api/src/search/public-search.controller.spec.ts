@@ -114,6 +114,28 @@ describe('parsePublicContentSearchQuery', () => {
     );
   });
 
+  it('rejects type=page with categoryId', () => {
+    expect(() =>
+      parsePublicContentSearchQuery({ type: 'page', categoryId: '64f000000000000000000001' }),
+    ).toThrow(BadRequestException);
+  });
+
+  it('rejects type=page with tagId', () => {
+    expect(() =>
+      parsePublicContentSearchQuery({ type: 'page', tagId: '64f000000000000000000001' }),
+    ).toThrow(BadRequestException);
+  });
+
+  it('allows type=page without categoryId or tagId', () => {
+    expect(() => parsePublicContentSearchQuery({ type: 'page' })).not.toThrow();
+  });
+
+  it('allows categoryId without type=page', () => {
+    expect(() =>
+      parsePublicContentSearchQuery({ categoryId: '64f000000000000000000001' }),
+    ).not.toThrow();
+  });
+
   it('rejects invalid tagId', () => {
     expect(() => parsePublicContentSearchQuery({ tagId: 'not-valid' })).toThrow(
       BadRequestException,

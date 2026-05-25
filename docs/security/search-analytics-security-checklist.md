@@ -57,20 +57,20 @@
 
 ## Reindex Safety
 
-- [ ] Reindex endpoint is permission-protected (`search.reindex`).
-- [ ] Reindex response is truthful — Phase 0 states no external index exists.
-- [ ] No Meilisearch, Elasticsearch, or OpenSearch client is instantiated.
-- [ ] No fake search success for missing external infrastructure.
-- [ ] Search jobs are no-ops in Phase 0 — they complete without error and without side effects.
+- [x] Reindex endpoint is permission-protected (`search.reindex`).
+- [x] Reindex response is truthful — Phase 0 states no external index exists.
+- [x] No Meilisearch, Elasticsearch, or OpenSearch client is instantiated.
+- [x] No fake search success for missing external infrastructure.
+- [x] Search jobs are no-ops in Phase 0 — they complete without error and without side effects.
 
 ## Input Validation
 
-- [ ] `q` parameter is trimmed and capped at 200 characters on both public and admin endpoints.
-- [ ] `page` must be a positive integer.
-- [ ] `limit` is between 1 and 50.
-- [ ] `type` for public search must be one of the allowed content types.
-- [ ] `categoryId` and `tagId` must be valid MongoDB ObjectIds.
-- [ ] `scope` in reindex body is validated against the `SearchScope` union.
+- [x] `q` parameter is trimmed and capped at 200 characters on both public and admin endpoints.
+- [x] `page` must be a positive integer.
+- [x] `limit` is between 1 and 50.
+- [x] `type` for public search must be one of the allowed content types.
+- [x] `categoryId` and `tagId` must be valid MongoDB ObjectIds.
+- [x] `scope` in reindex body is validated against the `SearchScope` union — invalid scope returns 400 (not silently dropped).
 
 ## Frontend Search Safety (Slice 0.9.2)
 

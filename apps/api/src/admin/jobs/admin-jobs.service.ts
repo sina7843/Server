@@ -21,6 +21,7 @@ export class AdminJobsService {
     @InjectQueue(QueueNames.SMS) private readonly smsQueue: Queue,
     @InjectQueue(QueueNames.MEDIA) private readonly mediaQueue: Queue,
     @InjectQueue(QueueNames.MAINTENANCE) private readonly maintenanceQueue: Queue,
+    @InjectQueue(QueueNames.SEARCH) private readonly searchQueue: Queue,
   ) {}
 
   private resolveQueue(name: string): Queue | null {
@@ -31,6 +32,8 @@ export class AdminJobsService {
         return this.mediaQueue;
       case QueueNames.MAINTENANCE:
         return this.maintenanceQueue;
+      case QueueNames.SEARCH:
+        return this.searchQueue;
       default:
         return null;
     }

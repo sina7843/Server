@@ -48,6 +48,12 @@ export function parsePublicContentSearchQuery(raw: unknown): ParsedPublicContent
     tagId = query.tagId;
   }
 
+  if (type === 'page' && (categoryId !== undefined || tagId !== undefined)) {
+    throw new BadRequestException(
+      'categoryId and tagId are not applicable when type is page — pages do not have categories or tags.',
+    );
+  }
+
   const pageRaw = query.page !== undefined ? Number(query.page) : DEFAULT_PAGE;
   const limitRaw = query.limit !== undefined ? Number(query.limit) : DEFAULT_LIMIT;
 

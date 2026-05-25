@@ -17,6 +17,8 @@ import type {
   SearchResult,
   ParsedPublicContentSearchQuery,
   ParsedAdminSearchQuery,
+  IndexSearchInput,
+  RemoveSearchInput,
 } from './search.service';
 
 const POST_TYPE_ROUTE_MAP: Record<string, string> = {
@@ -287,6 +289,16 @@ export class MongoSearchAdapter extends SearchService {
     }));
 
     return { items, page, limit, total };
+  }
+
+  async index(input: IndexSearchInput): Promise<void> {
+    void input;
+    // Phase 0: no external index — no-op.
+  }
+
+  async remove(input: RemoveSearchInput): Promise<void> {
+    void input;
+    // Phase 0: no external index — no-op.
   }
 
   async reindex(scope?: SearchScope): Promise<void> {

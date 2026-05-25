@@ -19,6 +19,7 @@ function createMocks() {
   const smsQueue = { add: jest.fn().mockResolvedValue(mockBullJob), getJob: jest.fn() };
   const mediaQueue = { add: jest.fn().mockResolvedValue(mockBullJob), getJob: jest.fn() };
   const maintenanceQueue = { add: jest.fn().mockResolvedValue(mockBullJob), getJob: jest.fn() };
+  const searchQueue = { add: jest.fn().mockResolvedValue(mockBullJob), getJob: jest.fn() };
 
   const mockJobLog = {
     _id: MOCK_JOB_LOG_ID,
@@ -40,9 +41,19 @@ function createMocks() {
     smsQueue as never,
     mediaQueue as never,
     maintenanceQueue as never,
+    searchQueue as never,
   );
 
-  return { service, repository, redactor, smsQueue, mediaQueue, maintenanceQueue, mockJobLog };
+  return {
+    service,
+    repository,
+    redactor,
+    smsQueue,
+    mediaQueue,
+    maintenanceQueue,
+    searchQueue,
+    mockJobLog,
+  };
 }
 
 describe('JobLogService', () => {

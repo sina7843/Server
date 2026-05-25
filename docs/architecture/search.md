@@ -2,8 +2,10 @@
 
 ## Status
 
-Search foundation implemented in Slice 0.9.1.
-No frontend search UI yet. No admin search UI yet. No analytics.
+Backend foundation implemented in Slice 0.9.1.
+Public `/search` page implemented in Slice 0.9.2.
+Admin search integrated into users/content/media list pages in Slice 0.9.2.
+No analytics. No Meilisearch. No advanced fuzzy search. No Persian stemming.
 
 ## Overview
 
@@ -223,17 +225,68 @@ SDK has no Meilisearch-specific method, no analytics method, no WebSocket/realti
 - **Reindex**: No-op — Mongo adapter reads from source in real-time. When a real search engine is added, reindex will trigger a full rebuild.
 - **No Persian/Farsi stemming**: Not implemented and not promised.
 - **No advanced ranking**: Not implemented.
-- **No frontend UI**: Not implemented in this task.
+- **No frontend ranking**: Not implemented. API result order is preserved in the frontend.
+- **No fake results**: All results come from real API calls. No placeholder or mock data in production.
 
-## Out of Scope (Slice 0.9.1)
+## Frontend (Slice 0.9.2)
+
+### Public Search Page
+
+Route: `/search` (apps/web)
+
+- Search text input with debounce (350 ms).
+- Content type filter: all, news, article, announcement, guide, rule, page.
+- URL query persistence: `q`, `type`, `page` synced to URL query string via `router.replace`.
+- States: loading, error, no-results (query set, zero items), empty (no query, no items).
+- Results link to type-specific routes only — never `/posts/:slug`.
+- Pagination with prev/next controls.
+- No frontend ranking: API result order is preserved.
+- No fake results.
+
+**Files:**
+
+```
+apps/web/pages/search.vue
+apps/web/composables/usePublicSearch.ts
+apps/web/features/search/search-api.ts
+apps/web/components/search/SearchForm.vue
+apps/web/components/search/SearchResultCard.vue
+apps/web/components/search/SearchResults.vue
+apps/web/components/search/SearchStateMessage.vue
+apps/web/components/search/SearchPagination.vue
+```
+
+`usePublicSearch` wraps `createSearchApi` (which wraps `createSearchClient` from the SDK). State is local to each composable call. No direct fetch calls in pages or components.
+
+### Admin Search Integration
+
+Integrated into existing admin list areas (apps/admin):
+
+| Area                 | Integration                                                                                  |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| Users (`/users`)     | Search mode via `searchUsers` (masked phone); browse mode via `loadUsers` with status filter |
+| Media (`/media`)     | Search mode via `searchMedia`; browse mode via `loadMedia` with type/status/mime filters     |
+| Content (post lists) | Search mode via `searchContent`; browse mode via `loadPosts` with status filter              |
+
+**Behavior:** When search input is non-empty → search mode (uses admin search API, shows search results). When input is cleared → browse mode (uses existing list API with filters).
+
+**Files:**
+
+```
+apps/admin/composables/useAdminSearch.ts
+apps/admin/features/search/admin-search.api.ts
+```
+
+Admin search respects existing permission guards. No raw permission strings. No frontend ranking. No fake results. No global admin search page. No audit duplicate search. No future module search.
+
+## Out of Scope (Slice 0.9.1 + 0.9.2)
 
 - Meilisearch / Elasticsearch / OpenSearch infrastructure
 - Advanced fuzzy search / typo tolerance
 - Persian stemming / NLP ranking
-- Frontend public search page
-- Admin search UI
 - Analytics backend
 - Real-time search indexing
 - Recommendation engine
 - Related content suggestions
 - Search-over-audit-logs (covered by existing audit filter API)
+- Global admin command palette

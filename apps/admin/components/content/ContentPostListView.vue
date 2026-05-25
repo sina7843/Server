@@ -15,7 +15,19 @@
 
     <template v-else>
       <div class="filters">
-        <select v-model="statusFilter" class="status-select" @change="onFilterChange">
+        <input
+          v-model="searchQuery"
+          class="search-input"
+          type="search"
+          placeholder="جستجو در محتوا…"
+          @input="onSearchInput"
+        />
+        <select
+          v-if="!searchMode"
+          v-model="statusFilter"
+          class="status-select"
+          @change="onFilterChange"
+        >
           <option value="">همه وضعیت‌ها</option>
           <option value="draft">پیش‌نویس</option>
           <option value="published">منتشرشده</option>
@@ -23,98 +35,150 @@
         </select>
       </div>
 
-      <LoadingState v-if="postsLoading" />
+      <!-- Search mode: results from admin content search API -->
+      <template v-if="searchMode">
+        <LoadingState v-if="contentLoading" />
+        <ErrorState v-else-if="contentError" :message="contentError" @retry="runSearch" />
+        <EmptyState v-else-if="contentItems.length === 0" label="نتیجه‌ای یافت نشد." />
+        <template v-else>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="th">عنوان</th>
+                  <th class="th">اسلاگ</th>
+                  <th class="th">وضعیت</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in contentItems" :key="item.id" class="tr">
+                  <td class="td td--title">{{ item.title }}</td>
+                  <td class="td td--slug">{{ item.slug ?? '—' }}</td>
+                  <td class="td">
+                    <ContentStatusBadge v-if="item.status" :status="item.status" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <button
+              class="page-btn"
+              type="button"
+              :disabled="contentPage <= 1"
+              @click="goToSearchPage(contentPage - 1)"
+            >
+              قبلی
+            </button>
+            <span class="page-info">صفحه {{ contentPage }}</span>
+            <button
+              class="page-btn"
+              type="button"
+              :disabled="contentItems.length < PAGE_LIMIT"
+              @click="goToSearchPage(contentPage + 1)"
+            >
+              بعدی
+            </button>
+          </div>
+        </template>
+      </template>
 
-      <ErrorState v-else-if="postsError" :message="postsError" @retry="reload" />
-
-      <EmptyState
-        v-else-if="posts.length === 0 && !statusFilter"
-        :label="`هیچ ${LABELS[type] ?? 'محتوایی'} وجود ندارد.`"
-        hint="برای شروع یک مورد جدید ایجاد کنید."
-      />
-
-      <EmptyState v-else-if="posts.length === 0" :label="`موردی با این وضعیت یافت نشد.`" />
-
+      <!-- Browse mode: full post list with status filter -->
       <template v-else>
-        <div class="table-wrap">
-          <table class="table">
-            <thead>
-              <tr>
-                <th class="th">عنوان</th>
-                <th class="th">اسلاگ</th>
-                <th class="th">وضعیت</th>
-                <th class="th">آخرین ویرایش</th>
-                <th class="th" />
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="post in posts" :key="post.id" class="tr">
-                <td class="td td--title">{{ post.title }}</td>
-                <td class="td td--slug">{{ post.slug }}</td>
-                <td class="td">
-                  <ContentStatusBadge :status="post.status" />
-                </td>
-                <td class="td td--date">{{ formatDate(post.updatedAt) }}</td>
-                <td class="td td--actions">
-                  <NuxtLink :to="`/content/${pluralPath}/${post.id}/edit`" class="action-link">
-                    ویرایش
-                  </NuxtLink>
-                  <NuxtLink :to="`/content/${pluralPath}/${post.id}/preview`" class="action-link">
-                    پیش‌نمایش
-                  </NuxtLink>
-                  <button
-                    v-if="
-                      hasPermission(Permissions.CONTENT_POST_PUBLISH) && post.status === 'draft'
-                    "
-                    class="action-btn action-btn--publish"
-                    type="button"
-                    @click="openPublish(post.id)"
-                  >
-                    انتشار
-                  </button>
-                  <button
-                    v-if="
-                      hasPermission(Permissions.CONTENT_POST_ARCHIVE) && post.status === 'published'
-                    "
-                    class="action-btn action-btn--archive"
-                    type="button"
-                    @click="openArchive(post.id)"
-                  >
-                    بایگانی
-                  </button>
-                  <button
-                    v-if="hasPermission(Permissions.CONTENT_POST_UPDATE)"
-                    class="action-btn action-btn--delete"
-                    type="button"
-                    @click="openDelete(post.id)"
-                  >
-                    حذف
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <LoadingState v-if="postsLoading" />
 
-        <div class="pagination">
-          <button
-            class="page-btn"
-            type="button"
-            :disabled="currentPage <= 1"
-            @click="goToPage(currentPage - 1)"
-          >
-            قبلی
-          </button>
-          <span class="page-info">صفحه {{ currentPage }}</span>
-          <button
-            class="page-btn"
-            type="button"
-            :disabled="posts.length < PAGE_LIMIT"
-            @click="goToPage(currentPage + 1)"
-          >
-            بعدی
-          </button>
-        </div>
+        <ErrorState v-else-if="postsError" :message="postsError" @retry="reload" />
+
+        <EmptyState
+          v-else-if="posts.length === 0 && !statusFilter"
+          :label="`هیچ ${LABELS[type] ?? 'محتوایی'} وجود ندارد.`"
+          hint="برای شروع یک مورد جدید ایجاد کنید."
+        />
+
+        <EmptyState v-else-if="posts.length === 0" :label="`موردی با این وضعیت یافت نشد.`" />
+
+        <template v-else>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="th">عنوان</th>
+                  <th class="th">اسلاگ</th>
+                  <th class="th">وضعیت</th>
+                  <th class="th">آخرین ویرایش</th>
+                  <th class="th" />
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="post in posts" :key="post.id" class="tr">
+                  <td class="td td--title">{{ post.title }}</td>
+                  <td class="td td--slug">{{ post.slug }}</td>
+                  <td class="td">
+                    <ContentStatusBadge :status="post.status" />
+                  </td>
+                  <td class="td td--date">{{ formatDate(post.updatedAt) }}</td>
+                  <td class="td td--actions">
+                    <NuxtLink :to="`/content/${pluralPath}/${post.id}/edit`" class="action-link">
+                      ویرایش
+                    </NuxtLink>
+                    <NuxtLink :to="`/content/${pluralPath}/${post.id}/preview`" class="action-link">
+                      پیش‌نمایش
+                    </NuxtLink>
+                    <button
+                      v-if="
+                        hasPermission(Permissions.CONTENT_POST_PUBLISH) && post.status === 'draft'
+                      "
+                      class="action-btn action-btn--publish"
+                      type="button"
+                      @click="openPublish(post.id)"
+                    >
+                      انتشار
+                    </button>
+                    <button
+                      v-if="
+                        hasPermission(Permissions.CONTENT_POST_ARCHIVE) &&
+                        post.status === 'published'
+                      "
+                      class="action-btn action-btn--archive"
+                      type="button"
+                      @click="openArchive(post.id)"
+                    >
+                      بایگانی
+                    </button>
+                    <button
+                      v-if="hasPermission(Permissions.CONTENT_POST_UPDATE)"
+                      class="action-btn action-btn--delete"
+                      type="button"
+                      @click="openDelete(post.id)"
+                    >
+                      حذف
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination">
+            <button
+              class="page-btn"
+              type="button"
+              :disabled="currentPage <= 1"
+              @click="goToPage(currentPage - 1)"
+            >
+              قبلی
+            </button>
+            <span class="page-info">صفحه {{ currentPage }}</span>
+            <button
+              class="page-btn"
+              type="button"
+              :disabled="posts.length < PAGE_LIMIT"
+              @click="goToPage(currentPage + 1)"
+            >
+              بعدی
+            </button>
+          </div>
+        </template>
       </template>
     </template>
 
@@ -170,6 +234,7 @@ const {
   archivePost,
   softDeletePost,
 } = useAdminContent();
+const { contentItems, contentLoading, contentError, contentPage, searchContent } = useAdminSearch();
 
 const PAGE_LIMIT = 20;
 
@@ -181,8 +246,11 @@ const LABELS: Record<string, string> = {
   rule: 'قوانین',
 };
 
+const searchQuery = ref('');
 const statusFilter = ref('');
 const currentPage = ref(1);
+const searchMode = computed(() => searchQuery.value.trim().length > 0);
+let searchTimer: ReturnType<typeof setTimeout> | null = null;
 
 const publishDialogOpen = ref(false);
 const archiveDialogOpen = ref(false);
@@ -200,6 +268,30 @@ function buildParams(page = currentPage.value) {
 
 async function reload(page = currentPage.value) {
   await loadPosts(buildParams(page));
+}
+
+async function runSearch(page = contentPage.value) {
+  await searchContent({
+    ...(searchQuery.value.trim() ? { q: searchQuery.value.trim() } : {}),
+    page,
+    limit: PAGE_LIMIT,
+  });
+}
+
+function onSearchInput() {
+  if (searchTimer) clearTimeout(searchTimer);
+  searchTimer = setTimeout(async () => {
+    if (searchQuery.value.trim()) {
+      await runSearch(1);
+    } else {
+      currentPage.value = 1;
+      await reload(1);
+    }
+  }, 350);
+}
+
+async function goToSearchPage(page: number) {
+  await runSearch(page);
 }
 
 async function onFilterChange() {
@@ -300,7 +392,25 @@ onMounted(reload);
 }
 
 .filters {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
   margin-block-end: 1rem;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 180px;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.search-input:focus {
+  border-color: #3b82f6;
 }
 
 .status-select {

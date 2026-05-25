@@ -72,14 +72,26 @@
 - [ ] `categoryId` and `tagId` must be valid MongoDB ObjectIds.
 - [ ] `scope` in reindex body is validated against the `SearchScope` union.
 
-## Out of Scope (Slice 0.9.1)
+## Frontend Search Safety (Slice 0.9.2)
 
-- [ ] No analytics endpoint exists.
+- [ ] Public `/search` page never links to `/posts/:slug` — all links are type-specific routes from backend `route` field.
+- [ ] Public search results are API-backed only — no fake or hardcoded results.
+- [ ] Admin search results in list pages are API-backed only — no fake data.
+- [ ] No frontend ranking is applied — API result order is preserved.
+- [ ] `usePublicSearch` composable uses SDK (`createSearchClient`) — no direct fetch calls scattered in pages/components.
+- [ ] `useAdminSearch` composable uses SDK (`createAdminSearchClient`) — no direct fetch calls.
+- [ ] Admin search pages respect existing permission checks (`PermissionGuard` on backend, `hasPermission` on frontend for UX).
+- [ ] No raw permission strings in route meta or navigation — all use `DragonPermissions.*`.
+- [ ] No global admin search page added.
+- [ ] No audit duplicate search added (covered by existing audit filter UI).
+
+## Out of Scope (Slice 0.9.1 + 0.9.2)
+
+- [ ] No analytics endpoint or frontend exists.
 - [ ] No real-time search indexing exists.
 - [ ] No Meilisearch / Elasticsearch / OpenSearch client exists.
 - [ ] No fuzzy search or typo tolerance exists.
 - [ ] No Persian stemming or NLP ranking exists.
 - [ ] No recommendation engine or related content endpoint exists.
-- [ ] No frontend public search page exists.
-- [ ] No admin search UI exists.
 - [ ] No search-over-audit-logs endpoint exists (covered by existing audit filter API).
+- [ ] No global admin command palette exists.

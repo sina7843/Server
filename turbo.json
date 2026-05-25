@@ -4,6 +4,7 @@
     "lint": {},
     "typecheck": {},
     "test": {},
+    "smoke": {},
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".output/**", ".nuxt/**", "build/**"]

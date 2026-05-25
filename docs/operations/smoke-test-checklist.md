@@ -168,3 +168,28 @@ curl -s "https://api.YOUR_DOMAIN/admin/v1/system/backups/latest" \
 - [ ] `GET /admin/v1/system/backups` returns a list without exposing credentials or connection strings
 
 Skip the backup check if Object Storage is not yet configured — backups are not completed when running with `STORAGE_PROVIDER=local`.
+
+---
+
+## 0. Automated smoke suite (run before manual checks)
+
+Before starting the manual checklist, run the automated smoke suite from the repo. These tests
+require no running server and complete in under 15 seconds.
+
+```bash
+# From repo root
+pnpm smoke
+```
+
+Expected: **8 suites, 80 tests, 0 failures.**
+
+The automated suite covers:
+
+- Health endpoint response shapes and no-secrets invariant
+- Backup API permission gates and no-restore-endpoint invariant
+- Public search published-only routing
+- Admin search/analytics/audit/jobs/notifications permission gates
+- Media MIME/extension allowlist validation
+- No raw OTP, password, token, or phone number in any API response
+
+If the automated suite fails, do not proceed with the manual deploy checklist until it is fixed.

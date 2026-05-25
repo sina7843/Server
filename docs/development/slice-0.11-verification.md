@@ -1,5 +1,72 @@
 # Slice 0.11 Verification
 
+## Task 0.11.2 — Risk-based Testing and Smoke Test Suite
+
+### Files created
+
+```
+apps/api/test/health-smoke.e2e-spec.ts
+apps/api/test/backup-smoke.e2e-spec.ts
+apps/api/test/search-smoke.e2e-spec.ts
+apps/api/test/analytics-smoke.e2e-spec.ts
+apps/api/test/audit-smoke.e2e-spec.ts
+apps/api/test/jobs-smoke.e2e-spec.ts
+apps/api/test/notifications-smoke.e2e-spec.ts
+apps/api/test/media-smoke.e2e-spec.ts
+docs/development/smoke-tests.md
+docs/development/phase-0-test-strategy.md
+docs/development/slice-0.11-verification.md   ← updated
+docs/operations/smoke-test-checklist.md       ← updated
+```
+
+### Files modified
+
+```
+apps/api/package.json    — added "smoke" script
+package.json             — added "smoke" script
+turbo.json               — added "smoke" task
+```
+
+### Verification commands
+
+```bash
+# Smoke suite (8 suites, 80 tests, no external services required)
+pnpm smoke
+
+# Full unit test suite (must still pass after adding smoke specs)
+pnpm test
+pnpm lint
+pnpm typecheck
+pnpm build
+pnpm format:check
+```
+
+### Expected results
+
+| Command             | Expected                       |
+| ------------------- | ------------------------------ |
+| `pnpm smoke`        | 8 suites, 80 tests, 0 failures |
+| `pnpm test`         | 1390/1390 pass                 |
+| `pnpm lint`         | 0 errors                       |
+| `pnpm typecheck`    | 0 errors                       |
+| `pnpm build`        | all packages built             |
+| `pnpm format:check` | all files pass                 |
+
+### Coverage areas
+
+| Area                                                       | Spec                              |
+| ---------------------------------------------------------- | --------------------------------- |
+| Health: no secrets, 503 on dep down                        | `health-smoke.e2e-spec.ts`        |
+| Backup: permission-protected, no restore/download endpoint | `backup-smoke.e2e-spec.ts`        |
+| Search: public published-only, admin permission-gated      | `search-smoke.e2e-spec.ts`        |
+| Analytics: permission-gated, no raw OTP in aggregates      | `analytics-smoke.e2e-spec.ts`     |
+| Audit: permission-gated, no raw secrets in log entries     | `audit-smoke.e2e-spec.ts`         |
+| Jobs: permission-gated, retry gate, no raw payload secrets | `jobs-smoke.e2e-spec.ts`          |
+| Notifications: permission-gated, no raw OTP/phone in logs  | `notifications-smoke.e2e-spec.ts` |
+| Media: permission-gated, MIME/extension allowlist          | `media-smoke.e2e-spec.ts`         |
+
+---
+
 ## Task 0.11.1 — Security Hardening Final Pass
 
 ### Files created

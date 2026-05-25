@@ -27,3 +27,7 @@ Project documentation:
 - [Backup runbook](docs/operations/backup-runbook.md)
 - [Restore runbook](docs/operations/restore-runbook.md)
 - [Restore verification checklist](docs/operations/restore-verification-checklist.md)
+- [Security hardening checklist](docs/security/security-hardening-checklist.md)
+- [Slice 0.11 verification](docs/development/slice-0.11-verification.md)
+- [Smoke tests (automated)](docs/development/smoke-tests.md)
+- [Phase 0 test strategy](docs/development/phase-0-test-strategy.md)

@@ -1,8 +1,9 @@
-import { Controller, Delete, Get, Patch, Param, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, Patch, Param, Body, Query, Req, UseGuards } from '@nestjs/common';
 import { AccessTokenGuard } from '../../auth/guards/access-token.guard';
 import { RequirePermission } from '../../rbac/decorators/require-permission.decorator';
 import { PermissionGuard } from '../../rbac/guards/permission.guard';
 import { Permissions } from '../../rbac/registry/permission-keys';
+import type { AuthenticatedRequest } from '../../auth/guards/authenticated-request';
 import { parseAdminUsersQuery } from './dto/admin-user-query';
 import { parseAdminUserStatusUpdate } from './dto/admin-user-status';
 import { AdminUsersService } from './admin-users.service';
@@ -35,8 +36,13 @@ export class AdminUsersController {
   updateUserStatus(
     @Param('id') id: string,
     @Body() body: unknown,
+    @Req() req: AuthenticatedRequest,
   ): Promise<AdminUserDetailResponseDto> {
-    return this.adminUsersService.updateUserStatus(id, parseAdminUserStatusUpdate(body));
+    return this.adminUsersService.updateUserStatus(
+      id,
+      parseAdminUserStatusUpdate(body),
+      req.auth?.userId,
+    );
   }
 
   @Get(':id/sessions')
@@ -50,7 +56,8 @@ export class AdminUsersController {
   revokeUserSession(
     @Param('id') id: string,
     @Param('sessionId') sessionId: string,
+    @Req() req: AuthenticatedRequest,
   ): Promise<AdminGenericResponseDto> {
-    return this.adminUsersService.revokeUserSession(id, sessionId);
+    return this.adminUsersService.revokeUserSession(id, sessionId, req.auth?.userId);
   }
 }

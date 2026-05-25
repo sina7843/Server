@@ -102,8 +102,11 @@ export class AdminContentPagesController {
 
   @Delete(':id')
   @RequirePermission(Permissions.CONTENT_PAGE_UPDATE)
-  async softDeletePage(@Param('id') id: string): Promise<ContentGenericResponse> {
-    await this.service.softDeletePage(id);
+  async softDeletePage(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<ContentGenericResponse> {
+    await this.service.softDeletePage(id, req.auth?.userId);
     return { success: true, message: 'Page deleted.' };
   }
 

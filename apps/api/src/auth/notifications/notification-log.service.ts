@@ -11,6 +11,7 @@ import type {
   CreateSmsNotificationLogInput,
   NotificationStatus,
 } from './notification-log.types';
+import { sanitizeNotificationErrorMessage } from './notification-error-sanitizer';
 
 @Injectable()
 export class NotificationLogService {
@@ -66,7 +67,7 @@ export class NotificationLogService {
     }
 
     if (input.errorMessage !== undefined) {
-      logInput.errorMessage = input.errorMessage;
+      logInput.errorMessage = sanitizeNotificationErrorMessage(input.errorMessage);
     }
 
     if (input.requestId !== undefined) {

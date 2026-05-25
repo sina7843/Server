@@ -260,4 +260,119 @@ describe('PasswordResetService', () => {
       await expect(verifyPassword('old-password', passwordHash as string)).resolves.toBe(false);
     });
   });
+
+  describe('audit hooks', () => {
+    function createServiceWithAudit() {
+      const base = createService();
+      const auditLog = jest.fn().mockResolvedValue(undefined);
+      const auditService = { log: auditLog } as never;
+      const service = new PasswordResetService(
+        base.userRepository,
+        new UserService(),
+        base.otpChallengeRepository,
+        new OtpChallengeService(),
+        base.smsService,
+        base.sessionRepository,
+        createAuthTestConfig(),
+        auditService,
+      );
+      return { ...base, service, auditLog };
+    }
+
+    it('forgotPassword audits auth.password_reset_requested without raw phone or token', async () => {
+      const { service, userRepository, auditLog } = createServiceWithAudit();
+      userRepository.findActiveByPhoneNormalized.mockResolvedValue(createActiveUser() as never);
+
+      await service.forgotPassword({ phone: '+989120000000' });
+
+      expect(auditLog).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'auth.password_reset_requested',
+          actorType: 'system',
+        }),
+      );
+      const allArgs = JSON.stringify(auditLog.mock.calls);
+      expect(allArgs).not.toContain('+989120000000');
+      expect(allArgs).not.toContain('token');
+      expect(allArgs).not.toContain('code');
+    });
+
+    it('forgotPassword audits otp.created without raw OTP or code', async () => {
+      const { service, userRepository, auditLog } = createServiceWithAudit();
+      userRepository.findActiveByPhoneNormalized.mockResolvedValue(createActiveUser() as never);
+
+      await service.forgotPassword({ phone: '+989120000000' });
+
+      expect(auditLog).toHaveBeenCalledWith(expect.objectContaining({ action: 'otp.created' }));
+      const allArgs = JSON.stringify(auditLog.mock.calls);
+      expect(allArgs).not.toContain('codeHash');
+      expect(allArgs).not.toContain('rawOtp');
+    });
+
+    it('forgotPassword audits otp.rate_limited when limit is reached', async () => {
+      const { service, userRepository, otpChallengeRepository, auditLog } =
+        createServiceWithAudit();
+      userRepository.findActiveByPhoneNormalized.mockResolvedValue(createActiveUser() as never);
+      otpChallengeRepository.countRecentChallengesByPhone.mockResolvedValue(999);
+
+      await service.forgotPassword({ phone: '+989120000000' });
+
+      expect(auditLog).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'otp.rate_limited', severity: 'warning' }),
+      );
+    });
+
+    it('verifyResetOtp audits otp.verified without raw OTP or phone', async () => {
+      const { service, userRepository, otpChallengeRepository, auditLog } =
+        createServiceWithAudit();
+      const challenge = await createChallenge();
+      otpChallengeRepository.findLatestActiveByPhoneAndPurpose.mockResolvedValue(
+        challenge as never,
+      );
+      userRepository.findActiveByPhoneNormalized.mockResolvedValue(createActiveUser() as never);
+
+      await service.verifyResetOtp({ phone: '+989120000000', code: '123456' });
+
+      expect(auditLog).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'otp.verified', actorType: 'user' }),
+      );
+      const allArgs = JSON.stringify(auditLog.mock.calls);
+      expect(allArgs).not.toContain('+989120000000');
+      expect(allArgs).not.toContain('123456');
+    });
+
+    it('verifyResetOtp audits otp.failed on wrong code without raw data', async () => {
+      const { service, otpChallengeRepository, auditLog } = createServiceWithAudit();
+      const challenge = await createChallenge();
+      otpChallengeRepository.findLatestActiveByPhoneAndPurpose.mockResolvedValue(
+        challenge as never,
+      );
+
+      await expect(
+        service.verifyResetOtp({ phone: '+989120000000', code: 'wrong' }),
+      ).rejects.toThrow();
+
+      expect(auditLog).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'otp.failed', severity: 'warning' }),
+      );
+      const allArgs = JSON.stringify(auditLog.mock.calls);
+      expect(allArgs).not.toContain('wrong');
+      expect(allArgs).not.toContain('+989120000000');
+    });
+
+    it('resetPassword audits auth.password_reset_completed without resetToken or newPassword', async () => {
+      const { service, userRepository, auditLog } = createServiceWithAudit();
+      userRepository.findById.mockResolvedValue(createActiveUser() as never);
+      const resetToken = service.issueResetToken('user-1');
+
+      await service.resetPassword({ resetToken, newPassword: 'new-password-safe' });
+
+      expect(auditLog).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'auth.password_reset_completed', actorType: 'user' }),
+      );
+      const allArgs = JSON.stringify(auditLog.mock.calls);
+      expect(allArgs).not.toContain(resetToken);
+      expect(allArgs).not.toContain('new-password-safe');
+    });
+  });
 });

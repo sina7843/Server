@@ -1,5 +1,14 @@
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
-import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Optional,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { AuditAction } from '@dragon/types';
+import { AuditService } from '../../audit/audit.service';
+import { maskPhone } from '../security/masking';
 import { AUTH_CONFIG } from '../../config/app-config.module';
 import type { AuthConfig } from '../../config/auth.config';
 import type { ForgotPasswordDto } from '../dto/forgot-password.dto';
@@ -47,6 +56,7 @@ export class PasswordResetService {
     private readonly smsService: SmsService,
     private readonly sessionRepository: SessionRepository,
     @Inject(AUTH_CONFIG) private readonly authConfig: AuthConfig,
+    @Optional() private readonly auditService?: AuditService,
   ) {}
 
   async forgotPassword(
@@ -69,8 +79,27 @@ export class PasswordResetService {
     );
 
     if (!otpRequestAllowed) {
+      void this.auditService?.log({
+        actorType: 'system',
+        action: AuditAction.OTP_RATE_LIMITED,
+        resourceType: 'auth',
+        severity: 'warning',
+        metadata: {
+          phoneMasked: maskPhone(phoneNormalized),
+          purpose: PASSWORD_RESET_PURPOSE,
+          ...definedMetadata(metadata),
+        },
+      });
       return createGenericAuthResponse(FORGOT_PASSWORD_GENERIC_MESSAGE);
     }
+
+    void this.auditService?.log({
+      actorType: 'system',
+      action: AuditAction.AUTH_PASSWORD_RESET_REQUESTED,
+      resourceType: 'auth',
+      severity: 'info',
+      metadata: { phoneMasked: maskPhone(phoneNormalized), ...definedMetadata(metadata) },
+    });
 
     const latestChallenge = await this.otpChallengeRepository.findLatestActiveByPhoneAndPurpose(
       phoneNormalized,
@@ -98,6 +127,17 @@ export class PasswordResetService {
       maxAttempts: this.authConfig.otpMaxAttempts,
       nextResendAt,
       ...definedMetadata(metadata),
+    });
+    void this.auditService?.log({
+      actorType: 'system',
+      action: AuditAction.OTP_CREATED,
+      resourceType: 'auth',
+      severity: 'info',
+      metadata: {
+        phoneMasked: maskPhone(phoneNormalized),
+        purpose: PASSWORD_RESET_PURPOSE,
+        ...definedMetadata(metadata),
+      },
     });
 
     await this.smsService.enqueueSms({
@@ -127,6 +167,13 @@ export class PasswordResetService {
 
     if (!isCodeValid) {
       await this.otpChallengeRepository.incrementAttempts(challenge._id);
+      void this.auditService?.log({
+        actorType: 'system',
+        action: AuditAction.OTP_FAILED,
+        resourceType: 'auth',
+        severity: 'warning',
+        metadata: { phoneMasked: maskPhone(phoneNormalized), purpose: PASSWORD_RESET_PURPOSE },
+      });
       throw this.createInvalidResetOtpError();
     }
 
@@ -138,6 +185,15 @@ export class PasswordResetService {
 
     await this.otpChallengeRepository.markVerified(challenge._id, now);
     await this.otpChallengeRepository.markConsumed(challenge._id, now);
+    void this.auditService?.log({
+      actorId: String(user._id),
+      actorType: 'user',
+      action: AuditAction.OTP_VERIFIED,
+      resourceType: 'auth',
+      resourceId: String(user._id),
+      severity: 'info',
+      metadata: { purpose: PASSWORD_RESET_PURPOSE },
+    });
 
     return {
       resetToken: this.issueResetToken(String(user._id), now),
@@ -159,6 +215,14 @@ export class PasswordResetService {
     await this.userRepository.updatePasswordHash(user._id, passwordHash);
     await this.userRepository.resetFailedLoginState(user._id);
     await this.sessionRepository.revokeAllForUser(user._id, 'password_reset');
+    void this.auditService?.log({
+      actorId: String(user._id),
+      actorType: 'user',
+      action: AuditAction.AUTH_PASSWORD_RESET_COMPLETED,
+      resourceType: 'auth',
+      resourceId: String(user._id),
+      severity: 'info',
+    });
 
     return createGenericAuthResponse(RESET_PASSWORD_GENERIC_MESSAGE);
   }

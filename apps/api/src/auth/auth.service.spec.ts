@@ -869,4 +869,108 @@ describe('AuthService', () => {
       expect(response).toEqual({ success: true, message: REVOKE_SESSION_GENERIC_MESSAGE });
     });
   });
+
+  describe('audit hooks', () => {
+    async function createServiceWithAudit() {
+      const base = await createService();
+      const auditLog = jest.fn().mockResolvedValue(undefined);
+      const auditService = { log: auditLog } as never;
+      const service = new AuthService(
+        base.userRepository,
+        new UserService(),
+        base.otpChallengeRepository,
+        new OtpChallengeService(),
+        base.smsService,
+        createAuthTestConfig(),
+        base.sessionRepository,
+        base.accessTokenService,
+        base.refreshTokenService,
+        undefined,
+        base.profileLifecycleService,
+        auditService,
+      );
+      return { ...base, service, auditLog };
+    }
+
+    it('register audits auth.register_requested without raw phone or password', async () => {
+      const { service, userRepository, auditLog } = await createServiceWithAudit();
+      userRepository.findByPhoneNormalized.mockResolvedValue(null);
+
+      await service.register({ phone: '+989120000000', password: 'strong-pass' });
+
+      expect(auditLog).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'auth.register_requested', actorType: 'system' }),
+      );
+      const allArgs = JSON.stringify(auditLog.mock.calls);
+      expect(allArgs).not.toContain('+989120000000');
+      expect(allArgs).not.toContain('strong-pass');
+    });
+
+    it('register audits otp.created without raw OTP or code hash', async () => {
+      const { service, userRepository, auditLog } = await createServiceWithAudit();
+      userRepository.findByPhoneNormalized.mockResolvedValue(null);
+
+      await service.register({ phone: '+989120000000', password: 'strong-pass' });
+
+      expect(auditLog).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'otp.created', actorType: 'system' }),
+      );
+      const allArgs = JSON.stringify(auditLog.mock.calls);
+      expect(allArgs).not.toContain('codeHash');
+      expect(allArgs).not.toContain('rawOtp');
+    });
+
+    it('register audits otp.rate_limited when daily phone limit is reached', async () => {
+      const { service, userRepository, otpChallengeRepository, auditLog } =
+        await createServiceWithAudit();
+      userRepository.findByPhoneNormalized.mockResolvedValue(null);
+      otpChallengeRepository.countRecentChallengesByPhone.mockResolvedValue(999);
+
+      await service.register({ phone: '+989120000000', password: 'strong-pass' });
+
+      expect(auditLog).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'otp.rate_limited', severity: 'warning' }),
+      );
+    });
+
+    it('verifyPhone audits otp.verified without raw OTP or phone', async () => {
+      const { service, userRepository, otpChallengeRepository, auditLog } =
+        await createServiceWithAudit();
+      const challenge = await createChallenge();
+      otpChallengeRepository.findLatestActiveByPhoneAndPurpose.mockResolvedValue(
+        challenge as never,
+      );
+      userRepository.findByPhoneNormalized.mockResolvedValue(
+        createPendingUser({ status: 'pending_verification' }) as never,
+      );
+
+      await service.verifyPhone({ phone: '+989120000000', code: '123456' });
+
+      expect(auditLog).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'otp.verified', actorType: 'user' }),
+      );
+      const allArgs = JSON.stringify(auditLog.mock.calls);
+      expect(allArgs).not.toContain('+989120000000');
+      expect(allArgs).not.toContain('123456');
+    });
+
+    it('verifyPhone audits otp.failed on wrong code without raw OTP or phone', async () => {
+      const { service, otpChallengeRepository, auditLog } = await createServiceWithAudit();
+      const challenge = await createChallenge();
+      otpChallengeRepository.findLatestActiveByPhoneAndPurpose.mockResolvedValue(
+        challenge as never,
+      );
+
+      await expect(
+        service.verifyPhone({ phone: '+989120000000', code: 'wrong-code' }),
+      ).rejects.toThrow();
+
+      expect(auditLog).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'otp.failed', severity: 'warning' }),
+      );
+      const allArgs = JSON.stringify(auditLog.mock.calls);
+      expect(allArgs).not.toContain('+989120000000');
+      expect(allArgs).not.toContain('wrong-code');
+    });
+  });
 });

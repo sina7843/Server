@@ -98,6 +98,14 @@ export class AuthService {
       return createGenericAuthResponse();
     }
 
+    void this.auditService?.log({
+      actorType: 'system',
+      action: AuditAction.AUTH_REGISTER_REQUESTED,
+      resourceType: 'auth',
+      severity: 'info',
+      metadata: { phoneMasked: maskPhone(phoneNormalized), ...definedMetadata(metadata) },
+    });
+
     if (!existingUser) {
       const passwordHash = await hashPassword(input.password);
       await this.userRepository.createPendingUser({
@@ -129,6 +137,16 @@ export class AuthService {
 
     if (!isCodeValid) {
       await this.otpChallengeRepository.incrementAttempts(challenge._id);
+      void this.auditService?.log({
+        actorType: 'system',
+        action: AuditAction.OTP_FAILED,
+        resourceType: 'auth',
+        severity: 'warning',
+        metadata: {
+          phoneMasked: maskPhone(phoneNormalized),
+          purpose: PHONE_VERIFICATION_PURPOSE,
+        },
+      });
       throw this.createInvalidPhoneVerificationError();
     }
 
@@ -141,6 +159,15 @@ export class AuthService {
     await this.otpChallengeRepository.markVerified(challenge._id, now);
     await this.otpChallengeRepository.markConsumed(challenge._id, now);
     await this.userRepository.markPhoneVerified(user._id, now);
+    void this.auditService?.log({
+      actorId: String(user._id),
+      actorType: 'user',
+      action: AuditAction.OTP_VERIFIED,
+      resourceType: 'auth',
+      resourceId: String(user._id),
+      severity: 'info',
+      metadata: { purpose: PHONE_VERIFICATION_PURPOSE },
+    });
     await this.profileLifecycleService?.ensureProfileForActiveUser({
       userId: String(user._id),
     });
@@ -449,6 +476,17 @@ export class AuthService {
     );
 
     if (!otpRequestAllowed) {
+      void this.auditService?.log({
+        actorType: 'system',
+        action: AuditAction.OTP_RATE_LIMITED,
+        resourceType: 'auth',
+        severity: 'warning',
+        metadata: {
+          phoneMasked: maskPhone(phoneNormalized),
+          purpose: PHONE_VERIFICATION_PURPOSE,
+          ...definedMetadata(metadata),
+        },
+      });
       return;
     }
 
@@ -481,6 +519,17 @@ export class AuthService {
     };
 
     await this.otpChallengeRepository.createChallenge(challengeInput);
+    void this.auditService?.log({
+      actorType: 'system',
+      action: AuditAction.OTP_CREATED,
+      resourceType: 'auth',
+      severity: 'info',
+      metadata: {
+        phoneMasked: maskPhone(phoneNormalized),
+        purpose: PHONE_VERIFICATION_PURPOSE,
+        ...definedMetadata(metadata),
+      },
+    });
     await this.smsService.enqueueSms({
       recipientPhoneNormalized: phoneNormalized,
       message: `Your Dragon verification code is ${code}.`,

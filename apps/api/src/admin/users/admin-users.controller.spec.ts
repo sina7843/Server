@@ -128,9 +128,14 @@ describe('AdminUsersController', () => {
   describe('PATCH /admin/v1/users/:id/status', () => {
     it('updates user status', async () => {
       const { controller, service } = createController();
-      await controller.updateUserStatus(MOCK_USER_ID, { status: 'suspended' });
+      const req = { auth: { userId: 'admin-1' } } as never;
+      await controller.updateUserStatus(MOCK_USER_ID, { status: 'suspended' }, req);
 
-      expect(service.updateUserStatus).toHaveBeenCalledWith(MOCK_USER_ID, { status: 'suspended' });
+      expect(service.updateUserStatus).toHaveBeenCalledWith(
+        MOCK_USER_ID,
+        { status: 'suspended' },
+        'admin-1',
+      );
     });
 
     it('rejects invalid status', () => {
@@ -168,9 +173,14 @@ describe('AdminUsersController', () => {
   describe('DELETE /admin/v1/users/:id/sessions/:sessionId', () => {
     it('revokes session scoped to target user', async () => {
       const { controller, service } = createController();
-      const result = await controller.revokeUserSession(MOCK_USER_ID, MOCK_SESSION_ID);
+      const req = { auth: { userId: 'admin-1' } } as never;
+      const result = await controller.revokeUserSession(MOCK_USER_ID, MOCK_SESSION_ID, req);
 
-      expect(service.revokeUserSession).toHaveBeenCalledWith(MOCK_USER_ID, MOCK_SESSION_ID);
+      expect(service.revokeUserSession).toHaveBeenCalledWith(
+        MOCK_USER_ID,
+        MOCK_SESSION_ID,
+        'admin-1',
+      );
       expect(result.success).toBe(true);
     });
   });

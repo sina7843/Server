@@ -35,6 +35,7 @@ export const AuditAction = {
   OTP_RATE_LIMITED: 'otp.rate_limited',
 
   USER_STATUS_CHANGED: 'user.status_changed',
+  USER_SESSION_REVOKED: 'user.session_revoked',
 
   PROFILE_UPDATED: 'profile.updated',
 

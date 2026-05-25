@@ -1,4 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Optional } from '@nestjs/common';
+import { AuditAction } from '@dragon/types';
+import { AuditService } from '../../audit/audit.service';
 import { UserRepository } from '../../auth/users/user.repository';
 import { SessionRepository } from '../../auth/sessions/session.repository';
 import { UserProfileRepository } from '../../profiles/profile.repository';
@@ -23,6 +25,7 @@ export class AdminUsersService {
     private readonly userRepository: UserRepository,
     private readonly sessionRepository: SessionRepository,
     private readonly profileRepository: UserProfileRepository,
+    @Optional() private readonly auditService?: AuditService,
   ) {}
 
   async listUsers(query: AdminUsersQueryDto): Promise<AdminUsersListResponseDto> {
@@ -74,6 +77,7 @@ export class AdminUsersService {
   async updateUserStatus(
     rawId: string,
     input: AdminUserStatusUpdateDto,
+    actorId?: string,
   ): Promise<AdminUserDetailResponseDto> {
     const userId = validateObjectId(rawId, 'id');
     const existing = await this.userRepository.findById(userId);
@@ -87,6 +91,18 @@ export class AdminUsersService {
     if (!updated) {
       throw new NotFoundException('User not found.');
     }
+
+    void this.auditService?.log({
+      ...(actorId !== undefined ? { actorId } : {}),
+      actorType: 'admin',
+      action: AuditAction.USER_STATUS_CHANGED,
+      resourceType: 'user',
+      resourceId: userId,
+      before: { status: existing.status },
+      after: { status: input.status },
+      ...(input.reason !== undefined ? { metadata: { reason: input.reason } } : {}),
+      severity: 'warning',
+    });
 
     const profile = await this.profileRepository.findByUserId(userId);
 
@@ -109,6 +125,7 @@ export class AdminUsersService {
   async revokeUserSession(
     rawUserId: string,
     rawSessionId: string,
+    actorId?: string,
   ): Promise<AdminGenericResponseDto> {
     const userId = validateObjectId(rawUserId, 'id');
     const sessionId = validateObjectId(rawSessionId, 'sessionId');
@@ -128,6 +145,16 @@ export class AdminUsersService {
     if (!revoked) {
       throw new NotFoundException('Session not found or already revoked.');
     }
+
+    void this.auditService?.log({
+      ...(actorId !== undefined ? { actorId } : {}),
+      actorType: 'admin',
+      action: AuditAction.USER_SESSION_REVOKED,
+      resourceType: 'user',
+      resourceId: userId,
+      metadata: { sessionId },
+      severity: 'warning',
+    });
 
     return { success: true, message: 'Session revoked.' };
   }

@@ -7,6 +7,7 @@ import type {
   NotificationChannel,
   NotificationStatus,
 } from './notification-log.types';
+import { sanitizeNotificationErrorMessage } from './notification-error-sanitizer';
 
 export interface NotificationLogFilters {
   channel?: NotificationChannel;
@@ -80,7 +81,8 @@ export class NotificationLogRepository {
     const set: Record<string, unknown> = { status };
     if (updates.providerMessageId !== undefined) set.providerMessageId = updates.providerMessageId;
     if (updates.errorCode !== undefined) set.errorCode = updates.errorCode;
-    if (updates.errorMessage !== undefined) set.errorMessage = updates.errorMessage;
+    if (updates.errorMessage !== undefined)
+      set.errorMessage = sanitizeNotificationErrorMessage(updates.errorMessage);
     await this.notificationLogModel.findByIdAndUpdate(id, { $set: set }).exec();
   }
 

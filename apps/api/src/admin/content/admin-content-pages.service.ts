@@ -1,4 +1,6 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, Optional } from '@nestjs/common';
+import { AuditAction } from '@dragon/types';
+import { AuditService } from '../../audit/audit.service';
 import { validateObjectId } from '../../rbac/dto/rbac-validation';
 import { PageService } from '../../content/pages/page.service';
 import type { PageDocument } from '../../content/pages/page.schema';
@@ -36,6 +38,7 @@ export class AdminContentPagesService {
     private readonly revisionService: ContentRevisionService,
     private readonly richTextValidator: RichTextValidator,
     private readonly htmlSanitizer: HtmlSanitizer,
+    @Optional() private readonly auditService?: AuditService,
   ) {}
 
   async listPages(query: AdminPageListQueryDto): Promise<{ items: PageDocument[]; total: number }> {
@@ -74,6 +77,15 @@ export class AdminContentPagesService {
     });
 
     await this.revisionService.snapshot('page', String(page._id), toPageSnapshot(page), authorId);
+    void this.auditService?.log({
+      actorId: authorId,
+      actorType: 'admin',
+      action: AuditAction.CONTENT_PAGE_CREATED,
+      resourceType: 'content_page',
+      resourceId: String(page._id),
+      after: { title: page.title, slug: page.slug, status: page.status },
+      severity: 'info',
+    });
 
     return page;
   }
@@ -129,12 +141,30 @@ export class AdminContentPagesService {
 
       const page = result ?? updated;
       await this.revisionService.snapshot('page', id, toPageSnapshot(page), editorId);
+      void this.auditService?.log({
+        actorId: editorId,
+        actorType: 'admin',
+        action: AuditAction.CONTENT_PAGE_UPDATED,
+        resourceType: 'content_page',
+        resourceId: id,
+        after: { title: page.title, slug: page.slug, status: page.status },
+        severity: 'info',
+      });
       return page;
     }
 
     const updated = await this.pageService.update(id, { ...safeInput, updatedBy: editorId });
     if (!updated) throw new NotFoundException('Page not found.');
     await this.revisionService.snapshot('page', id, toPageSnapshot(updated), editorId);
+    void this.auditService?.log({
+      actorId: editorId,
+      actorType: 'admin',
+      action: AuditAction.CONTENT_PAGE_UPDATED,
+      resourceType: 'content_page',
+      resourceId: id,
+      after: { title: updated.title, slug: updated.slug, status: updated.status },
+      severity: 'info',
+    });
     return updated;
   }
 
@@ -146,6 +176,15 @@ export class AdminContentPagesService {
     const id = validateObjectId(rawId, 'id');
     const page = await this.pageService.markPublished(id);
     await this.revisionService.snapshot('page', id, toPageSnapshot(page), editorId);
+    void this.auditService?.log({
+      actorId: editorId,
+      actorType: 'admin',
+      action: AuditAction.CONTENT_PAGE_PUBLISHED,
+      resourceType: 'content_page',
+      resourceId: id,
+      after: { title: page.title, slug: page.slug, status: page.status },
+      severity: 'info',
+    });
     return page;
   }
 
@@ -153,12 +192,31 @@ export class AdminContentPagesService {
     const id = validateObjectId(rawId, 'id');
     const page = await this.pageService.markArchived(id);
     await this.revisionService.snapshot('page', id, toPageSnapshot(page), editorId);
+    void this.auditService?.log({
+      actorId: editorId,
+      actorType: 'admin',
+      action: AuditAction.CONTENT_PAGE_ARCHIVED,
+      resourceType: 'content_page',
+      resourceId: id,
+      after: { title: page.title, slug: page.slug, status: page.status },
+      severity: 'info',
+    });
     return page;
   }
 
-  async softDeletePage(rawId: string): Promise<PageDocument> {
+  async softDeletePage(rawId: string, editorId?: string): Promise<PageDocument> {
     const id = validateObjectId(rawId, 'id');
-    return this.pageService.softDelete(id);
+    const page = await this.pageService.softDelete(id);
+    void this.auditService?.log({
+      ...(editorId !== undefined ? { actorId: editorId } : {}),
+      actorType: 'admin',
+      action: AuditAction.CONTENT_PAGE_SOFT_DELETED,
+      resourceType: 'content_page',
+      resourceId: id,
+      after: { status: 'deleted' },
+      severity: 'warning',
+    });
+    return page;
   }
 
   async listPageRevisions(rawId: string): Promise<ContentRevisionDocument[]> {

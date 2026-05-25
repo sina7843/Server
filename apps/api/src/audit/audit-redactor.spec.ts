@@ -160,4 +160,65 @@ describe('AuditRedactor', () => {
   it('handles empty array', () => {
     expect(redactor.redact([])).toEqual([]);
   });
+
+  describe('case-insensitive key redaction', () => {
+    it('redacts Password (mixed case)', () => {
+      const result = redactor.redact({ Password: 'secret' });
+      expect(result.Password).toBe('[REDACTED]');
+    });
+
+    it('redacts PASSWORD (uppercase)', () => {
+      const result = redactor.redact({ PASSWORD: 'secret' });
+      expect(result.PASSWORD).toBe('[REDACTED]');
+    });
+
+    it('redacts REFRESHTOKEN (uppercase)', () => {
+      const result = redactor.redact({ REFRESHTOKEN: 'tok' });
+      expect(result.REFRESHTOKEN).toBe('[REDACTED]');
+    });
+
+    it('redacts Authorization at top level (mixed case)', () => {
+      const result = redactor.redact({ Authorization: 'Bearer xyz' });
+      expect(result.Authorization).toBe('[REDACTED]');
+    });
+
+    it('redacts COOKIE at top level (uppercase)', () => {
+      const result = redactor.redact({ COOKIE: 'session=abc' });
+      expect(result.COOKIE).toBe('[REDACTED]');
+    });
+
+    it('redacts Otp (mixed case)', () => {
+      const result = redactor.redact({ Otp: '123456' });
+      expect(result.Otp).toBe('[REDACTED]');
+    });
+
+    it('redacts CodeHash (mixed case)', () => {
+      const result = redactor.redact({ CodeHash: 'hashval' });
+      expect(result.CodeHash).toBe('[REDACTED]');
+    });
+
+    it('redacts ProviderCredentials (mixed case)', () => {
+      const result = redactor.redact({ ProviderCredentials: { key: 'val' } });
+      expect(result.ProviderCredentials).toBe('[REDACTED]');
+    });
+
+    it('redacts nested mixed-case secret keys', () => {
+      const result = redactor.redact({ user: { id: 'u1', RefreshToken: 'tok' } });
+      const user = result.user as Record<string, unknown>;
+      expect(user.RefreshToken).toBe('[REDACTED]');
+      expect(user.id).toBe('u1');
+    });
+
+    it('preserves non-secret keys unchanged regardless of case', () => {
+      const result = redactor.redact({ UserName: 'alice', IP: '1.2.3.4' });
+      expect(result.UserName).toBe('alice');
+      expect(result.IP).toBe('1.2.3.4');
+    });
+
+    it('preserves original key names in output (does not lowercase keys)', () => {
+      const result = redactor.redact({ Password: 'secret', UserName: 'alice' });
+      expect('Password' in result).toBe(true);
+      expect('UserName' in result).toBe(true);
+    });
+  });
 });

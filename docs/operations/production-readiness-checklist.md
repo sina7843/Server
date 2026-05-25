@@ -24,7 +24,7 @@ Run this checklist before declaring the Dragon platform ready for production tra
 
 - [ ] TLS certificates are provisioned for all three domains (web, API, admin)
 - [ ] Certificate paths in `infra/nginx-or-caddy/nginx.conf` match provisioned certificate locations
-- [ ] Nginx config syntax validates: `nginx -t`
+- [ ] Nginx config syntax validates: `nginx -t` — **requires real certificate files at the configured paths** (placeholder paths will cause `nginx -t` to fail; run this only after certs are provisioned and paths updated)
 - [ ] HTTP redirects to HTTPS for all domains
 - [ ] `X-Robots-Tag: noindex,nofollow,noarchive` is present on the admin server block only
 - [ ] `client_max_body_size 50m` is present on the API server block

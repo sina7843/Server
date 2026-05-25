@@ -96,10 +96,19 @@ docker build -f apps/admin/Dockerfile  -t dragon-admin   .
 
 ### API (`apps/api/Dockerfile`)
 
-Multi-stage build:
+Three-stage build:
 
 1. **Builder** (`node:20-alpine`) — installs native build tools (python3, make, g++ for argon2/sharp), installs all workspace deps via pnpm, runs `tsc -p tsconfig.build.json`, then runs `pnpm --filter @dragon/api deploy --prod /deploy` to produce a clean production directory with prod-only node_modules. `dist/` is copied explicitly because pnpm deploy respects `.gitignore`.
-2. **Runtime** (`node:20-alpine`) — non-root user `appuser`, copies `/deploy`, exposes port 3000, starts with `node dist/main.js`.
+2. **mongo-tools** (`mongo:7`) — intermediate stage that provides the `mongodump` binary. Only the binary is copied to the runtime; the full Mongo image is not included in the final layer.
+3. **Runtime** (`node:20-slim`, Debian Bookworm) — non-root user `appuser`, copies `/deploy` and `mongodump` (from the mongo-tools stage), exposes port 3000, starts with `node dist/main.js`. `node:20-slim` is used instead of Alpine for glibc compatibility with the mongodump binary.
+
+`mongodump` inside the container is verified at build time with `RUN mongodump --version`. The admin API backup endpoint (`POST /admin/v1/system/backups/run`) uses this container-local binary — no host-level `mongodump` is required for API-triggered backups. Manual shell backups (`infra/backup/mongo-backup.sh`) run on the VPS host and require `mongodump` installed there separately.
+
+To verify inside a running container:
+
+```bash
+docker compose exec api mongodump --version
+```
 
 ### Worker (`apps/worker/Dockerfile`)
 
@@ -193,8 +202,8 @@ Environment variables are supplied to containers at runtime only — never baked
 - `.env` files are never copied into images (`.dockerignore` excludes all `.env*`).
 - No secrets are hardcoded in any Dockerfile or Nginx config.
 - No production credentials exist in this repository.
-- No TLS certificates are committed; the Nginx config has placeholder paths only.
-- Real domain names are not committed; all server*name directives use `YOUR*\*` placeholders.
+- No TLS certificates are committed; the Nginx config has placeholder paths only. `nginx -t` requires real certificate files to exist at the configured paths — it validates both syntax and file existence. Run `nginx -t` only after provisioning TLS certs and updating the paths in `nginx.conf`. For pre-deploy syntax-only testing, mount dummy self-signed certs (see `docs/development/slice-0.10-verification.md` step 4).
+- Real domain names are not committed; all `server_name` directives use `YOUR_DOMAIN` placeholders.
 - Images run as non-root user `appuser` in all application containers.
 - MongoDB and Redis are not reachable through the Nginx proxy.
 

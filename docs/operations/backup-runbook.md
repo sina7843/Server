@@ -6,16 +6,38 @@ Task 0.10.4 — Phase 0 backup foundation.
 
 Backup encryption is **not implemented** in Phase 0. Before enabling production backups, implement encryption at rest (see security checklist).
 
-## Prerequisites
+## Two backup paths
 
-On the VPS:
+| Path                             | Runs inside   | Requires                                                  |
+| -------------------------------- | ------------- | --------------------------------------------------------- |
+| Admin API (`POST /run`)          | API container | Object Storage configured; `mongodump` in container image |
+| Shell script (`mongo-backup.sh`) | VPS host      | `mongodump` + AWS CLI installed on the VPS host           |
+
+The API container image ships with `mongodump` (installed via the `mongo:7` build stage). You do **not** need `mongodump` on the VPS host to use the admin API backup.
+
+To verify `mongodump` is available inside the running container:
 
 ```bash
-# mongodump must be installed
+docker compose -f infra/docker/docker-compose.prod.yml exec api mongodump --version
+# Expected: mongodump version 100.x.x
+```
+
+## Prerequisites
+
+**For admin API backup** — no host-level tools needed. Verify the container has `mongodump`:
+
+```bash
+docker compose -f infra/docker/docker-compose.prod.yml exec api mongodump --version
+```
+
+**For shell script backup** — on the VPS host:
+
+```bash
+# mongodump must be installed on the VPS host
 mongodump --version
 # Expected: mongodump version 100.x.x
 
-# AWS CLI must be installed (for Object Storage upload)
+# AWS CLI must be installed (for Object Storage upload via shell script)
 aws --version
 
 # Verify env vars are set

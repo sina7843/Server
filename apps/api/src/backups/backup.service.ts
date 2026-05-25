@@ -86,7 +86,8 @@ export class BackupService {
 
     setImmediate(() => {
       this.executeMongoBackup(id).catch((err: unknown) => {
-        this.logger.error(`Unexpected error in backup execution for ${id}: ${String(err)}`);
+        const safeError = this.sanitizeError(err);
+        this.logger.error(`Unexpected error in backup execution for ${id}: ${safeError}`);
       });
     });
 

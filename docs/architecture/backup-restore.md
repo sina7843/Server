@@ -8,10 +8,10 @@ Task 0.10.4 — Phase 0 backup foundation. This document describes what is imple
 
 - `BackupLog` MongoDB schema with required indexes
 - `BackupLogRepository` for CRUD operations on backup metadata
-- `BackupService` with MongoDB backup execution via `mongodump`, compression, and optional Object Storage upload
+- `BackupService` with MongoDB backup execution via `mongodump` (installed in the API container image), compression, and Object Storage upload
 - Admin APIs: `GET /admin/v1/system/backups`, `GET /admin/v1/system/backups/latest`, `POST /admin/v1/system/backups/run`
 - Audit events for all backup lifecycle actions
-- Shell script `infra/backup/mongo-backup.sh` for VPS-level standalone execution
+- Shell script `infra/backup/mongo-backup.sh` for VPS-level standalone execution (requires host-level `mongodump` and AWS CLI — separate from the container image)
 - Permissions: `system.backup.read`, `system.backup.run` (run restricted to `super_admin`)
 - Restore runbook and verification checklist (manual process only)
 

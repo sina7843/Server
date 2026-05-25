@@ -101,14 +101,25 @@ Update `ssl_certificate` and `ssl_certificate_key` paths in `nginx.conf` to matc
 # Validate compose YAML (no Docker network/volume operations)
 docker compose -f infra/docker/docker-compose.prod.yml \
   --env-file infra/docker/.env.production config
+```
 
-# Validate nginx config syntax
+This must exit 0 before proceeding.
+
+**Nginx config syntax validation** — `nginx -t` checks both syntax and that TLS certificate files exist at the configured paths. The placeholder paths in the committed `nginx.conf` will cause `nginx -t` to fail until real certificate files are provisioned.
+
+Run `nginx -t` **after** completing step 4 (TLS certificate provisioning) and updating the `ssl_certificate` paths:
+
+```bash
+# On the VPS, after real certs are in place:
 docker run --rm \
   -v "$(pwd)/infra/nginx-or-caddy/nginx.conf:/etc/nginx/nginx.conf:ro" \
+  -v "/etc/ssl/YOUR_DOMAIN:/etc/ssl/YOUR_DOMAIN:ro" \
+  -v "/etc/ssl/api.YOUR_DOMAIN:/etc/ssl/api.YOUR_DOMAIN:ro" \
+  -v "/etc/ssl/admin.YOUR_DOMAIN:/etc/ssl/admin.YOUR_DOMAIN:ro" \
   nginx:1.27-alpine nginx -t
 ```
 
-Both must exit 0 before proceeding.
+Expected: `syntax is ok` and `test is successful`.
 
 ### 6. Build images
 

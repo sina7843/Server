@@ -51,14 +51,38 @@ docker build -f apps/admin/Dockerfile  -t dragon-admin   .
 
 Expected: all four images build without error. No secrets appear in build output.
 
-**4. Nginx config syntax check (requires Docker)**
+**4. Nginx config syntax check (requires Docker and TLS certificate files)**
 
-```bash
-docker run --rm -v "$(pwd)/infra/nginx-or-caddy/nginx.conf:/etc/nginx/nginx.conf:ro" \
-  nginx:alpine nginx -t
-```
+`nginx -t` validates both syntax **and** that the `ssl_certificate` / `ssl_certificate_key` files exist at the configured paths. The committed `nginx.conf` uses placeholder paths, so this command will fail without real or dummy certificate files.
 
-Expected: `syntax is ok` and `test is successful`.
+Options:
+
+- **On the VPS after provisioning real certs** (normal production path): run `nginx -t` after provisioning TLS certificates with certbot and updating the paths in `nginx.conf`.
+
+- **Local syntax-only validation using dummy certs** (CI / pre-deploy): provision a self-signed cert at the placeholder paths:
+
+  ```bash
+  # Create a throw-away self-signed cert at the placeholder path
+  mkdir -p /tmp/ssl
+  openssl req -x509 -nodes -days 1 -newkey rsa:2048 \
+    -keyout /tmp/ssl/privkey.pem \
+    -out    /tmp/ssl/fullchain.pem \
+    -subj "/CN=localhost"
+
+  docker run --rm \
+    -v "$(pwd)/infra/nginx-or-caddy/nginx.conf:/etc/nginx/nginx.conf:ro" \
+    -v "/tmp/ssl/fullchain.pem:/etc/ssl/YOUR_DOMAIN/fullchain.pem:ro" \
+    -v "/tmp/ssl/privkey.pem:/etc/ssl/YOUR_DOMAIN/privkey.pem:ro" \
+    -v "/tmp/ssl/fullchain.pem:/etc/ssl/api.YOUR_DOMAIN/fullchain.pem:ro" \
+    -v "/tmp/ssl/privkey.pem:/etc/ssl/api.YOUR_DOMAIN/privkey.pem:ro" \
+    -v "/tmp/ssl/fullchain.pem:/etc/ssl/admin.YOUR_DOMAIN/fullchain.pem:ro" \
+    -v "/tmp/ssl/privkey.pem:/etc/ssl/admin.YOUR_DOMAIN/privkey.pem:ro" \
+    nginx:alpine nginx -t
+  ```
+
+  Expected: `syntax is ok` and `test is successful`.
+
+The `nginx.conf` in the repository is a deployment template with placeholder domains and cert paths. It is correct for production once real domains and certs are substituted.
 
 **5. Lint and typecheck**
 

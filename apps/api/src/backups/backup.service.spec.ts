@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { BackupService } from './backup.service';
 import type { BackupLogDocument } from './backup-log.schema';
 import type { BackupLogRepository } from './backup-log.repository';
@@ -232,5 +233,43 @@ describe('BackupService error sanitization', () => {
       expect(errorArg).not.toMatch(/mongodb(\+srv)?:\/\/[^\s]*/i);
       expect(errorArg).not.toContain('password=');
     }
+  });
+});
+
+describe('BackupService.logger.error sanitization (unexpected error path)', () => {
+  let loggerErrorSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    loggerErrorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    loggerErrorSpy.mockRestore();
+  });
+
+  it('sanitizes URI in logger.error when executeMongoBackup throws unexpectedly', async () => {
+    const doc = makeDoc();
+    const repository: jest.Mocked<BackupLogRepository> = {
+      create: jest.fn().mockResolvedValue(doc),
+      findById: jest.fn(),
+      markCompleted: jest.fn(),
+      markFailed: jest
+        .fn()
+        .mockRejectedValue(
+          new Error('mongodb+srv://user:secret@host/db connection failed during markFailed'),
+        ),
+      list: jest.fn(),
+      findLatest: jest.fn(),
+    } as unknown as jest.Mocked<BackupLogRepository>;
+
+    const auditService = { log: jest.fn().mockResolvedValue(undefined) } as unknown as AuditService;
+    const service = new BackupService(repository, auditService, null, null);
+
+    await service.runMongoBackup('admin');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    const logged = loggerErrorSpy.mock.calls.map((c) => String(c[0])).join(' ');
+    expect(logged).not.toMatch(/mongodb(\+srv)?:\/\/[^\s]*/i);
+    expect(logged).not.toContain('secret');
   });
 });

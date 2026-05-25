@@ -32,12 +32,29 @@ RUN pnpm --filter @dragon/api build
 RUN pnpm --filter @dragon/api deploy --prod /deploy && \
     cp -r /build/apps/api/dist /deploy/dist
 
-# ── Stage 2: runtime ───────────────────────────────────────────────────────────
-FROM node:20-alpine AS runtime
+# ── Stage 2: mongo-tools ───────────────────────────────────────────────────────
+# Provides mongodump binary for backup execution inside the API container.
+# Only the binary is copied to the runtime stage — this image is not included
+# in the final image layer.
+FROM mongo:7 AS mongo-tools
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+# ── Stage 3: runtime ───────────────────────────────────────────────────────────
+# node:20-slim (Debian Bookworm) is used instead of Alpine so that the
+# mongodump binary copied from mongo:7 (also Debian-based / glibc) is
+# ABI-compatible at runtime.
+FROM node:20-slim AS runtime
+
+RUN groupadd --system appgroup && useradd --system --gid appgroup --no-create-home appuser
 
 WORKDIR /app
+
+# Install mongodump from the official MongoDB image for admin API backup execution.
+# The binary runs inside the API container; no host-level mongodump is required
+# for the API backup endpoint.
+COPY --from=mongo-tools /usr/bin/mongodump /usr/local/bin/mongodump
+
+# Build-time verification: mongodump must be on PATH and executable
+RUN mongodump --version
 
 COPY --from=builder --chown=appuser:appgroup /deploy ./
 

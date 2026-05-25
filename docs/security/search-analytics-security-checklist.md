@@ -20,7 +20,7 @@
 - [ ] `GET /admin/v1/search/users` requires `search.user.read`.
 - [ ] `GET /admin/v1/search/content` requires `search.content.read`.
 - [ ] `GET /admin/v1/search/media` requires `search.media.read`.
-- [ ] `POST /admin/v1/search/reindex` requires `search.reindex`.
+- [ ] `POST /admin/v1/search/reindex` requires `search.index.reindex`.
 - [ ] No raw permission strings are scattered in code — all use `Permissions.*` from the registry.
 
 ## Admin User Search Safety
@@ -50,14 +50,14 @@
 - [ ] `search.content.read` is centralized in `permission-keys.ts` and `packages/types/src/constants/permissions.ts`.
 - [ ] `search.user.read` is centralized.
 - [ ] `search.media.read` is centralized.
-- [ ] `search.reindex` is centralized.
+- [ ] `search.index.reindex` is centralized.
 - [ ] `admin` role has all four search permissions.
 - [ ] `content_manager` role has `search.content.read` and `search.media.read` only.
 - [ ] `super_admin` inherits all permissions including search permissions.
 
 ## Reindex Safety
 
-- [x] Reindex endpoint is permission-protected (`search.reindex`).
+- [x] Reindex endpoint is permission-protected (`search.index.reindex`).
 - [x] Reindex response is truthful — Phase 0 states no external index exists.
 - [x] No Meilisearch, Elasticsearch, or OpenSearch client is instantiated.
 - [x] No fake search success for missing external infrastructure.

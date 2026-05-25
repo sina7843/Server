@@ -19,7 +19,7 @@
 - `SEARCH_CONTENT_READ: 'search.content.read'`
 - `SEARCH_USER_READ: 'search.user.read'`
 - `SEARCH_MEDIA_READ: 'search.media.read'`
-- `SEARCH_REINDEX: 'search.reindex'`
+- `SEARCH_REINDEX: 'search.index.reindex'`
 
 **apps/api/src/search/**
 

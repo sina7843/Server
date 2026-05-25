@@ -375,4 +375,101 @@ describe('PasswordResetService', () => {
       expect(allArgs).not.toContain('new-password-safe');
     });
   });
+
+  describe('analytics hooks', () => {
+    function createServiceWithAnalytics() {
+      const base = createService();
+      const track = jest.fn();
+      const analyticsService = { track } as never;
+      const service = new PasswordResetService(
+        base.userRepository,
+        new UserService(),
+        base.otpChallengeRepository,
+        new OtpChallengeService(),
+        base.smsService,
+        base.sessionRepository,
+        createAuthTestConfig(),
+        undefined,
+        analyticsService,
+      );
+      return { ...base, service, track };
+    }
+
+    it('forgotPassword tracks otp.requested when password_reset OTP is created', async () => {
+      const { service, userRepository, track } = createServiceWithAnalytics();
+      userRepository.findActiveByPhoneNormalized.mockResolvedValue(createActiveUser() as never);
+
+      await service.forgotPassword({ phone: '+989120000000' });
+
+      expect(track).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'otp.requested', metadata: { purpose: 'password_reset' } }),
+      );
+    });
+
+    it('forgotPassword does not track otp.requested when rate limited', async () => {
+      const { service, userRepository, otpChallengeRepository, track } =
+        createServiceWithAnalytics();
+      userRepository.findActiveByPhoneNormalized.mockResolvedValue(createActiveUser() as never);
+      otpChallengeRepository.countRecentChallengesByPhone.mockResolvedValue(999);
+
+      await service.forgotPassword({ phone: '+989120000000' });
+
+      expect(track).not.toHaveBeenCalled();
+    });
+
+    it('verifyResetOtp tracks otp.failed on invalid code', async () => {
+      const { service, otpChallengeRepository, track } = createServiceWithAnalytics();
+      otpChallengeRepository.findLatestActiveByPhoneAndPurpose.mockResolvedValue(
+        (await createChallenge()) as never,
+      );
+
+      await expect(
+        service.verifyResetOtp({ phone: '+989120000000', code: '000000' }),
+      ).rejects.toThrow();
+
+      expect(track).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'otp.failed', metadata: { purpose: 'password_reset' } }),
+      );
+    });
+
+    it('verifyResetOtp tracks otp.verified on success', async () => {
+      const { service, userRepository, otpChallengeRepository, track } =
+        createServiceWithAnalytics();
+      otpChallengeRepository.findLatestActiveByPhoneAndPurpose.mockResolvedValue(
+        (await createChallenge()) as never,
+      );
+      userRepository.findActiveByPhoneNormalized.mockResolvedValue(createActiveUser() as never);
+
+      await service.verifyResetOtp({ phone: '+989120000000', code: '123456' });
+
+      expect(track).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'otp.verified',
+          userId: 'user-1',
+          metadata: { purpose: 'password_reset' },
+        }),
+      );
+    });
+
+    it('analytics metadata does not include raw phone, code, resetToken, password, or codeHash', async () => {
+      const { service, userRepository, otpChallengeRepository, track } =
+        createServiceWithAnalytics();
+      userRepository.findActiveByPhoneNormalized.mockResolvedValue(createActiveUser() as never);
+      otpChallengeRepository.findLatestActiveByPhoneAndPurpose.mockResolvedValue(
+        (await createChallenge()) as never,
+      );
+
+      await service.forgotPassword({ phone: '+989120000000' });
+      await service.verifyResetOtp({ phone: '+989120000000', code: '123456' });
+
+      const allArgs = JSON.stringify(track.mock.calls);
+      expect(allArgs).not.toContain('+989120000000');
+      expect(allArgs).not.toContain('123456');
+      expect(allArgs).not.toContain('codeHash');
+      expect(allArgs).not.toContain('resetToken');
+      expect(allArgs).not.toContain('passwordHash');
+      expect(allArgs).not.toContain('newPassword');
+      expect(allArgs).not.toContain('secret');
+    });
+  });
 });

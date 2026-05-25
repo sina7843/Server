@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { AuditAction } from '@dragon/types';
 import { AuditService } from '../../audit/audit.service';
+import { AnalyticsService } from '../../analytics/analytics.service';
 import { validateObjectId } from '../../rbac/dto/rbac-validation';
 import { PageService } from '../../content/pages/page.service';
 import type { PageDocument } from '../../content/pages/page.schema';
@@ -39,6 +40,7 @@ export class AdminContentPagesService {
     private readonly richTextValidator: RichTextValidator,
     private readonly htmlSanitizer: HtmlSanitizer,
     @Optional() private readonly auditService?: AuditService,
+    @Optional() private readonly analyticsService?: AnalyticsService,
   ) {}
 
   async listPages(query: AdminPageListQueryDto): Promise<{ items: PageDocument[]; total: number }> {
@@ -176,6 +178,12 @@ export class AdminContentPagesService {
     const id = validateObjectId(rawId, 'id');
     const page = await this.pageService.markPublished(id);
     await this.revisionService.snapshot('page', id, toPageSnapshot(page), editorId);
+    this.analyticsService?.track({
+      type: 'content.published',
+      userId: editorId,
+      resourceType: 'content_page',
+      resourceId: id,
+    });
     void this.auditService?.log({
       actorId: editorId,
       actorType: 'admin',

@@ -117,7 +117,7 @@ All admin endpoints require `AccessTokenGuard` + `PermissionGuard`.
 GET  /admin/v1/search/users       — permission: search.user.read
 GET  /admin/v1/search/content     — permission: search.content.read
 GET  /admin/v1/search/media       — permission: search.media.read
-POST /admin/v1/search/reindex     — permission: search.reindex
+POST /admin/v1/search/reindex     — permission: search.index.reindex
 ```
 
 **Query parameters (all admin search):**
@@ -149,12 +149,12 @@ POST /admin/v1/search/reindex     — permission: search.reindex
 
 Four new permission constants added to the centralized registry:
 
-| Constant              | Value                 | Roles                  |
-| --------------------- | --------------------- | ---------------------- |
-| `SEARCH_CONTENT_READ` | `search.content.read` | admin, content_manager |
-| `SEARCH_USER_READ`    | `search.user.read`    | admin                  |
-| `SEARCH_MEDIA_READ`   | `search.media.read`   | admin, content_manager |
-| `SEARCH_REINDEX`      | `search.reindex`      | admin                  |
+| Constant              | Value                  | Roles                  |
+| --------------------- | ---------------------- | ---------------------- |
+| `SEARCH_CONTENT_READ` | `search.content.read`  | admin, content_manager |
+| `SEARCH_USER_READ`    | `search.user.read`     | admin                  |
+| `SEARCH_MEDIA_READ`   | `search.media.read`    | admin, content_manager |
+| `SEARCH_REINDEX`      | `search.index.reindex` | admin                  |
 
 Permissions are registered in:
 

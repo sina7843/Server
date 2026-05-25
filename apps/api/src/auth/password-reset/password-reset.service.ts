@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { AuditAction } from '@dragon/types';
 import { AuditService } from '../../audit/audit.service';
+import { AnalyticsService } from '../../analytics/analytics.service';
 import { maskPhone } from '../security/masking';
 import { AUTH_CONFIG } from '../../config/app-config.module';
 import type { AuthConfig } from '../../config/auth.config';
@@ -57,6 +58,7 @@ export class PasswordResetService {
     private readonly sessionRepository: SessionRepository,
     @Inject(AUTH_CONFIG) private readonly authConfig: AuthConfig,
     @Optional() private readonly auditService?: AuditService,
+    @Optional() private readonly analyticsService?: AnalyticsService,
   ) {}
 
   async forgotPassword(
@@ -128,6 +130,12 @@ export class PasswordResetService {
       nextResendAt,
       ...definedMetadata(metadata),
     });
+    this.analyticsService?.track({
+      type: 'otp.requested',
+      metadata: { purpose: PASSWORD_RESET_PURPOSE },
+      ...(metadata.ip ? { ip: metadata.ip } : {}),
+      ...(metadata.userAgent ? { userAgent: metadata.userAgent } : {}),
+    });
     void this.auditService?.log({
       actorType: 'system',
       action: AuditAction.OTP_CREATED,
@@ -174,6 +182,10 @@ export class PasswordResetService {
         severity: 'warning',
         metadata: { phoneMasked: maskPhone(phoneNormalized), purpose: PASSWORD_RESET_PURPOSE },
       });
+      this.analyticsService?.track({
+        type: 'otp.failed',
+        metadata: { purpose: PASSWORD_RESET_PURPOSE },
+      });
       throw this.createInvalidResetOtpError();
     }
 
@@ -185,6 +197,11 @@ export class PasswordResetService {
 
     await this.otpChallengeRepository.markVerified(challenge._id, now);
     await this.otpChallengeRepository.markConsumed(challenge._id, now);
+    this.analyticsService?.track({
+      type: 'otp.verified',
+      userId: String(user._id),
+      metadata: { purpose: PASSWORD_RESET_PURPOSE },
+    });
     void this.auditService?.log({
       actorId: String(user._id),
       actorType: 'user',

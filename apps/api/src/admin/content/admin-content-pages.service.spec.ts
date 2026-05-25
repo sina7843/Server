@@ -270,3 +270,45 @@ describe('AdminContentPagesService — sanitization', () => {
     expect((service as unknown as Record<string, unknown>).restoreRevision).toBeUndefined();
   });
 });
+
+describe('AdminContentPagesService — analytics', () => {
+  const PAGE_ID = '507f1f77bcf86cd799439022';
+
+  function makeService() {
+    const ps = {
+      markPublished: jest.fn().mockResolvedValue(makePage({ status: 'published' })),
+    };
+    const rs = { snapshot: jest.fn().mockResolvedValue(undefined) };
+    const track = jest.fn();
+    const svc = new AdminContentPagesService(
+      ps as never,
+      rs as never,
+      new RichTextValidator(),
+      new HtmlSanitizer(),
+      undefined,
+      { track } as never,
+    );
+    return { svc, ps, track };
+  }
+
+  it('publishPage tracks content.published', async () => {
+    const { svc, track } = makeService();
+    await svc.publishPage(PAGE_ID, 'editor-1');
+    expect(track).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'content.published',
+        userId: 'editor-1',
+        resourceType: 'content_page',
+        resourceId: PAGE_ID,
+      }),
+    );
+  });
+
+  it('publishPage analytics payload does not include bodyHtml or bodyJson', async () => {
+    const { svc, track } = makeService();
+    await svc.publishPage(PAGE_ID, 'editor-1');
+    const allArgs = JSON.stringify(track.mock.calls);
+    expect(allArgs).not.toContain('bodyHtml');
+    expect(allArgs).not.toContain('bodyJson');
+  });
+});

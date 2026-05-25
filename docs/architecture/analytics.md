@@ -74,20 +74,27 @@ analyticsService.track({
 
 ## Tracked Events
 
-| Event               | Where tracked                                     | Notes                                    |
-| ------------------- | ------------------------------------------------- | ---------------------------------------- |
-| `user.registered`   | `AuthService.verifyPhone()` (success)             | Phone verified = user fully registered   |
-| `user.logged_in`    | `AuthService.login()` (success)                   | IP hashed if provided                    |
-| `otp.requested`     | `AuthService.sendPhoneVerificationOtpIfAllowed()` | Tracked after OTP created                |
-| `otp.verified`      | `AuthService.verifyPhone()` (success)             | No raw OTP or phone                      |
-| `otp.failed`        | `AuthService.verifyPhone()` (failure)             | No raw OTP or phone                      |
-| `content.viewed`    | `PublicPostsService.getPublished()`               | Public endpoints only                    |
-| `content.published` | `AdminContentPostsService.publishPost()`          | Admin publish action                     |
-| `media.uploaded`    | `AdminMediaService.uploadMedia()`                 | No objectKey, bucket, or storageProvider |
+| Event               | Where tracked                                                          | Notes                                                                          |
+| ------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `user.registered`   | `AuthService.verifyPhone()` (success)                                  | Phone verified = user fully registered                                         |
+| `user.logged_in`    | `AuthService.login()` (success)                                        | IP hashed if provided                                                          |
+| `otp.requested`     | `AuthService.sendPhoneVerificationOtpIfAllowed()` — phone verification | Tracked after OTP created; `metadata.purpose=phone_verify`                     |
+| `otp.requested`     | `PasswordResetService.forgotPassword()` — password reset               | Tracked after OTP created; `metadata.purpose=password_reset`; no raw phone/OTP |
+| `otp.verified`      | `AuthService.verifyPhone()` (success)                                  | No raw OTP or phone                                                            |
+| `otp.verified`      | `PasswordResetService.verifyResetOtp()` (success)                      | `metadata.purpose=password_reset`; userId set; no raw OTP/phone/resetToken     |
+| `otp.failed`        | `AuthService.verifyPhone()` (failure)                                  | No raw OTP or phone                                                            |
+| `otp.failed`        | `PasswordResetService.verifyResetOtp()` (failure)                      | `metadata.purpose=password_reset`; no raw OTP/phone                            |
+| `content.viewed`    | `PublicPostsService.getPublished()`                                    | Public post endpoints only                                                     |
+| `content.viewed`    | `PublicPagesController.getPage()` (success)                            | Public page detail; `resourceType=page`; no bodyHtml/bodyJson                  |
+| `content.published` | `AdminContentPostsService.publishPost()`                               | Admin publish action                                                           |
+| `content.published` | `AdminContentPagesService.publishPage()`                               | Admin page publish; `resourceType=content_page`; no bodyHtml/bodyJson          |
+| `media.uploaded`    | `AdminMediaService.uploadMedia()`                                      | No objectKey, bucket, or storageProvider                                       |
 
 ## Content View Tracking
 
 `PublicPostsService.getPublished()` calls `analyticsService.track()` non-blocking after returning the published post. It also increments `Post.viewCount` via `PostRepository.incrementViewCount()` (MongoDB `$inc`). Both operations are fire-and-forget and never affect the public response.
+
+`PublicPagesController.getPage()` tracks `content.viewed` (resourceType: `page`) after returning a published page. No bodyHtml or bodyJson is included in analytics metadata.
 
 Only public detail endpoints track views. List endpoints do not.
 

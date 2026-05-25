@@ -1,114 +1,179 @@
-# Environment conventions
+# Development Environment Reference
 
-Environment files in this repository are examples only.
+This document describes all environment variables used by the Dragon Ecosystem backend in local development. For production, see [environment-production.md](../operations/environment-production.md).
 
-Real `.env` files are local, ignored by Git, and must not be committed. Do not place real credentials, production secrets, or third-party API keys in example files.
+---
 
-## Slice 0.1
+## Rules
 
-Local Docker infrastructure uses:
+- Real `.env` files are local, gitignored, and must not be committed.
+- Example files (`.env.example`, `.env.production.example`) contain only placeholders — no real credentials.
+- No `.env*` file is ever copied into a Docker image (enforced by `.dockerignore`).
 
-```text
-infra/docker/.env.example
-```
+---
 
-That file is local-only and is not production deployment configuration.
+## Local env file locations
 
-## Slice 0.2
+| File                                   | Used by                                      |
+| -------------------------------------- | -------------------------------------------- |
+| `apps/api/.env.example`                | NestJS API (copy to `apps/api/.env`)         |
+| `apps/worker/.env.example`             | BullMQ worker                                |
+| `apps/web/.env.example`                | Nuxt public frontend                         |
+| `apps/admin/.env.example`              | Nuxt admin frontend                          |
+| `infra/docker/.env.example`            | Local Docker Compose (MongoDB, Redis, MinIO) |
+| `infra/docker/.env.production.example` | Production Docker Compose template           |
 
-Auth-related `.env.example` values are safe local examples. Application runtime wiring was added only where required by the approved Auth slice.
+---
 
-## Slice 0.3
+## Core app variables (`apps/api/.env`)
 
-RBAC seed bootstrapping may use:
+### Node / app
 
-```env
-RBAC_BOOTSTRAP_SUPER_ADMIN_PHONE=
-```
+| Variable   | Dev value     | Notes |
+| ---------- | ------------- | ----- |
+| `NODE_ENV` | `development` |       |
+| `APP_ENV`  | `development` |       |
+| `API_HOST` | `0.0.0.0`     |       |
+| `API_PORT` | `3000`        |       |
 
-This value is optional. It is used only by the seed foundation to assign the `super_admin` role to an existing active user. It does not create a user and does not introduce a permanent request-time bypass.
+### MongoDB
 
-## Slice 0.7
+| Variable      | Dev value                                                                                    | Notes                                        |
+| ------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `MONGODB_URI` | `mongodb://dragon_local:dragon_local_password@localhost:27017/dragon_local?authSource=admin` | Credentials from `infra/docker/.env.example` |
 
-Storage environment variables added to `apps/api/.env.example`:
+### Redis / BullMQ
 
-```env
-STORAGE_PROVIDER=local|minio|arvan
-STORAGE_BUCKET=
-STORAGE_PUBLIC_BASE_URL=
-STORAGE_SIGNED_URL_TTL_SECONDS=3600
+| Variable                    | Dev value                | Notes             |
+| --------------------------- | ------------------------ | ----------------- |
+| `REDIS_URL`                 | `redis://localhost:6379` | Convenience alias |
+| `REDIS_HOST`                | `localhost`              |                   |
+| `REDIS_PORT`                | `6379`                   |                   |
+| `REDIS_PASSWORD`            | (empty)                  |                   |
+| `REDIS_DB`                  | `0`                      |                   |
+| `BULLMQ_DEFAULT_ATTEMPTS`   | `3`                      |                   |
+| `BULLMQ_DEFAULT_BACKOFF_MS` | `2000`                   |                   |
+| `BULLMQ_PREFIX`             | `dragon`                 | Queue key prefix  |
 
-# Local adapter (dev/fallback only)
-STORAGE_LOCAL_ROOT=
-STORAGE_LOCAL_PUBLIC_BASE_URL=
+### Auth / JWT
 
-# S3-compatible adapter (minio or arvan)
-STORAGE_S3_ENDPOINT=
-STORAGE_S3_REGION=
-STORAGE_S3_ACCESS_KEY_ID=
-STORAGE_S3_SECRET_ACCESS_KEY=
-STORAGE_S3_FORCE_PATH_STYLE=false
-```
+| Variable                                | Dev value                          | Notes                                                           |
+| --------------------------------------- | ---------------------------------- | --------------------------------------------------------------- |
+| `AUTH_JWT_SECRET`                       | `local_dev_change_me_min_32_chars` | Placeholder only; any real deployment must use 64+ random chars |
+| `AUTH_ACCESS_TOKEN_TTL_SECONDS`         | `900`                              | 15 minutes                                                      |
+| `AUTH_REFRESH_TOKEN_TTL_DAYS`           | `30`                               |                                                                 |
+| `AUTH_PASSWORD_MIN_LENGTH`              | `8`                                |                                                                 |
+| `AUTH_PASSWORD_RESET_TOKEN_TTL_SECONDS` | `600`                              | 10 minutes                                                      |
 
-**`STORAGE_S3_ACCESS_KEY_ID` and `STORAGE_S3_SECRET_ACCESS_KEY` are secrets. They must only exist in the deployment environment, never in the repository.** The `.env.example` file has these fields empty.
+### OTP
 
-For local dev using MinIO, set `STORAGE_PROVIDER=minio` and use the MinIO credentials from `infra/docker/.env.example`. For production Arvan Object Storage, set `STORAGE_PROVIDER=arvan` and provide the Arvan S3 credentials via deployment environment only.
+| Variable                           | Dev value | Notes     |
+| ---------------------------------- | --------- | --------- |
+| `AUTH_OTP_TTL_SECONDS`             | `300`     | 5 minutes |
+| `AUTH_OTP_MAX_ATTEMPTS`            | `5`       |           |
+| `AUTH_OTP_RESEND_COOLDOWN_SECONDS` | `90`      |           |
+| `AUTH_OTP_DAILY_PHONE_LIMIT`       | `10`      |           |
+| `AUTH_OTP_IP_LIMIT`                | `30`      |           |
 
-## Slice 0.8
+### SMS provider
 
-No new environment variables were introduced in Slice 0.8.1. The audit log subsystem persists to the existing MongoDB connection configured in Slice 0.1.
+| Variable       | Dev value | Notes                                              |
+| -------------- | --------- | -------------------------------------------------- |
+| `SMS_PROVIDER` | `mock`    | `mock` logs OTP to console; does not send real SMS |
 
-The `audit_logs` collection is created automatically by Mongoose on first write.
+For local dev, `SMS_PROVIDER=mock` is always used. The mock provider records sent messages in memory and is injectable in tests via `createMockSmsService()`.
 
-## Slice 0.9
+### Object Storage
 
-No new environment variables are introduced in Slice 0.9.1. The search foundation uses `MongoSearchAdapter`, which reads directly from existing MongoDB collections (`posts`, `pages`, `users`, `media_assets`) using the connection already configured in Slice 0.1.
+| Variable                         | Dev value                       | Notes                              |
+| -------------------------------- | ------------------------------- | ---------------------------------- |
+| `STORAGE_PROVIDER`               | `local`                         | Options: `local`, `minio`, `arvan` |
+| `STORAGE_BUCKET`                 | `dragon-local`                  |                                    |
+| `STORAGE_PUBLIC_BASE_URL`        | `http://localhost:3000/storage` |                                    |
+| `STORAGE_SIGNED_URL_TTL_SECONDS` | `3600`                          |                                    |
+| `STORAGE_LOCAL_ROOT`             | `/tmp/dragon-storage`           | Local adapter path                 |
+| `STORAGE_LOCAL_PUBLIC_BASE_URL`  | `http://localhost:3000/storage` |                                    |
 
-No external search engine (Meilisearch, Elasticsearch, OpenSearch) is configured. When a real search engine is added in a later phase, new environment variables for its host, API key, and index names will be documented here.
+For local dev with MinIO, set `STORAGE_PROVIDER=minio` and fill in the S3-compatible vars from `infra/docker/.env.example`. For production, use `STORAGE_PROVIDER=arvan`.
 
-The `search` BullMQ queue uses the Redis connection already configured in Slice 0.8.3. No additional Redis environment variables are required.
+**S3-compatible vars (leave empty when using `local`):**
 
-## Slice 0.10
+| Variable                       | Notes                                                         |
+| ------------------------------ | ------------------------------------------------------------- |
+| `STORAGE_S3_ENDPOINT`          | MinIO: `http://localhost:9000`; Arvan: see production example |
+| `STORAGE_S3_REGION`            |                                                               |
+| `STORAGE_S3_ACCESS_KEY_ID`     | **Secret — never commit**                                     |
+| `STORAGE_S3_SECRET_ACCESS_KEY` | **Secret — never commit**                                     |
+| `STORAGE_S3_FORCE_PATH_STYLE`  | `true` for MinIO, `false` for Arvan                           |
 
-### Task 0.10.1 — Containerization
+### Media
 
-Production containerization environment variables are documented in `docs/architecture/deployment.md`.
+| Variable                    | Dev value  | Notes |
+| --------------------------- | ---------- | ----- |
+| `MEDIA_MAX_FILE_SIZE_BYTES` | `10485760` | 10 MB |
 
-Key rules:
+### RBAC bootstrap
 
-- No `.env` file is ever copied into a Docker image. All `.env*` files are excluded by `.dockerignore`.
-- All secrets (`AUTH_JWT_SECRET`, `STORAGE_S3_ACCESS_KEY_ID`, `STORAGE_S3_SECRET_ACCESS_KEY`, etc.) must be supplied at container runtime via environment variables. They must never be baked into images or committed.
-- Nuxt `NUXT_PUBLIC_*` values can be overridden at container start. The SSR-only value `NUXT_API_INTERNAL_BASE_URL` must also be supplied at runtime.
-- Real domain names, TLS certificates, and database credentials are not committed.
+| Variable                           | Value                 | Notes                                                                        |
+| ---------------------------------- | --------------------- | ---------------------------------------------------------------------------- |
+| `RBAC_BOOTSTRAP_SUPER_ADMIN_PHONE` | (empty or your phone) | Assigns `super_admin` role to an existing active user at seed time; optional |
 
-### Task 0.10.2 — Docker Compose production
+### Backup
 
-Production env template: `infra/docker/.env.production.example`
+| Variable                       | Dev value             | Notes                            |
+| ------------------------------ | --------------------- | -------------------------------- |
+| `BACKUP_TEMP_DIR`              | `/tmp/dragon-backups` | Staging path for backup archives |
+| `BACKUP_STORAGE_BUCKET_PREFIX` | `backups/mongodb`     | Object Storage prefix            |
 
-Copy to `infra/docker/.env.production` (gitignored) and fill in all `CHANGE_ME` values before running the stack.
+### CORS
 
-The production compose file loads the env file with `env_file: .env.production` per service. All services share one env file. MongoDB init vars (`MONGO_INITDB_*`) and the API's `MONGODB_URI` must use matching credentials — the connection string host must be `mongodb` (the compose service name, not `localhost`). Similarly, `REDIS_HOST` must be `redis` and `NUXT_API_INTERNAL_BASE_URL` must be `http://api:3000`.
+| Variable               | Dev value                                     | Notes                                                        |
+| ---------------------- | --------------------------------------------- | ------------------------------------------------------------ |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:3001,http://localhost:3002` | Comma-separated; wildcard `*` is rejected by the CORS config |
 
-### Task 0.10.4 — Backup and Restore
+---
 
-Backup environment variables are documented in `apps/api/.env.example`. They must be supplied at runtime only — never committed.
+## Docker Compose local services (`infra/docker/.env.example`)
 
-```env
-# Backup configuration (Task 0.10.4)
-BACKUP_TEMP_DIR=/tmp/dragon-backups
-BACKUP_STORAGE_BUCKET_PREFIX=backups/mongodb
+The local compose file starts MongoDB, Redis, and MinIO for development.
 
-# Shell script uses MONGODB_URI from the main connection vars above.
-# No separate BACKUP_MONGODB_URI is needed — the backup script reads MONGODB_URI.
-```
+| Variable                     | Notes                                               |
+| ---------------------------- | --------------------------------------------------- |
+| `MONGO_INITDB_ROOT_USERNAME` | Local MongoDB root user                             |
+| `MONGO_INITDB_ROOT_PASSWORD` | Local placeholder password (not used in production) |
+| `MONGO_INITDB_DATABASE`      | Local database name                                 |
+| `MINIO_ROOT_USER`            | MinIO root user for local S3 dev                    |
+| `MINIO_ROOT_PASSWORD`        | MinIO root password                                 |
 
-Key rules:
+---
 
-- `BACKUP_TEMP_DIR` is a local path on the VPS. It must not be inside the Docker container image.
-- `BACKUP_STORAGE_BUCKET_PREFIX` scopes backup artifacts within the Object Storage bucket. Backups must NOT share a bucket prefix with media files.
-- The shell script (`infra/backup/mongo-backup.sh`) reads `MONGODB_URI`, `STORAGE_S3_ACCESS_KEY_ID`, `STORAGE_S3_SECRET_ACCESS_KEY`, and related vars from the environment. These are the same secrets already required by the API. No additional credentials are introduced.
-- Backup artifacts must be encrypted before production use (GPG or cloud-native). Encryption is **not implemented** in Phase 0 — see `docs/security/backup-security-checklist.md`.
+## Frontend env files
 
-## Out of scope
+### `apps/web/.env.example`
 
-Real production secret management (Vault, AWS Secrets Manager, etc.), monitoring, backup automation, and CI/CD pipeline configuration are not implemented in Phase 0.
+| Variable                     | Dev value               |
+| ---------------------------- | ----------------------- |
+| `NUXT_API_INTERNAL_BASE_URL` | `http://localhost:3000` |
+| `NUXT_PUBLIC_API_BASE_URL`   | `http://localhost:3000` |
+| `NUXT_PUBLIC_SITE_URL`       | `http://localhost:3001` |
+
+### `apps/admin/.env.example`
+
+| Variable                   | Dev value               |
+| -------------------------- | ----------------------- |
+| `NUXT_PUBLIC_API_BASE_URL` | `http://localhost:3000` |
+| `NUXT_PUBLIC_ADMIN_URL`    | `http://localhost:3002` |
+
+---
+
+## Secret rotation (conceptual)
+
+- **`AUTH_JWT_SECRET`:** Changing this invalidates all issued access tokens and refresh tokens immediately. All users are logged out on the next request. Plan for a maintenance window or implement graceful rotation with overlapping secrets (Phase 1).
+- **Storage credentials (`STORAGE_S3_ACCESS_KEY_ID` / `STORAGE_S3_SECRET_ACCESS_KEY`):** Rotate in the Arvan console, update env file, restart containers. Signed URLs issued before rotation remain valid until their TTL expires.
+- **MongoDB password:** Update `MONGO_INITDB_ROOT_PASSWORD` and `MONGODB_URI` consistently, recreate the MongoDB user, restart all services.
+
+---
+
+## Out of scope (Phase 0)
+
+Real-world secret management (HashiCorp Vault, AWS Secrets Manager, GCP Secret Manager, Doppler) and automated secret rotation are Phase 1+ concerns.

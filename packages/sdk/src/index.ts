@@ -27,3 +27,5 @@ export * from './search-types';
 export * from './search';
 export * from './admin-search-types';
 export * from './admin-search';
+export * from './admin-analytics-types';
+export * from './admin-analytics';

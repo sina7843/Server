@@ -234,3 +234,126 @@ Docs match implemented scope
 ### Out of scope for Task 0.9.2
 
 Meilisearch UI behavior, Elasticsearch/OpenSearch UI, frontend ranking, advanced fuzzy search, typo tolerance, Persian stemming, NLP ranking UI, recommendation engine, related content UI, analytics, global admin command palette, audit duplicate search UI, future module search.
+
+---
+
+## Task 0.9.3 — Analytics Backend Foundation
+
+### What was built
+
+**apps/api/src/analytics/**
+
+- `analytics-event.schema.ts` — AnalyticsEvent Mongoose schema with 4 required indexes
+- `analytics-event.repository.ts` — append-only repository (create + aggregate queries only)
+- `analytics-redactor.ts` — recursive sensitive-key redactor (phone, email, otp, token, password, etc.)
+- `analytics.service.ts` — non-blocking `track()` method with IP hashing (SHA-256) and metadata redaction
+- `analytics.types.ts` — `TrackInput` interface
+- `analytics.module.ts` — module wiring, exports `AnalyticsService` and `AnalyticsEventRepository`
+- `analytics.service.spec.ts` — unit tests for service, redactor, and tracking
+
+**apps/api/src/analytics/admin/**
+
+- `admin-analytics.controller.ts` — 5 endpoints under `/admin/v1/analytics/`
+- `admin-analytics.service.ts` — real MongoDB aggregations, no fake metrics
+- `admin-analytics.module.ts` — imports AnalyticsModule, AuthModule, RbacModule
+- `dto/admin-analytics-query.ts` — date range + limit validation
+- `dto/admin-analytics-response.ts` — DTO mapping functions
+
+**Hook integrations (minimal, non-redesign):**
+
+- `apps/api/src/auth/auth.service.ts` — tracks: `user.registered`, `user.logged_in`, `otp.requested`, `otp.verified`, `otp.failed`
+- `apps/api/src/content/public/public-posts.service.ts` — tracks `content.viewed` + increments `viewCount`
+- `apps/api/src/content/posts/post.repository.ts` — added `incrementViewCount()` ($inc)
+- `apps/api/src/media/admin-media.service.ts` — tracks `media.uploaded`
+- `apps/api/src/admin/content/admin-content-posts.service.ts` — tracks `content.published`
+
+**Module updates:**
+
+- `apps/api/src/auth/auth.module.ts` — imports AnalyticsModule
+- `apps/api/src/content/content.module.ts` — imports AnalyticsModule
+- `apps/api/src/media/media.module.ts` — imports AnalyticsModule
+- `apps/api/src/admin/content/admin-content.module.ts` — imports AnalyticsModule
+- `apps/api/src/app.module.ts` — registers AdminAnalyticsModule
+- `apps/api/src/rbac/registry/role-permission-registry.ts` — adds ANALYTICS_READ to admin role
+
+**packages/types:**
+
+- `src/constants/analytics.ts` — `ANALYTICS_EVENT_TYPES`, `AnalyticsEventType`
+- `src/contracts/analytics.ts` — all analytics DTOs
+
+**packages/sdk:**
+
+- `src/admin-analytics-types.ts` — `AnalyticsDateRangeParams`, `AdminAnalyticsClient`
+- `src/admin-analytics.ts` — `createAdminAnalyticsClient()` with 5 methods
+- `src/admin-analytics.spec.ts` — SDK tests
+
+**Docs:**
+
+- `docs/architecture/analytics.md` — full architecture
+- `docs/security/search-analytics-security-checklist.md` — analytics section added
+- `docs/development/slice-0.9-verification.md` — this file
+
+### Verification commands
+
+```bash
+pnpm install
+
+pnpm --filter @dragon/api lint
+pnpm --filter @dragon/api typecheck
+pnpm --filter @dragon/api test
+pnpm --filter @dragon/api build
+
+pnpm --filter @dragon/sdk lint
+pnpm --filter @dragon/sdk typecheck
+pnpm --filter @dragon/sdk test
+pnpm --filter @dragon/sdk build
+
+pnpm --filter @dragon/types lint
+pnpm --filter @dragon/types typecheck
+pnpm --filter @dragon/types test
+pnpm --filter @dragon/types build
+
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm format:check
+```
+
+### Manual verification checklist
+
+```text
+apps/api/src/analytics exists
+AnalyticsEvent schema exists with 4 required indexes
+AnalyticsService exists with non-blocking track()
+GET /admin/v1/analytics/summary exists
+GET /admin/v1/analytics/content/top exists
+GET /admin/v1/analytics/auth exists
+GET /admin/v1/analytics/otp exists
+GET /admin/v1/analytics/media exists
+analytics.read permission exists and is centralized
+analytics.read added to admin role
+No raw IP stored — ipHash used
+No raw phone/email/OTP/token in analytics events
+No frontend /analytics route added
+No fake metrics exist
+No BI/funnels/cohorts/revenue features exist
+Docs match implemented scope
+```
+
+### Security invariants
+
+1. `AnalyticsService.track()` is non-blocking — tracking failure never affects the caller.
+2. Raw IP is never stored — `ipHash` = SHA-256(ip).
+3. Sensitive metadata is recursively redacted before storage (phone, email, otp, token, password, cookie, authorization, etc.).
+4. No raw phone or email in any analytics event.
+5. No raw OTP, code, or verification secret in any analytics event.
+6. No token, session secret, or password in any analytics event.
+7. Media analytics metadata contains only `mimeType` and `visibility` — never `objectKey`, `bucket`, or `storageProvider`.
+8. All admin analytics endpoints require `AccessTokenGuard` + `PermissionGuard(analytics.read)`.
+9. Analytics APIs return real aggregates only — 0/empty when no data exists.
+10. No fake analytics data anywhere.
+
+### Out of scope for Task 0.9.3
+
+Frontend analytics dashboard (Task 0.9.4), funnels, cohorts, retention, A/B testing, revenue analytics, real-time analytics, data warehouse, BI tools, WebSocket analytics, marketing analytics, external analytics platforms.

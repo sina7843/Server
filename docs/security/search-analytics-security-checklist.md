@@ -85,9 +85,29 @@
 - [ ] No global admin search page added.
 - [ ] No audit duplicate search added (covered by existing audit filter UI).
 
-## Out of Scope (Slice 0.9.1 + 0.9.2)
+## Analytics Backend Safety (Slice 0.9.3)
 
-- [ ] No analytics endpoint or frontend exists.
+- [ ] `AnalyticsEvent` schema exists with required indexes.
+- [ ] Analytics event writes are append-only — no update or delete operations on analytics events.
+- [ ] `AnalyticsService.track()` is non-blocking and best-effort — failure does not propagate to the caller.
+- [ ] Raw IP is never stored — only `ipHash` (SHA-256) if IP is provided.
+- [ ] Sensitive metadata is recursively redacted before storage — `AnalyticsRedactor` removes password, otp, code, token, phone, email, recipient, secret, authorization, cookie, and related keys.
+- [ ] No raw phone or email in analytics events or metadata.
+- [ ] No raw OTP or verification code in analytics events or metadata.
+- [ ] No token, password, or session secret in analytics events or metadata.
+- [ ] Media analytics metadata never contains `objectKey`, `bucket`, or `storageProvider`.
+- [ ] All admin analytics APIs require `AccessTokenGuard` + `PermissionGuard(analytics.read)`.
+- [ ] `analytics.read` permission is centralized in `permission-keys.ts` and `packages/types/src/constants/permissions.ts`.
+- [ ] Admin role has `analytics.read` permission.
+- [ ] Analytics APIs return only real aggregate data — no fake or placeholder counts.
+- [ ] Analytics APIs return 0/empty when no events exist — not fake sample data.
+- [ ] No frontend analytics dashboard exists yet (Task 0.9.4).
+- [ ] No real-time analytics / WebSocket dashboard exists.
+- [ ] No funnels, cohorts, retention, A/B testing, or revenue analytics exist.
+- [ ] No external analytics platform (Mixpanel, Amplitude, GA) is integrated.
+
+## Out of Scope (Slice 0.9.1 + 0.9.2 + 0.9.3)
+
 - [ ] No real-time search indexing exists.
 - [ ] No Meilisearch / Elasticsearch / OpenSearch client exists.
 - [ ] No fuzzy search or typo tolerance exists.
@@ -95,3 +115,6 @@
 - [ ] No recommendation engine or related content endpoint exists.
 - [ ] No search-over-audit-logs endpoint exists (covered by existing audit filter API).
 - [ ] No global admin command palette exists.
+- [ ] No frontend analytics dashboard (Task 0.9.4).
+- [ ] No funnels / cohorts / retention / A-B / revenue analytics.
+- [ ] No data warehouse or BI tooling.

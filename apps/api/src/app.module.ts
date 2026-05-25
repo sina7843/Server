@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AdminAuditModule } from './admin/audit/admin-audit.module';
 import { SearchModule } from './search/search.module';
+import { AdminAnalyticsModule } from './analytics/admin/admin-analytics.module';
 import { AdminNotificationsModule } from './admin/notifications/admin-notifications.module';
 import { AdminAuthModule } from './admin/admin-auth.module';
 import { AdminContentModule } from './admin/content/admin-content.module';
@@ -39,6 +40,7 @@ import { RbacModule } from './rbac/rbac.module';
     AdminNotificationsModule,
     MediaModule,
     SearchModule,
+    AdminAnalyticsModule,
   ],
   controllers: [HealthController],
 })

@@ -28,6 +28,7 @@ export const RolePermissionRegistryMap = {
 
     Permissions.AUDIT_LOG_READ,
     Permissions.NOTIFICATION_LOG_READ,
+    Permissions.ANALYTICS_READ,
 
     Permissions.SEARCH_USER_READ,
     Permissions.SEARCH_CONTENT_READ,

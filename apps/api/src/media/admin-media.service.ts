@@ -6,6 +6,7 @@ import type {
 } from '@dragon/types';
 import { AuditAction } from '@dragon/types';
 import { AuditService } from '../audit/audit.service';
+import { AnalyticsService } from '../analytics/analytics.service';
 import { STORAGE_SERVICE, type StorageService } from '../storage/storage.service';
 import { MediaAssetService } from './media-asset.service';
 import { MediaUploadPipeline } from './media-upload-pipeline.service';
@@ -26,6 +27,7 @@ export class AdminMediaService {
     private readonly pipeline: MediaUploadPipeline,
     @Inject(STORAGE_SERVICE) private readonly storageService: StorageService,
     @Optional() private readonly auditService?: AuditService,
+    @Optional() private readonly analyticsService?: AnalyticsService,
   ) {}
 
   async uploadMedia(
@@ -62,6 +64,13 @@ export class AdminMediaService {
       resourceId: String(asset._id),
       after: { mimeType: asset.mimeType, visibility: asset.visibility, sizeBytes: asset.sizeBytes },
       severity: 'info',
+    });
+    this.analyticsService?.track({
+      type: 'media.uploaded',
+      userId: uploadedBy,
+      resourceType: 'media_asset',
+      resourceId: String(asset._id),
+      metadata: { mimeType: asset.mimeType, visibility: asset.visibility },
     });
 
     const dto = toAdminMediaAssetDto(asset, url);

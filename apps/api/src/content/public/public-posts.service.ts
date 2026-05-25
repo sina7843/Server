@@ -1,7 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Optional } from '@nestjs/common';
 import type { ContentPostType } from '@dragon/types';
 import { normalizeSlug, SlugPolicyError } from '../slug/slug-policy';
 import { PostService } from '../posts/post.service';
+import { PostRepository } from '../posts/post.repository';
+import { AnalyticsService } from '../../analytics/analytics.service';
 import type { PostDocument } from '../posts/post.schema';
 
 const DEFAULT_PAGE = 1;
@@ -15,7 +17,11 @@ export interface PublicListQuery {
 
 @Injectable()
 export class PublicPostsService {
-  constructor(private readonly postService: PostService) {}
+  constructor(
+    private readonly postService: PostService,
+    private readonly postRepository: PostRepository,
+    @Optional() private readonly analyticsService?: AnalyticsService,
+  ) {}
 
   async listPublished(
     type: ContentPostType,
@@ -44,6 +50,14 @@ export class PublicPostsService {
 
     const post = await this.postService.findPublishedByTypeAndSlug(type, slugNormalized);
     if (!post) throw new NotFoundException('Post not found.');
+
+    this.analyticsService?.track({
+      type: 'content.viewed',
+      resourceType: post.type,
+      resourceId: String(post._id),
+    });
+    void this.postRepository.incrementViewCount(post._id).catch(() => undefined);
+
     return post;
   }
 }

@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException, Optional } from '@n
 import { Types } from 'mongoose';
 import { AuditAction } from '@dragon/types';
 import { AuditService } from '../../audit/audit.service';
+import { AnalyticsService } from '../../analytics/analytics.service';
 import { validateObjectId } from '../../rbac/dto/rbac-validation';
 import { PostService } from '../../content/posts/post.service';
 import type { PostDocument } from '../../content/posts/post.schema';
@@ -105,6 +106,7 @@ export class AdminContentPostsService {
     private readonly richTextValidator: RichTextValidator,
     private readonly htmlSanitizer: HtmlSanitizer,
     @Optional() private readonly auditService?: AuditService,
+    @Optional() private readonly analyticsService?: AnalyticsService,
   ) {}
 
   async listPosts(
@@ -282,6 +284,12 @@ export class AdminContentPostsService {
       resourceId: id,
       after: { status: 'published' },
       severity: 'info',
+    });
+    this.analyticsService?.track({
+      type: 'content.published',
+      userId: editorId,
+      resourceType: 'content_post',
+      resourceId: id,
     });
 
     return post;

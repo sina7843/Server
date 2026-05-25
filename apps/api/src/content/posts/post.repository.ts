@@ -149,4 +149,11 @@ export class PostRepository {
       .findByIdAndUpdate(id, { $set: { deletedAt: new Date() } }, { new: true })
       .exec();
   }
+
+  incrementViewCount(id: PostId): Promise<void> {
+    return this.postModel
+      .findByIdAndUpdate(id, { $inc: { viewCount: 1 } })
+      .exec()
+      .then(() => undefined);
+  }
 }

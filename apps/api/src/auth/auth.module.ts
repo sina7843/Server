@@ -2,6 +2,7 @@ import { forwardRef, Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AuditModule } from '../audit/audit.module';
+import { AnalyticsModule } from '../analytics/analytics.module';
 import { JobsModule } from '../jobs/jobs.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AccessTokenGuard } from './guards/access-token.guard';
@@ -28,6 +29,7 @@ import { ProfileModule } from '../profiles/profile.module';
 @Module({
   imports: [
     AuditModule,
+    AnalyticsModule,
     JobsModule,
     forwardRef(() => ProfileModule),
     MongooseModule.forFeature([

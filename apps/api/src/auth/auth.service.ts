@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { AuditAction } from '@dragon/types';
 import { AuditService } from '../audit/audit.service';
+import { AnalyticsService } from '../analytics/analytics.service';
 import { Types } from 'mongoose';
 import { AUTH_CONFIG } from '../config/app-config.module';
 import type { AuthConfig } from '../config/auth.config';
@@ -83,6 +84,8 @@ export class AuthService {
     private readonly profileLifecycleService?: UserProfileLifecycleService,
     @Optional()
     private readonly auditService?: AuditService,
+    @Optional()
+    private readonly analyticsService?: AnalyticsService,
   ) {}
 
   async register(
@@ -147,6 +150,7 @@ export class AuthService {
           purpose: PHONE_VERIFICATION_PURPOSE,
         },
       });
+      this.analyticsService?.track({ type: 'otp.failed' });
       throw this.createInvalidPhoneVerificationError();
     }
 
@@ -168,6 +172,8 @@ export class AuthService {
       severity: 'info',
       metadata: { purpose: PHONE_VERIFICATION_PURPOSE },
     });
+    this.analyticsService?.track({ type: 'otp.verified', userId: String(user._id) });
+    this.analyticsService?.track({ type: 'user.registered', userId: String(user._id) });
     await this.profileLifecycleService?.ensureProfileForActiveUser({
       userId: String(user._id),
     });
@@ -230,6 +236,12 @@ export class AuthService {
       ...(metadata.userAgent !== undefined ? { userAgent: metadata.userAgent } : {}),
       ...(metadata.requestId !== undefined ? { requestId: metadata.requestId } : {}),
       severity: 'info',
+    });
+    this.analyticsService?.track({
+      type: 'user.logged_in',
+      userId: String(user._id),
+      ...(metadata.ip !== undefined ? { ip: metadata.ip } : {}),
+      ...(metadata.userAgent !== undefined ? { userAgent: metadata.userAgent } : {}),
     });
 
     return createTokenResponse({
@@ -529,6 +541,11 @@ export class AuthService {
         purpose: PHONE_VERIFICATION_PURPOSE,
         ...definedMetadata(metadata),
       },
+    });
+    this.analyticsService?.track({
+      type: 'otp.requested',
+      ...(metadata.ip !== undefined ? { ip: metadata.ip } : {}),
+      ...(metadata.userAgent !== undefined ? { userAgent: metadata.userAgent } : {}),
     });
     await this.smsService.enqueueSms({
       recipientPhoneNormalized: phoneNormalized,

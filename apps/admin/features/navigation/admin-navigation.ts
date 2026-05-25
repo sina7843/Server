@@ -59,6 +59,13 @@ export const ADMIN_NAV_ITEMS: readonly AdminNavItem[] = [
     permission: DragonPermissions.SYSTEM_HEALTH_READ,
   },
   {
+    key: 'backups',
+    label: 'پشتیبان‌گیری',
+    labelEn: 'Backups',
+    path: '/system/backups',
+    permission: DragonPermissions.SYSTEM_BACKUP_READ,
+  },
+  {
     key: 'audit',
     label: 'لاگ‌های حسابرسی',
     labelEn: 'Audit Logs',

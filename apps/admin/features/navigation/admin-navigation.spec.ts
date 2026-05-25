@@ -9,6 +9,7 @@ const ALLOWED_KEYS = [
   'content',
   'media',
   'system-health',
+  'backups',
   'audit',
   'jobs',
   'notifications',
@@ -16,7 +17,7 @@ const ALLOWED_KEYS = [
 ];
 
 describe('ADMIN_NAV_ITEMS', () => {
-  it('contains exactly the allowed Slice 0.5–0.9 navigation items', () => {
+  it('contains exactly the allowed Slice 0.5–0.10 navigation items', () => {
     expect(ADMIN_NAV_ITEMS.map((i) => i.key)).toEqual(ALLOWED_KEYS);
   });
 

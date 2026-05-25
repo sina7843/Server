@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AdminAuditModule } from './admin/audit/admin-audit.module';
 import { SearchModule } from './search/search.module';
 import { AdminAnalyticsModule } from './analytics/admin/admin-analytics.module';
@@ -15,10 +15,12 @@ import { ContentModule } from './content/content.module';
 import { DatabaseModule } from './database/database.module';
 import { EventsModule } from './events/events.module';
 import { HealthController } from './health.controller';
+import { HealthModule } from './health/health.module';
 import { JobsModule } from './jobs/jobs.module';
 import { MediaModule } from './media/media.module';
 import { ProfileModule } from './profiles/profile.module';
 import { RbacModule } from './rbac/rbac.module';
+import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 
 @Module({
   imports: [
@@ -30,6 +32,7 @@ import { RbacModule } from './rbac/rbac.module';
     RbacModule,
     ProfileModule,
     ContentModule,
+    HealthModule,
     AdminAuthModule,
     AdminUsersModule,
     AdminDashboardModule,
@@ -44,4 +47,8 @@ import { RbacModule } from './rbac/rbac.module';
   ],
   controllers: [HealthController],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(RequestIdMiddleware).forRoutes('*');
+  }
+}

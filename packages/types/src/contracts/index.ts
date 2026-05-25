@@ -1,6 +1,7 @@
 export * from './analytics';
 export * from './audit';
 export * from './auth';
+export * from './health-types';
 export * from './jobs';
 export * from './rbac';
 export * from './profile';

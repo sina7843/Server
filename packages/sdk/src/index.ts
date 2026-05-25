@@ -29,3 +29,5 @@ export * from './admin-search-types';
 export * from './admin-search';
 export * from './admin-analytics-types';
 export * from './admin-analytics';
+export * from './system-health-types';
+export * from './system-health';

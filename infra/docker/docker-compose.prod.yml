@@ -1,0 +1,252 @@
+name: dragon-prod
+
+# ── Production Compose — single Arvan VPS ─────────────────────────────────────
+#
+# Before starting:
+#   1. Copy .env.production.example to .env.production and fill in all values.
+#   2. Provision TLS certificates (Let's Encrypt or Arvan CDN) on the VPS.
+#   3. Update nginx.conf ssl_certificate paths to match.
+#   4. Validate: docker compose -f infra/docker/docker-compose.prod.yml config
+#   5. Start:    docker compose -f infra/docker/docker-compose.prod.yml up -d
+#
+# Network topology:
+#   public internet → reverse-proxy :80/:443
+#                   → api / web / admin (dragon_net, internal only)
+#                   → mongodb / redis  (dragon_net, no public ports)
+#
+# No real secrets are committed here. See .env.production.example for required vars.
+
+services:
+  # ── Reverse Proxy ─────────────────────────────────────────────────────────────
+  reverse-proxy:
+    image: nginx:1.27-alpine
+    container_name: dragon-prod-proxy
+    restart: always
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      # Nginx config from Task 0.10.1 (path relative to this compose file)
+      - ../nginx-or-caddy/nginx.conf:/etc/nginx/nginx.conf:ro
+      # TLS certificates — provision with Let's Encrypt on the VPS.
+      # Expected paths match ssl_certificate directives in nginx.conf.
+      # Example on VPS:
+      #   certbot certonly --standalone -d YOUR_DOMAIN -d YOUR_API_DOMAIN -d YOUR_ADMIN_DOMAIN
+      #   mkdir -p /etc/ssl/YOUR_DOMAIN && cp /etc/letsencrypt/live/YOUR_DOMAIN/* /etc/ssl/YOUR_DOMAIN/
+      - /etc/ssl:/etc/ssl:ro
+    networks:
+      - dragon_net
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_started
+      admin:
+        condition: service_started
+    healthcheck:
+      # Verify the nginx master process is alive via its PID file.
+      test: ['CMD-SHELL', 'cat /var/run/nginx.pid | xargs -I{} kill -0 {} 2>/dev/null || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  # ── NestJS API ────────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    image: dragon-api:latest
+    container_name: dragon-prod-api
+    restart: always
+    env_file:
+      - path: .env.production
+        required: false
+    networks:
+      - dragon_net
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3000/health/live || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  # ── BullMQ Worker ─────────────────────────────────────────────────────────────
+  worker:
+    build:
+      context: ../..
+      dockerfile: apps/worker/Dockerfile
+    image: dragon-worker:latest
+    container_name: dragon-prod-worker
+    restart: always
+    env_file:
+      - path: .env.production
+        required: false
+    networks:
+      - dragon_net
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # Worker has no HTTP port. Check the main process (PID 1) is still alive.
+      test: ['CMD-SHELL', 'kill -0 1 2>/dev/null || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  # ── Nuxt Web (SSR) ────────────────────────────────────────────────────────────
+  web:
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+    image: dragon-web:latest
+    container_name: dragon-prod-web
+    restart: always
+    env_file:
+      - path: .env.production
+        required: false
+    networks:
+      - dragon_net
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >
+          node -e "const n=require('net');
+          n.connect(3001,'127.0.0.1')
+           .on('connect',()=>process.exit(0))
+           .on('error',()=>process.exit(1))"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  # ── Nuxt Admin ────────────────────────────────────────────────────────────────
+  admin:
+    build:
+      context: ../..
+      dockerfile: apps/admin/Dockerfile
+    image: dragon-admin:latest
+    container_name: dragon-prod-admin
+    restart: always
+    env_file:
+      - path: .env.production
+        required: false
+    networks:
+      - dragon_net
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >
+          node -e "const n=require('net');
+          n.connect(3002,'127.0.0.1')
+           .on('connect',()=>process.exit(0))
+           .on('error',()=>process.exit(1))"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  # ── MongoDB ───────────────────────────────────────────────────────────────────
+  mongodb:
+    image: mongo:7
+    container_name: dragon-prod-mongodb
+    restart: always
+    # MongoDB does not expose a public host port.
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+    volumes:
+      - dragon_prod_mongodb_data:/data/db
+    networks:
+      - dragon_net
+    healthcheck:
+      # Uses env vars already present in the container — no hardcoded credentials.
+      test:
+        - CMD-SHELL
+        - >
+          mongosh
+          -u $$MONGO_INITDB_ROOT_USERNAME
+          -p $$MONGO_INITDB_ROOT_PASSWORD
+          --eval "db.adminCommand('ping').ok"
+          --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  # ── Redis ─────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: dragon-prod-redis
+    restart: always
+    # Redis does not expose a public host port.
+    # AOF persistence: append-only file, fsync every second.
+    command: redis-server --appendonly yes --appendfsync everysec
+    volumes:
+      - dragon_prod_redis_data:/data
+    networks:
+      - dragon_net
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+# ── Named Volumes ─────────────────────────────────────────────────────────────
+volumes:
+  # MongoDB data persists across container restarts and upgrades.
+  dragon_prod_mongodb_data:
+  # Redis AOF journal — persists BullMQ job state across restarts.
+  dragon_prod_redis_data:
+
+# ── Networks ──────────────────────────────────────────────────────────────────
+networks:
+  dragon_net:
+    driver: bridge
+    # Single internal network for Phase 0.
+    # All services communicate here. Only reverse-proxy has public host ports.

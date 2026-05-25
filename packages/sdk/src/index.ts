@@ -31,3 +31,5 @@ export * from './admin-analytics-types';
 export * from './admin-analytics';
 export * from './system-health-types';
 export * from './system-health';
+export * from './admin-backup-types';
+export * from './admin-backup';

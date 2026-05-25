@@ -1,0 +1,42 @@
+# ── Version control ────────────────────────────────────────────────────────────
+.git
+.gitignore
+
+# ── Environment files — NEVER bake secrets into images ─────────────────────────
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+
+# ── Node modules — reinstalled inside the image ────────────────────────────────
+node_modules
+**/node_modules
+
+# ── Build artifacts — rebuilt inside the image ─────────────────────────────────
+dist
+**/dist
+.output
+**/.output
+.nuxt
+**/.nuxt
+.cache
+**/.cache
+coverage
+**/coverage
+
+# ── pnpm store (local cache, not needed in image) ──────────────────────────────
+.pnpm-store
+
+# ── Local infrastructure (not shipped in app images) ──────────────────────────
+infra/docker
+
+# ── IDE / OS noise ─────────────────────────────────────────────────────────────
+.vscode
+.idea
+.DS_Store
+*.log
+*.zip
+
+# ── Claude local memory (never in images) ─────────────────────────────────────
+.claude

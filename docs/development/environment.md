@@ -68,6 +68,47 @@ No external search engine (Meilisearch, Elasticsearch, OpenSearch) is configured
 
 The `search` BullMQ queue uses the Redis connection already configured in Slice 0.8.3. No additional Redis environment variables are required.
 
+## Slice 0.10
+
+### Task 0.10.1 — Containerization
+
+Production containerization environment variables are documented in `docs/architecture/deployment.md`.
+
+Key rules:
+
+- No `.env` file is ever copied into a Docker image. All `.env*` files are excluded by `.dockerignore`.
+- All secrets (`AUTH_JWT_SECRET`, `STORAGE_S3_ACCESS_KEY_ID`, `STORAGE_S3_SECRET_ACCESS_KEY`, etc.) must be supplied at container runtime via environment variables. They must never be baked into images or committed.
+- Nuxt `NUXT_PUBLIC_*` values can be overridden at container start. The SSR-only value `NUXT_API_INTERNAL_BASE_URL` must also be supplied at runtime.
+- Real domain names, TLS certificates, and database credentials are not committed.
+
+### Task 0.10.2 — Docker Compose production
+
+Production env template: `infra/docker/.env.production.example`
+
+Copy to `infra/docker/.env.production` (gitignored) and fill in all `CHANGE_ME` values before running the stack.
+
+The production compose file loads the env file with `env_file: .env.production` per service. All services share one env file. MongoDB init vars (`MONGO_INITDB_*`) and the API's `MONGODB_URI` must use matching credentials — the connection string host must be `mongodb` (the compose service name, not `localhost`). Similarly, `REDIS_HOST` must be `redis` and `NUXT_API_INTERNAL_BASE_URL` must be `http://api:3000`.
+
+### Task 0.10.4 — Backup and Restore
+
+Backup environment variables are documented in `apps/api/.env.example`. They must be supplied at runtime only — never committed.
+
+```env
+# Backup configuration (Task 0.10.4)
+BACKUP_TEMP_DIR=/tmp/dragon-backups
+BACKUP_STORAGE_BUCKET_PREFIX=backups/mongodb
+
+# Shell script uses MONGODB_URI from the main connection vars above.
+# No separate BACKUP_MONGODB_URI is needed — the backup script reads MONGODB_URI.
+```
+
+Key rules:
+
+- `BACKUP_TEMP_DIR` is a local path on the VPS. It must not be inside the Docker container image.
+- `BACKUP_STORAGE_BUCKET_PREFIX` scopes backup artifacts within the Object Storage bucket. Backups must NOT share a bucket prefix with media files.
+- The shell script (`infra/backup/mongo-backup.sh`) reads `MONGODB_URI`, `STORAGE_S3_ACCESS_KEY_ID`, `STORAGE_S3_SECRET_ACCESS_KEY`, and related vars from the environment. These are the same secrets already required by the API. No additional credentials are introduced.
+- Backup artifacts must be encrypted before production use (GPG or cloud-native). Encryption is **not implemented** in Phase 0 — see `docs/security/backup-security-checklist.md`.
+
 ## Out of scope
 
-Production secret management, deployment configuration, monitoring, backup, and real provider credentials are not implemented in these foundation slices.
+Real production secret management (Vault, AWS Secrets Manager, etc.), monitoring, backup automation, and CI/CD pipeline configuration are not implemented in Phase 0.

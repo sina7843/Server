@@ -1,4 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { BackupsModule } from './backups/backup.module';
 import { AdminAuditModule } from './admin/audit/admin-audit.module';
 import { SearchModule } from './search/search.module';
 import { AdminAnalyticsModule } from './analytics/admin/admin-analytics.module';
@@ -33,6 +34,7 @@ import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
     ProfileModule,
     ContentModule,
     HealthModule,
+    BackupsModule,
     AdminAuthModule,
     AdminUsersModule,
     AdminDashboardModule,

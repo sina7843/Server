@@ -277,6 +277,91 @@ curl -I http://localhost:3000/health/live | grep x-request-id
 ### Out of scope (covered in later tasks)
 
 - Database backup scripts (Task 0.10.4)
+
+---
+
+## Slice 0.10.4 — Backup and Restore System
+
+### Files created / modified
+
+```
+packages/types/src/contracts/backup.ts                 ← new
+packages/types/src/contracts/index.ts                  ← updated: backup export
+packages/sdk/src/admin-backup-types.ts                 ← new
+packages/sdk/src/admin-backup.ts                       ← new
+packages/sdk/src/index.ts                              ← updated: admin-backup exports
+apps/api/src/rbac/registry/permission-keys.ts          ← updated: SYSTEM_BACKUP_RUN
+apps/api/src/rbac/registry/permission-registry.ts      ← updated: system.backup.run
+apps/api/src/backups/backup-log.schema.ts              ← new
+apps/api/src/backups/backup-log.repository.ts          ← new
+apps/api/src/backups/backup.service.ts                 ← new
+apps/api/src/backups/backup.service.spec.ts            ← new
+apps/api/src/backups/dto/backup-query.ts               ← new
+apps/api/src/backups/admin-backup.controller.ts        ← new
+apps/api/src/backups/admin-backup.controller.spec.ts   ← new
+apps/api/src/backups/backup.module.ts                  ← new
+apps/api/src/app.module.ts                             ← updated: BackupsModule import
+apps/api/.env.example                                  ← updated: backup env placeholders
+infra/backup/mongo-backup.sh                           ← new
+docs/architecture/backup-restore.md                    ← new
+docs/security/backup-security-checklist.md             ← new
+docs/operations/backup-runbook.md                      ← new
+docs/operations/restore-runbook.md                     ← new
+docs/operations/restore-verification-checklist.md      ← new
+docs/development/slice-0.10-verification.md            ← this file
+docs/development/environment.md                        ← updated: backup env section
+README.md                                              ← updated: backup doc links
+```
+
+### Deviation from task allowed-file list
+
+`apps/api/src/app.module.ts` was updated (not in the Task 0.10.4 allowed list) to import `BackupsModule`. This is required to register the backup controller and service with the NestJS DI system.
+
+### Permissions added
+
+| Permission key       | Role mapping                                                      |
+| -------------------- | ----------------------------------------------------------------- |
+| `system.backup.read` | `super_admin`, `admin`                                            |
+| `system.backup.run`  | `super_admin` only (via PermissionKeys — not in admin role array) |
+
+### Verification commands
+
+```bash
+pnpm --filter @dragon/types build
+pnpm --filter @dragon/sdk build
+
+pnpm --filter @dragon/api lint
+pnpm --filter @dragon/api typecheck
+pnpm --filter @dragon/api test --testPathPattern="backup"
+pnpm --filter @dragon/api build
+
+pnpm format:check
+```
+
+### Security checklist
+
+- [ ] `BackupLog.error` is sanitized — URI and password patterns stripped, max 200 chars
+- [ ] `BackupService.runMongoBackup()` passes MongoDB URI to `mongodump` via arg, not shell string
+- [ ] `BackupLog` does not store connection strings, S3 keys, or passwords
+- [ ] `RunBackupResponseDto` does not expose credentials or local file paths
+- [ ] `BackupLogListItemDto` / `BackupLogDto` do not expose credentials
+- [ ] `POST /admin/v1/system/backups/run` requires `system.backup.run` (super_admin only)
+- [ ] No restore endpoint exists
+- [ ] No backup delete endpoint exists
+- [ ] No backup download endpoint exists
+- [ ] `POST /run` does not accept user-controlled shell arguments or file paths
+- [ ] Audit events are emitted for backup_started, backup_completed, backup_failed, backup_manual_triggered
+- [ ] Audit payloads contain no credentials (processed through AuditRedactor)
+- [ ] `infra/backup/mongo-backup.sh` contains no hardcoded credentials
+- [ ] No backup output files are committed
+
+### Out of scope
+
+- Backup encryption at rest (required before production)
+- Restore endpoint or restore UI
+- Scheduled backup automation
+- Backup retention policy automation
+- `media_metadata` backup type execution (stub only)
 - External metrics / Prometheus endpoint
 - Distributed tracing (OpenTelemetry)
 - Alerting rules

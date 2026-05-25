@@ -22,3 +22,8 @@ Project documentation:
 - [Deploy runbook](docs/operations/deploy-runbook.md)
 - [Smoke test checklist](docs/operations/smoke-test-checklist.md)
 - [Slice 0.10 verification](docs/development/slice-0.10-verification.md)
+- [Backup and restore architecture](docs/architecture/backup-restore.md)
+- [Backup security checklist](docs/security/backup-security-checklist.md)
+- [Backup runbook](docs/operations/backup-runbook.md)
+- [Restore runbook](docs/operations/restore-runbook.md)
+- [Restore verification checklist](docs/operations/restore-verification-checklist.md)

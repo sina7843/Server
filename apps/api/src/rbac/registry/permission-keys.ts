@@ -17,6 +17,7 @@ export const Permissions = {
 
   SYSTEM_HEALTH_READ: 'system.health.read',
   SYSTEM_BACKUP_READ: 'system.backup.read',
+  SYSTEM_BACKUP_RUN: 'system.backup.run',
   SYSTEM_JOB_READ: 'system.job.read',
   SYSTEM_JOB_RETRY: 'system.job.retry',
 

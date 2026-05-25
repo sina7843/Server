@@ -90,6 +90,13 @@ export const PermissionRegistry = [
     'read',
     'Read backup status metadata',
   ),
+  permission(
+    Permissions.SYSTEM_BACKUP_RUN,
+    'system',
+    'backup',
+    'run',
+    'Trigger a manual backup run — restricted to super_admin',
+  ),
   permission(Permissions.SYSTEM_JOB_READ, 'system', 'job', 'read', 'Read system job metadata'),
   permission(Permissions.SYSTEM_JOB_RETRY, 'system', 'job', 'retry', 'Retry failed system jobs'),
 

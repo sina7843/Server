@@ -15,6 +15,7 @@ import type { MediaAssetDocument } from '../media/media-asset.schema';
 import { SearchService } from './search.service';
 import type {
   SearchResult,
+  SearchInput,
   ParsedPublicContentSearchQuery,
   ParsedAdminSearchQuery,
   IndexSearchInput,
@@ -50,8 +51,9 @@ export class MongoSearchAdapter extends SearchService {
     const allItems: SearchResultItemDto[] = [];
     let total = 0;
 
+    const hasTagFilter = categoryId !== undefined || tagId !== undefined;
     const searchPosts = !type || type !== 'page';
-    const searchPages = !type || type === 'page';
+    const searchPages = (!type || type === 'page') && !hasTagFilter;
 
     if (searchPosts) {
       const postFilter: FilterQuery<Post> = {
@@ -289,6 +291,19 @@ export class MongoSearchAdapter extends SearchService {
     }));
 
     return { items, page, limit, total };
+  }
+
+  async search(input: SearchInput): Promise<SearchResult> {
+    switch (input.kind) {
+      case 'public_content':
+        return this.searchPublicContent(input.query);
+      case 'admin_content':
+        return this.searchAdminContent(input.query);
+      case 'admin_users':
+        return this.searchAdminUsers(input.query);
+      case 'admin_media':
+        return this.searchAdminMedia(input.query);
+    }
   }
 
   async index(input: IndexSearchInput): Promise<void> {

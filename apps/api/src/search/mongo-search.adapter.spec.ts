@@ -137,6 +137,34 @@ describe('MongoSearchAdapter', () => {
       expect(models.pageModel.find).toHaveBeenCalled();
     });
 
+    it('does not query pages when categoryId is present without type', async () => {
+      const models = makeModels();
+      const adapter = makeAdapter(models);
+
+      await adapter.searchPublicContent({
+        categoryId: '64f000000000000000000001',
+        page: 1,
+        limit: 20,
+      });
+
+      expect(models.postModel.find).toHaveBeenCalled();
+      expect(models.pageModel.find).not.toHaveBeenCalled();
+    });
+
+    it('does not query pages when tagId is present without type', async () => {
+      const models = makeModels();
+      const adapter = makeAdapter(models);
+
+      await adapter.searchPublicContent({
+        tagId: '64f000000000000000000002',
+        page: 1,
+        limit: 20,
+      });
+
+      expect(models.postModel.find).toHaveBeenCalled();
+      expect(models.pageModel.find).not.toHaveBeenCalled();
+    });
+
     it('never includes draft or archived content', async () => {
       const models = makeModels();
       const adapter = makeAdapter(models);
@@ -350,7 +378,53 @@ describe('MongoSearchAdapter', () => {
       expect(typeof adapter.searchAdminContent).toBe('function');
       expect(typeof adapter.searchAdminUsers).toBe('function');
       expect(typeof adapter.searchAdminMedia).toBe('function');
+      expect(typeof adapter.search).toBe('function');
+      expect(typeof adapter.index).toBe('function');
+      expect(typeof adapter.remove).toBe('function');
       expect(typeof adapter.reindex).toBe('function');
+    });
+  });
+
+  describe('search dispatch', () => {
+    it('has search(input) method', () => {
+      const adapter = makeAdapter();
+      expect(typeof adapter.search).toBe('function');
+    });
+
+    it('dispatches public_content to searchPublicContent', async () => {
+      const models = makeModels();
+      const adapter = makeAdapter(models);
+
+      await adapter.search({ kind: 'public_content', query: { page: 1, limit: 20 } });
+
+      expect(models.postModel.find).toHaveBeenCalled();
+    });
+
+    it('dispatches admin_content to searchAdminContent', async () => {
+      const models = makeModels();
+      const adapter = makeAdapter(models);
+
+      await adapter.search({ kind: 'admin_content', query: { page: 1, limit: 20 } });
+
+      expect(models.postModel.find).toHaveBeenCalled();
+    });
+
+    it('dispatches admin_users to searchAdminUsers', async () => {
+      const models = makeModels();
+      const adapter = makeAdapter(models);
+
+      await adapter.search({ kind: 'admin_users', query: { page: 1, limit: 20 } });
+
+      expect(models.userModel.find).toHaveBeenCalled();
+    });
+
+    it('dispatches admin_media to searchAdminMedia', async () => {
+      const models = makeModels();
+      const adapter = makeAdapter(models);
+
+      await adapter.search({ kind: 'admin_media', query: { page: 1, limit: 20 } });
+
+      expect(models.mediaModel.find).toHaveBeenCalled();
     });
   });
 });

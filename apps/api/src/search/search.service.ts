@@ -32,11 +32,18 @@ export interface RemoveSearchInput {
   readonly id: string;
 }
 
+export type SearchInput =
+  | { readonly kind: 'public_content'; readonly query: ParsedPublicContentSearchQuery }
+  | { readonly kind: 'admin_content'; readonly query: ParsedAdminSearchQuery }
+  | { readonly kind: 'admin_users'; readonly query: ParsedAdminSearchQuery }
+  | { readonly kind: 'admin_media'; readonly query: ParsedAdminSearchQuery };
+
 export abstract class SearchService {
   abstract searchPublicContent(query: ParsedPublicContentSearchQuery): Promise<SearchResult>;
   abstract searchAdminContent(query: ParsedAdminSearchQuery): Promise<SearchResult>;
   abstract searchAdminUsers(query: ParsedAdminSearchQuery): Promise<SearchResult>;
   abstract searchAdminMedia(query: ParsedAdminSearchQuery): Promise<SearchResult>;
+  abstract search(input: SearchInput): Promise<SearchResult>;
   abstract index(input: IndexSearchInput): Promise<void>;
   abstract remove(input: RemoveSearchInput): Promise<void>;
   abstract reindex(scope?: SearchScope): Promise<void>;

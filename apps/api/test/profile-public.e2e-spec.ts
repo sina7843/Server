@@ -1,6 +1,7 @@
 /* global afterEach, beforeEach, describe, expect, fetch, it, jest */
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { AvatarService } from '../src/profiles/avatar.service';
 import { ProfileController } from '../src/profiles/profile.controller';
 import { UserProfileService } from '../src/profiles/profile.service';
 
@@ -8,6 +9,8 @@ const publicProfile = {
   username: 'dragon',
   displayName: 'Dragon',
   avatarMediaId: 'media-1',
+  avatarUrl: null,
+  thumbnailUrl: null,
   bio: 'Public bio',
   visibility: 'public',
   publicUrl: '/u/dragon',
@@ -18,9 +21,13 @@ describe('GET /api/v1/u/:username', () => {
   const profileService = {
     getPublicProfileByUsername: jest.fn(),
   };
+  const avatarService = {
+    resolveAvatarUrls: jest.fn().mockResolvedValue({ avatarUrl: null, thumbnailUrl: null }),
+  };
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    avatarService.resolveAvatarUrls.mockResolvedValue({ avatarUrl: null, thumbnailUrl: null });
 
     const moduleRef = await Test.createTestingModule({
       controllers: [ProfileController],
@@ -28,6 +35,10 @@ describe('GET /api/v1/u/:username', () => {
         {
           provide: UserProfileService,
           useValue: profileService,
+        },
+        {
+          provide: AvatarService,
+          useValue: avatarService,
         },
       ],
     }).compile();

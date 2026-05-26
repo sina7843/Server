@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService, type RequestMetadata } from './auth.service';
 import { type AuthGenericResponseDto } from './dto/auth-response.dto';
 import { parseForgotPasswordDto } from './dto/forgot-password.dto';
@@ -6,15 +16,19 @@ import { parseLoginDto } from './dto/login.dto';
 import { type MeResponseDto } from './dto/me-response.dto';
 import { type AuthSessionsResponseDto } from './dto/session-response.dto';
 import { parseLogoutDto } from './dto/logout.dto';
-import { parseRefreshDto } from './dto/refresh.dto';
+import { parseRefreshTokenFromCookie } from './dto/refresh.dto';
 import { parseRegisterDto } from './dto/register.dto';
 import { parseResetPasswordDto } from './dto/reset-password.dto';
 import { parseVerifyResetOtpDto, type VerifyResetOtpResponseDto } from './dto/verify-reset-otp.dto';
-import { type TokenResponseDto } from './dto/token-response.dto';
+import { toTokenResponseDto, type TokenResponseDto } from './dto/token-response.dto';
 import { parseVerifyPhoneDto } from './dto/verify-phone.dto';
 import { AccessTokenGuard } from './guards/access-token.guard';
+import { CsrfOriginGuard } from './guards/csrf-origin.guard';
 import { CurrentAuthContext } from './guards/current-auth-context.decorator';
 import type { AuthContext } from './guards/authenticated-request';
+
+const REFRESH_COOKIE_NAME = 'dragon_refresh';
+const REFRESH_COOKIE_PATH = '/api/v1/auth';
 
 @Controller('api/v1/auth')
 export class AuthController {
@@ -34,13 +48,30 @@ export class AuthController {
   }
 
   @Post('login')
-  login(@Body() body: unknown, @Req() request: AuthMetadataRequest): Promise<TokenResponseDto> {
-    return this.authService.login(parseLoginDto(body), extractRequestMetadata(request));
+  async login(
+    @Body() body: unknown,
+    @Req() request: AuthMetadataRequest,
+    @Res({ passthrough: true }) res: CookieResponse,
+  ): Promise<TokenResponseDto> {
+    const result = await this.authService.login(
+      parseLoginDto(body),
+      extractRequestMetadata(request),
+    );
+    setRefreshCookie(res, result.refreshToken, result.refreshTokenExpiresAt);
+    return toTokenResponseDto(result);
   }
 
+  @UseGuards(CsrfOriginGuard)
   @Post('refresh')
-  refresh(@Body() body: unknown): Promise<TokenResponseDto> {
-    return this.authService.refresh(parseRefreshDto(body));
+  async refresh(
+    @Req() request: AuthMetadataRequest,
+    @Res({ passthrough: true }) res: CookieResponse,
+  ): Promise<TokenResponseDto> {
+    const cookieHeader = readHeader(request, 'cookie');
+    const dto = parseRefreshTokenFromCookie(cookieHeader);
+    const result = await this.authService.refresh(dto);
+    setRefreshCookie(res, result.refreshToken, result.refreshTokenExpiresAt);
+    return toTokenResponseDto(result);
   }
 
   @Post('password/forgot')
@@ -66,23 +97,25 @@ export class AuthController {
 
   @UseGuards(AccessTokenGuard)
   @Post('logout')
-  logout(
+  async logout(
     @CurrentAuthContext() authContext: AuthContext,
     @Body() body: unknown,
+    @Res({ passthrough: true }) res: CookieResponse,
   ): Promise<AuthGenericResponseDto> {
     parseLogoutDto(body);
-
+    clearRefreshCookie(res);
     return this.authService.logout(authContext);
   }
 
   @UseGuards(AccessTokenGuard)
   @Post('logout-all')
-  logoutAll(
+  async logoutAll(
     @CurrentAuthContext() authContext: AuthContext,
     @Body() body: unknown,
+    @Res({ passthrough: true }) res: CookieResponse,
   ): Promise<AuthGenericResponseDto> {
     parseLogoutDto(body);
-
+    clearRefreshCookie(res);
     return this.authService.logoutAll(authContext);
   }
 
@@ -111,6 +144,43 @@ export class AuthController {
 interface AuthMetadataRequest {
   readonly ip?: string;
   readonly headers?: Record<string, string | string[] | undefined>;
+}
+
+interface CookieResponse {
+  cookie(
+    name: string,
+    value: string,
+    options: {
+      httpOnly: boolean;
+      secure: boolean;
+      sameSite: 'strict' | 'lax' | 'none';
+      path: string;
+      expires: Date;
+    },
+  ): void;
+  clearCookie(
+    name: string,
+    options: { httpOnly: boolean; secure: boolean; sameSite: 'strict' | 'lax' | 'none'; path: string },
+  ): void;
+}
+
+function setRefreshCookie(res: CookieResponse, token: string, expiresAt: Date): void {
+  res.cookie(REFRESH_COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: process.env['NODE_ENV'] === 'production',
+    sameSite: 'strict',
+    path: REFRESH_COOKIE_PATH,
+    expires: expiresAt,
+  });
+}
+
+function clearRefreshCookie(res: CookieResponse): void {
+  res.clearCookie(REFRESH_COOKIE_NAME, {
+    httpOnly: true,
+    secure: process.env['NODE_ENV'] === 'production',
+    sameSite: 'strict',
+    path: REFRESH_COOKIE_PATH,
+  });
 }
 
 function extractRequestMetadata(request: AuthMetadataRequest): RequestMetadata {

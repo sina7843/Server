@@ -160,9 +160,9 @@ Provides and exports: `AuditService`.
 
 **@Optional() injection:** All domain services inject AuditService with `@Optional()`. Existing tests that do not mock AuditService continue to compile and pass without modification.
 
-**Actor ID in RBAC:** Admin RBAC operations are logged with `actorType: 'admin'` and no `actorId`. Admin identity enrichment is planned for Task 0.8.2.
+**Actor ID in RBAC:** Admin RBAC operations are logged with `actorType: 'admin'` and no `actorId`. Admin identity enrichment is planned for a future task.
 
-**No admin API:** Admin viewer (`GET /admin/v1/audit-logs`) is planned for Task 0.8.2 and is out of scope here.
+**Admin audit API:** Read-only admin viewer (`GET /admin/v1/audit-logs`, `GET /admin/v1/audit-logs/:id`) is implemented in Slice 0.8.2. See below.
 
 ## Admin Audit APIs (Slice 0.8.2)
 

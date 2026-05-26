@@ -14,15 +14,17 @@ export interface LoginRequest {
   readonly deviceName?: string;
 }
 
-export interface RefreshRequest {
-  readonly refreshToken: string;
-}
+/**
+ * Refresh is cookie-based — no request body needed.
+ * The `dragon_refresh` HttpOnly cookie is sent automatically by the browser.
+ */
+export type RefreshRequest = Record<string, never>;
 
 export type LogoutResponse = AuthGenericResponse;
 
+/** refreshToken is NOT in the response body — it is set as an HttpOnly cookie by the server. */
 export interface TokenResponse {
   readonly accessToken: string;
-  readonly refreshToken: string;
   readonly tokenType: 'Bearer';
   readonly expiresIn: number;
 }

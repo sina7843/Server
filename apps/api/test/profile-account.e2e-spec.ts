@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AccessTokenGuard } from '../src/auth/guards/access-token.guard';
+import { AvatarService } from '../src/profiles/avatar.service';
 import { MeProfileController } from '../src/profiles/me-profile.controller';
 import { UserProfileLifecycleService } from '../src/profiles/profile-lifecycle.service';
 import { UserProfileService } from '../src/profiles/profile.service';
@@ -16,6 +17,8 @@ const myProfile = {
   username: 'dragon',
   displayName: 'Dragon',
   avatarMediaId: '64f000000000000000000123',
+  avatarUrl: null,
+  thumbnailUrl: null,
   bio: 'My bio',
   visibility: 'public',
   publicUrl: '/u/dragon',
@@ -25,14 +28,14 @@ class TestAccessTokenGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<{
       headers: Record<string, string | undefined>;
-      authContext?: { userId: string; sessionId: string; accessTokenJti: string };
+      auth?: { userId: string; sessionId: string; accessTokenJti: string };
     }>();
 
     if (!request.headers.authorization) {
       throw new UnauthorizedException('Authentication is required.');
     }
 
-    request.authContext = {
+    request.auth = {
       userId: 'user-1',
       sessionId: 'session-1',
       accessTokenJti: 'jti-1',
@@ -50,6 +53,12 @@ describe('authenticated profile API', () => {
   };
   const profileLifecycleService = {
     ensureProfileForVerifiedUser: jest.fn().mockResolvedValue({ _id: 'profile-1' }),
+  };
+  const avatarService = {
+    resolveAvatarUrls: jest.fn().mockResolvedValue({ avatarUrl: null, thumbnailUrl: null }),
+    setAvatarFromMedia: jest.fn(),
+    removeAvatar: jest.fn(),
+    setAvatarFromUpload: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -69,11 +78,14 @@ describe('authenticated profile API', () => {
           useValue: profileLifecycleService,
         },
         {
-          provide: AccessTokenGuard,
-          useClass: TestAccessTokenGuard,
+          provide: AvatarService,
+          useValue: avatarService,
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(AccessTokenGuard)
+      .useClass(TestAccessTokenGuard)
+      .compile();
 
     app = moduleRef.createNestApplication();
     await app.init();

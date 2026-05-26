@@ -430,6 +430,7 @@ describe('AuthService', () => {
       expect(response).toEqual({
         accessToken: 'access-token',
         refreshToken: 'raw-refresh-token',
+        refreshTokenExpiresAt: new Date('2026-01-31T00:00:00.000Z'),
         tokenType: 'Bearer',
         expiresIn: 900,
       });
@@ -565,6 +566,7 @@ describe('AuthService', () => {
       expect(response).toEqual({
         accessToken: 'access-token',
         refreshToken: 'raw-refresh-token',
+        refreshTokenExpiresAt: new Date('2026-01-31T00:00:00.000Z'),
         tokenType: 'Bearer',
         expiresIn: 900,
       });

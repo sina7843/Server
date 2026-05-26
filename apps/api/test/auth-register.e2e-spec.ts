@@ -3,6 +3,7 @@ import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AuthController } from '../src/auth/auth.controller';
 import { AuthService } from '../src/auth/auth.service';
+import { AccessTokenGuard } from '../src/auth/guards/access-token.guard';
 import { createRegisterSuccessResponse } from './helpers/auth-test.factory';
 
 describe('POST /api/v1/auth/register', () => {
@@ -22,7 +23,10 @@ describe('POST /api/v1/auth/register', () => {
           useValue: authService,
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(AccessTokenGuard)
+      .useValue({ canActivate: () => false })
+      .compile();
 
     app = moduleRef.createNestApplication();
     await app.init();
@@ -47,10 +51,10 @@ describe('POST /api/v1/auth/register', () => {
 
     expect(response.status).toBe(201);
     await expect(response.json()).resolves.toEqual(createRegisterSuccessResponse());
-    expect(authService.register).toHaveBeenCalledWith({
-      phone: '+989120000000',
-      password: 'strong-pass',
-    });
+    expect(authService.register).toHaveBeenCalledWith(
+      { phone: '+989120000000', password: 'strong-pass' },
+      expect.any(Object),
+    );
   });
 
   it('rejects unknown fields', async () => {

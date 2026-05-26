@@ -79,14 +79,17 @@ pnpm --filter @dragon/worker build
 
 pnpm --filter @dragon/admin lint
 pnpm --filter @dragon/admin typecheck
+pnpm --filter @dragon/admin test
 pnpm --filter @dragon/admin build
 
 pnpm --filter @dragon/web lint
 pnpm --filter @dragon/web typecheck
+pnpm --filter @dragon/web test
 pnpm --filter @dragon/web build
 
 pnpm --filter @dragon/sdk lint
 pnpm --filter @dragon/sdk typecheck
+pnpm --filter @dragon/sdk test
 pnpm --filter @dragon/sdk build
 
 pnpm --filter @dragon/types lint
@@ -94,7 +97,7 @@ pnpm --filter @dragon/types typecheck
 pnpm --filter @dragon/types build
 ```
 
-> **Note:** `@dragon/admin`, `@dragon/web`, `@dragon/sdk`, and `@dragon/types` do not have meaningful unit test suites — lint/typecheck/build are the applicable checks.
+> **Note:** `@dragon/types` has no runtime test suite — lint/typecheck/build are the applicable checks. All other packages (`api`, `worker`, `admin`, `web`, `sdk`) have meaningful test suites that must pass.
 
 ### Repository-level verification
 
@@ -124,9 +127,9 @@ Expected: 8 suites, 80 tests, 0 failures. Runs with `--runInBand` to prevent por
 | ---------------- | ---- | --------- | ---- | ----- |
 | `@dragon/api`    |      |           |      |       |
 | `@dragon/worker` |      |           |      |       |
-| `@dragon/admin`  |      |           | n/a  |       |
-| `@dragon/web`    |      |           | n/a  |       |
-| `@dragon/sdk`    |      |           | n/a  |       |
+| `@dragon/admin`  |      |           |      |       |
+| `@dragon/web`    |      |           |      |       |
+| `@dragon/sdk`    |      |           |      |       |
 | `@dragon/types`  |      |           | n/a  |       |
 
 ---
@@ -319,7 +322,7 @@ All items must be checked before Phase 0 is declared complete and Phase 1 can be
 
 - [ ] `pnpm lint` — 0 errors, 0 warnings
 - [ ] `pnpm typecheck` — 0 errors
-- [ ] `pnpm test` — 1390/1390 pass
+- [ ] `pnpm test` — all packages pass (api: 125 suites, worker: 5 suites, admin: 13 suites, web: 4 suites, sdk: 8 suites)
 - [ ] `pnpm build` — all packages build
 - [ ] `pnpm format:check` — all files pass
 - [ ] `pnpm smoke` — 8 suites, 80 tests, 0 failures

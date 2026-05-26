@@ -1,31 +1,37 @@
-import { BadRequestException } from '@nestjs/common';
-
-const REFRESH_DTO_ALLOWED_KEYS = new Set(['refreshToken']);
+import { UnauthorizedException } from '@nestjs/common';
 
 export interface RefreshDto {
   readonly refreshToken: string;
 }
 
-export function parseRefreshDto(payload: unknown): RefreshDto {
-  if (!isRecord(payload)) {
-    throw new BadRequestException('Refresh payload must be an object.');
+/**
+ * Extracts the refresh token from the `dragon_refresh` HttpOnly cookie.
+ * The cookie header is parsed manually to avoid a cookie-parser dependency.
+ */
+export function parseRefreshTokenFromCookie(cookieHeader: string | undefined): RefreshDto {
+  const token = extractCookieValue(cookieHeader, 'dragon_refresh');
+
+  if (!token) {
+    throw new UnauthorizedException('Refresh token is missing.');
   }
 
-  for (const key of Object.keys(payload)) {
-    if (!REFRESH_DTO_ALLOWED_KEYS.has(key)) {
-      throw new BadRequestException('Refresh payload contains unsupported fields.');
-    }
-  }
-
-  const { refreshToken } = payload;
-
-  if (typeof refreshToken !== 'string' || refreshToken.trim().length === 0) {
-    throw new BadRequestException('Refresh token is required.');
-  }
-
-  return { refreshToken };
+  return { refreshToken: token };
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+function extractCookieValue(cookieHeader: string | undefined, name: string): string | undefined {
+  if (!cookieHeader) return undefined;
+
+  const pattern = new RegExp(`(?:^|;\\s*)${name}=([^;]+)`);
+  const match = pattern.exec(cookieHeader);
+
+  if (!match) return undefined;
+
+  const captured = match[1];
+  if (!captured) return undefined;
+
+  try {
+    return decodeURIComponent(captured);
+  } catch {
+    return undefined;
+  }
 }

@@ -4,6 +4,7 @@ import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AuthController } from '../src/auth/auth.controller';
 import { AuthService } from '../src/auth/auth.service';
+import { AccessTokenGuard } from '../src/auth/guards/access-token.guard';
 import {
   createForgotPasswordSuccessResponse,
   createResetPasswordSuccessResponse,
@@ -28,7 +29,10 @@ describe('password reset auth routes', () => {
           useValue: authService,
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(AccessTokenGuard)
+      .useValue({ canActivate: () => false })
+      .compile();
 
     app = moduleRef.createNestApplication();
     await app.init();

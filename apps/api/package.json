@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "jest",
     "smoke": "jest --testRegex=\".*\\.e2e-spec\\.ts$\" --testPathPattern=\"smoke\" --runInBand",
+    "smoke:phase0": "jest --testRegex=\".*\\.e2e-spec\\.ts$\" --testPathPattern=\"auth-login|auth-refresh|auth-register|auth-full-flow|auth-security|rbac-admin|rbac-authorization|profile-account|profile-public|content-admin|content-public\" --runInBand",
     "build": "tsc -p tsconfig.build.json",
     "seed:rbac": "node dist/rbac/seeds/run-rbac-seed.js",
     "start": "node dist/main.js",

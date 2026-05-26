@@ -111,15 +111,28 @@ describe('auth full-flow regression', () => {
     const loginBody = await loginResponse.json();
     expectTokenResponse(loginBody);
 
+    // Refresh token is in the HttpOnly cookie, not the response body
+    const loginSetCookie = loginResponse.headers.get('set-cookie') ?? '';
+    expect(loginSetCookie).toContain('dragon_refresh=');
+    expect(loginSetCookie).toContain('HttpOnly');
+    expect(loginSetCookie).toContain('SameSite=Strict');
+
+    // Use cookie for refresh
     const refreshResponse = await fetch(`${baseUrl}/api/v1/auth/refresh`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ refreshToken: firstTokenResponse.refreshToken }),
+      headers: {
+        'content-type': 'application/json',
+        cookie: `dragon_refresh=${firstTokenResponse.refreshToken}`,
+      },
     });
     expect(refreshResponse.status).toBe(201);
     const refreshBody = await refreshResponse.json();
     expectTokenResponse(refreshBody);
-    expect(refreshBody.refreshToken).not.toBe(firstTokenResponse.refreshToken);
+
+    // Rotated cookie must differ from the original
+    const refreshSetCookie = refreshResponse.headers.get('set-cookie') ?? '';
+    expect(refreshSetCookie).toContain('dragon_refresh=');
+    expect(refreshSetCookie).not.toContain(`dragon_refresh=${firstTokenResponse.refreshToken}`);
 
     const logoutResponse = await fetch(`${baseUrl}/api/v1/auth/logout`, {
       method: 'POST',
@@ -131,6 +144,10 @@ describe('auth full-flow regression', () => {
     });
     expect(logoutResponse.status).toBe(201);
     expectGenericSuccessResponse(await logoutResponse.json());
+
+    // Logout clears the refresh cookie
+    const logoutSetCookie = logoutResponse.headers.get('set-cookie') ?? '';
+    expect(logoutSetCookie).toContain('dragon_refresh=;');
 
     const logoutAllResponse = await fetch(`${baseUrl}/api/v1/auth/logout-all`, {
       method: 'POST',

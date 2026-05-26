@@ -16,7 +16,7 @@ import {
   createAuthSessionsResponse,
   type AuthSessionsResponseDto,
 } from './dto/session-response.dto';
-import { createTokenResponse, type TokenResponseDto } from './dto/token-response.dto';
+import { createTokenResponse, type TokenServiceResult } from './dto/token-response.dto';
 import {
   createGenericAuthResponse,
   type AuthGenericResponseDto,
@@ -181,7 +181,7 @@ export class AuthService {
     return createGenericAuthResponse(VERIFY_PHONE_GENERIC_MESSAGE);
   }
 
-  async login(input: LoginDto, metadata: LoginRequestMetadata = {}): Promise<TokenResponseDto> {
+  async login(input: LoginDto, metadata: LoginRequestMetadata = {}): Promise<TokenServiceResult> {
     const phoneNormalized = this.normalizePhone(input.phone);
     const user = await this.userRepository.findNonDeletedByPhoneNormalized(phoneNormalized);
     const now = new Date();
@@ -247,11 +247,12 @@ export class AuthService {
     return createTokenResponse({
       accessToken: issuedAccessToken.accessToken,
       refreshToken: refreshToken.refreshToken,
+      refreshTokenExpiresAt: refreshToken.expiresAt,
       expiresIn: issuedAccessToken.expiresIn,
     });
   }
 
-  async refresh(input: RefreshDto): Promise<TokenResponseDto> {
+  async refresh(input: RefreshDto): Promise<TokenServiceResult> {
     const now = new Date();
     const currentRefreshTokenHash = hashToken(input.refreshToken);
     const session = await this.sessionRepository.findActiveByRefreshTokenHash(
@@ -292,6 +293,7 @@ export class AuthService {
     return createTokenResponse({
       accessToken: issuedAccessToken.accessToken,
       refreshToken: nextRefreshToken.refreshToken,
+      refreshTokenExpiresAt: nextRefreshToken.expiresAt,
       expiresIn: issuedAccessToken.expiresIn,
     });
   }

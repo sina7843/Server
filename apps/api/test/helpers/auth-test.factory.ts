@@ -8,6 +8,7 @@ import {
   RESET_PASSWORD_GENERIC_MESSAGE,
   VERIFY_PHONE_GENERIC_MESSAGE,
 } from '../../src/auth/dto/auth-response.dto';
+import type { TokenServiceResult } from '../../src/auth/dto/token-response.dto';
 
 export function createAuthTestConfig(overrides: Partial<AuthConfig> = {}): AuthConfig {
   return {
@@ -34,19 +35,41 @@ export function createVerifyPhoneSuccessResponse() {
   return createGenericAuthResponse(VERIFY_PHONE_GENERIC_MESSAGE);
 }
 
-export function createLoginTokenResponse() {
+/** Internal service result — includes refreshToken for the controller to set as cookie. */
+export function createLoginTokenServiceResult(): TokenServiceResult {
   return {
     accessToken: 'access-token',
     refreshToken: 'refresh-token',
+    refreshTokenExpiresAt: new Date('2026-12-31T00:00:00.000Z'),
     tokenType: 'Bearer' as const,
     expiresIn: 900,
   };
 }
 
-export function createRefreshTokenResponse() {
+/** Public API response body — no refreshToken. */
+export function createLoginTokenResponse() {
+  return {
+    accessToken: 'access-token',
+    tokenType: 'Bearer' as const,
+    expiresIn: 900,
+  };
+}
+
+/** Internal service result for refresh — includes new refreshToken for cookie rotation. */
+export function createRefreshTokenServiceResult(): TokenServiceResult {
   return {
     accessToken: 'new-access-token',
     refreshToken: 'new-refresh-token',
+    refreshTokenExpiresAt: new Date('2026-12-31T00:00:00.000Z'),
+    tokenType: 'Bearer' as const,
+    expiresIn: 900,
+  };
+}
+
+/** Public API response body for refresh — no refreshToken. */
+export function createRefreshTokenResponse() {
+  return {
+    accessToken: 'new-access-token',
     tokenType: 'Bearer' as const,
     expiresIn: 900,
   };

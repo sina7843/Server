@@ -50,9 +50,17 @@ run_check "Typecheck (all packages)"  pnpm typecheck
 run_check "Build (all packages)"      pnpm build
 run_check "Format check"              pnpm format:check
 
-# ─── Unit tests (API only — the only package with test suite) ───────────────
+# ─── Unit tests — all packages with test suites ──────────────────────────────
 
 run_check "Unit tests (api)"          pnpm --filter @dragon/api test
+run_check "Unit tests (worker)"       pnpm --filter @dragon/worker test
+run_check "Unit tests (sdk)"          pnpm --filter @dragon/sdk test
+run_check "Unit tests (admin)"        pnpm --filter @dragon/admin test
+run_check "Unit tests (web)"          pnpm --filter @dragon/web test
+
+# ─── Workspace-level test runner (aggregates all packages) ──────────────────
+
+run_check "Workspace tests (all)"     pnpm test
 
 # ─── Smoke tests (api, no real services required) ───────────────────────────
 

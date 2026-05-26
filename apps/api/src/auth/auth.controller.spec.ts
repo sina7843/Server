@@ -11,13 +11,21 @@ import {
 } from './dto/auth-response.dto';
 import { AuthService } from './auth.service';
 
-const verifyPhoneResponse = createGenericAuthResponse(VERIFY_PHONE_GENERIC_MESSAGE);
-const tokenResponse = {
+const tokenServiceResult = {
   accessToken: 'access-token',
   refreshToken: 'refresh-token',
+  refreshTokenExpiresAt: new Date('2026-12-31T00:00:00.000Z'),
   tokenType: 'Bearer' as const,
   expiresIn: 900,
 };
+
+const tokenResponseDto = {
+  accessToken: 'access-token',
+  tokenType: 'Bearer' as const,
+  expiresIn: 900,
+};
+
+const verifyPhoneResponse = createGenericAuthResponse(VERIFY_PHONE_GENERIC_MESSAGE);
 
 describe('AuthController', () => {
   const requestMetadata = {
@@ -28,12 +36,19 @@ describe('AuthController', () => {
     },
   };
 
+  function makeCookieResponse() {
+    return {
+      cookie: jest.fn(),
+      clearCookie: jest.fn(),
+    };
+  }
+
   function createController() {
     const authService = {
       register: jest.fn().mockResolvedValue(createGenericAuthResponse()),
       verifyPhone: jest.fn().mockResolvedValue(verifyPhoneResponse),
-      login: jest.fn().mockResolvedValue(tokenResponse),
-      refresh: jest.fn().mockResolvedValue(tokenResponse),
+      login: jest.fn().mockResolvedValue(tokenServiceResult),
+      refresh: jest.fn().mockResolvedValue(tokenServiceResult),
       forgotPassword: jest
         .fn()
         .mockResolvedValue(createGenericAuthResponse(FORGOT_PASSWORD_GENERIC_MESSAGE)),
@@ -109,8 +124,9 @@ describe('AuthController', () => {
     expect(response).toEqual(verifyPhoneResponse);
   });
 
-  it('parses the login payload and returns token response', async () => {
+  it('login sets HttpOnly refresh cookie and returns token response without refreshToken', async () => {
     const { authService, controller } = createController();
+    const res = makeCookieResponse();
 
     const response = await controller.login(
       {
@@ -119,6 +135,7 @@ describe('AuthController', () => {
         deviceId: 'device-1',
       },
       requestMetadata,
+      res,
     );
 
     expect(authService.login).toHaveBeenCalledWith(
@@ -129,20 +146,64 @@ describe('AuthController', () => {
       },
       { ip: '203.0.113.10', userAgent: 'jest-agent', requestId: 'request-1' },
     );
-    expect(response).toEqual(tokenResponse);
+
+    // Response body must NOT contain refreshToken
+    expect(response).toEqual(tokenResponseDto);
+    expect(JSON.stringify(response)).not.toContain('refreshToken');
+
+    // Cookie must have been set with correct name and options
+    expect(res.cookie).toHaveBeenCalledWith(
+      'dragon_refresh',
+      'refresh-token',
+      expect.objectContaining({
+        httpOnly: true,
+        sameSite: 'strict',
+        path: '/api/v1/auth',
+        expires: tokenServiceResult.refreshTokenExpiresAt,
+      }),
+    );
   });
 
-  it('parses the refresh payload and returns token response', async () => {
+  it('refresh reads token from cookie, rotates cookie, returns token response without refreshToken', async () => {
     const { authService, controller } = createController();
+    const res = makeCookieResponse();
 
-    const response = await controller.refresh({
-      refreshToken: 'raw-refresh-token',
-    });
+    const cookieRequest = {
+      ip: '203.0.113.10',
+      headers: {
+        cookie: 'dragon_refresh=raw-refresh-token',
+      },
+    };
 
-    expect(authService.refresh).toHaveBeenCalledWith({
-      refreshToken: 'raw-refresh-token',
-    });
-    expect(response).toEqual(tokenResponse);
+    const response = await controller.refresh(cookieRequest, res);
+
+    expect(authService.refresh).toHaveBeenCalledWith({ refreshToken: 'raw-refresh-token' });
+
+    // Response body must NOT contain refreshToken
+    expect(response).toEqual(tokenResponseDto);
+    expect(JSON.stringify(response)).not.toContain('refreshToken');
+
+    // Rotated cookie must be set
+    expect(res.cookie).toHaveBeenCalledWith(
+      'dragon_refresh',
+      'refresh-token',
+      expect.objectContaining({
+        httpOnly: true,
+        sameSite: 'strict',
+        path: '/api/v1/auth',
+      }),
+    );
+  });
+
+  it('refresh throws 401 when dragon_refresh cookie is absent', async () => {
+    const { controller } = createController();
+    const res = makeCookieResponse();
+
+    const cookieRequest = {
+      headers: {},
+    };
+
+    await expect(controller.refresh(cookieRequest, res)).rejects.toThrow();
   });
 
   it('parses the forgot-password payload and returns generic response', async () => {
@@ -190,24 +251,34 @@ describe('AuthController', () => {
     expect(response).toEqual(createGenericAuthResponse(RESET_PASSWORD_GENERIC_MESSAGE));
   });
 
-  it('parses empty logout payload and returns generic response', async () => {
+  it('logout clears refresh cookie and returns generic response', async () => {
     const { authService, controller } = createController();
     const authContext = { userId: 'user-1', sessionId: 'session-1', accessTokenJti: 'jti-1' };
+    const res = makeCookieResponse();
 
-    const response = await controller.logout(authContext, {});
+    const response = await controller.logout(authContext, {}, res);
 
     expect(authService.logout).toHaveBeenCalledWith(authContext);
     expect(response).toEqual(createGenericAuthResponse(LOGOUT_GENERIC_MESSAGE));
+    expect(res.clearCookie).toHaveBeenCalledWith(
+      'dragon_refresh',
+      expect.objectContaining({ httpOnly: true, sameSite: 'strict', path: '/api/v1/auth' }),
+    );
   });
 
-  it('parses empty logout-all payload and returns generic response', async () => {
+  it('logout-all clears refresh cookie and returns generic response', async () => {
     const { authService, controller } = createController();
     const authContext = { userId: 'user-1', sessionId: 'session-1', accessTokenJti: 'jti-1' };
+    const res = makeCookieResponse();
 
-    const response = await controller.logoutAll(authContext, {});
+    const response = await controller.logoutAll(authContext, {}, res);
 
     expect(authService.logoutAll).toHaveBeenCalledWith(authContext);
     expect(response).toEqual(createGenericAuthResponse(LOGOUT_ALL_GENERIC_MESSAGE));
+    expect(res.clearCookie).toHaveBeenCalledWith(
+      'dragon_refresh',
+      expect.objectContaining({ httpOnly: true, sameSite: 'strict', path: '/api/v1/auth' }),
+    );
   });
 
   it('returns minimal /me identity for authenticated context', async () => {

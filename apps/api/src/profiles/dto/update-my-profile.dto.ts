@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { PROFILE_VISIBILITIES, type ProfileVisibility } from '../profile.types';
+import { UsernamePolicyError, validateUsernamePolicy } from '../username/username-policy';
 
 const ALLOWED_FIELDS = new Set(['username', 'displayName', 'bio', 'visibility']);
 const FORBIDDEN_FIELDS = new Set([
@@ -51,6 +52,15 @@ export function validateUpdateMyProfileDto(input: Record<string, unknown>): Upda
   if (input.username !== undefined) {
     if (typeof input.username !== 'string') {
       throw new BadRequestException('username must be a string.');
+    }
+
+    try {
+      validateUsernamePolicy(input.username);
+    } catch (err) {
+      if (err instanceof UsernamePolicyError) {
+        throw new BadRequestException(err.message);
+      }
+      throw err;
     }
 
     output.username = input.username;

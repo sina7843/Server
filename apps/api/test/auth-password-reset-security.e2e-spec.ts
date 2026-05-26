@@ -4,6 +4,7 @@ import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AuthController } from '../src/auth/auth.controller';
 import { AuthService } from '../src/auth/auth.service';
+import { AccessTokenGuard } from '../src/auth/guards/access-token.guard';
 import {
   createGenericAuthResponse,
   FORGOT_PASSWORD_GENERIC_MESSAGE,
@@ -53,7 +54,10 @@ describe('auth password reset security regression', () => {
     const moduleRef = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [{ provide: AuthService, useValue: authService }],
-    }).compile();
+    })
+      .overrideGuard(AccessTokenGuard)
+      .useValue({ canActivate: () => false })
+      .compile();
 
     app = moduleRef.createNestApplication();
     await app.init();
@@ -137,8 +141,10 @@ describe('auth password reset security regression', () => {
     });
     const refreshResponse = await fetch(`${baseUrl}/api/v1/auth/refresh`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ refreshToken: 'previous-refresh-token' }),
+      headers: {
+        'content-type': 'application/json',
+        cookie: 'dragon_refresh=previous-refresh-token',
+      },
     });
 
     expect(loginResponse.status).toBe(401);

@@ -4,6 +4,7 @@ import { BadRequestException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AuthController } from '../src/auth/auth.controller';
 import { AuthService } from '../src/auth/auth.service';
+import { AccessTokenGuard } from '../src/auth/guards/access-token.guard';
 import { createVerifyPhoneSuccessResponse } from './helpers/auth-test.factory';
 
 describe('POST /api/v1/auth/verify-phone', () => {
@@ -24,7 +25,10 @@ describe('POST /api/v1/auth/verify-phone', () => {
           useValue: authService,
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(AccessTokenGuard)
+      .useValue({ canActivate: () => false })
+      .compile();
 
     app = moduleRef.createNestApplication();
     await app.init();

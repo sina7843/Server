@@ -29,10 +29,11 @@ Registers a new account and triggers OTP delivery to the phone number.
 **Request body:**
 
 ```json
-{ "phone": "+989121234567" }
+{ "phone": "+989121234567", "password": "..." }
 ```
 
 - Phone must be E.164 format.
+- Password is required at registration; minimum length governed by `AUTH_PASSWORD_MIN_LENGTH` (default 8).
 - If the phone is already registered and active, registration is rejected.
 
 **Response `200`:** `AuthGenericResponseDto`
@@ -97,13 +98,9 @@ The refresh token is set as an **HttpOnly cookie** (`dragon_refresh`). It is NOT
 
 Rotates the access token and refresh token. Both tokens are invalidated and replaced.
 
-**Request body:**
+**Request:** No body required. The `dragon_refresh` HttpOnly cookie is read automatically by the browser (or must be sent as a `Cookie` header by non-browser clients).
 
-```json
-{ "refreshToken": "<token-from-cookie>" }
-```
-
-**Response `200`:** `TokenResponseDto` (same shape as login)
+**Response `200`:** `TokenResponseDto` (same shape as login). A new `dragon_refresh` cookie is set.
 
 **Errors:** `401` token invalid, expired, or session revoked
 
@@ -214,7 +211,7 @@ The reset token TTL is configured by `AUTH_PASSWORD_RESET_TOKEN_TTL_SECONDS` (de
 
 Sets a new password. Consumes and invalidates the reset token.
 
-**Request body:** `{ "resetToken": "<token>", "password": "<new>" }`
+**Request body:** `{ "resetToken": "<token>", "newPassword": "<new>" }`
 
 **Response `200`:** `AuthGenericResponseDto`
 

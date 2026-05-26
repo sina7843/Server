@@ -145,10 +145,10 @@ describe('auth session security regression', () => {
   it('keeps revoked or reused refresh tokens rejected safely', async () => {
     const response = await fetch(`${await app.getUrl()}/api/v1/auth/refresh`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        refreshToken: 'revoked-or-rotated-refresh-token',
-      }),
+      headers: {
+        'content-type': 'application/json',
+        cookie: 'dragon_refresh=revoked-or-rotated-refresh-token',
+      },
     });
 
     expect(response.status).toBe(401);

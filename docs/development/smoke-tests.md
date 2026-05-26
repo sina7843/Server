@@ -1,31 +1,41 @@
 # Smoke Tests
 
-Phase 0 risk-based smoke test suite covering all critical backend flows.
+Phase 0 smoke suite — the official release gate. Two suites together form the complete automated smoke gate:
+
+1. **Operational smoke** (`pnpm --filter @dragon/api smoke`) — 8 suites, 80 tests
+2. **Critical flow smoke** (`pnpm --filter @dragon/api smoke:phase0`) — 11 suites, 88 tests
+3. **Full gate** (`pnpm smoke`) — runs both, 19 suites, 168 tests total
 
 ## What is covered
 
-| Area                | Spec file                                | Tests                                                     |
-| ------------------- | ---------------------------------------- | --------------------------------------------------------- |
-| Auth full flow      | `test/auth-full-flow.e2e-spec.ts`        | register → verify → login → refresh → logout              |
-| Auth security       | `test/auth-security.e2e-spec.ts`         | replay, timing, generic error shape                       |
-| Auth session        | `test/auth-session-security.e2e-spec.ts` | session revocation, stale session                         |
-| Auth password reset | `test/auth-password-reset.e2e-spec.ts`   | forgot/verify OTP/reset flow                              |
-| RBAC authorization  | `test/rbac-authorization.e2e-spec.ts`    | allow/deny by permission, deny-by-default                 |
-| RBAC admin          | `test/rbac-admin.e2e-spec.ts`            | admin route access                                        |
-| Profile account     | `test/profile-account.e2e-spec.ts`       | get/update own profile, username validation               |
-| Profile public      | `test/profile-public.e2e-spec.ts`        | public profile visible/private, banned/deleted safe       |
-| Content admin       | `test/content-admin.e2e-spec.ts`         | create/publish/archive; permission guard                  |
-| Content public      | `test/content-public.e2e-spec.ts`        | published visible, draft/archived 404, type-scoped        |
-| **Health**          | `test/health-smoke.e2e-spec.ts`          | live/ready/dependencies; no secrets in response           |
-| **Backup**          | `test/backup-smoke.e2e-spec.ts`          | permission-protected; no restore endpoint; no credentials |
-| **Search**          | `test/search-smoke.e2e-spec.ts`          | public published-only; admin permission-protected         |
-| **Analytics**       | `test/analytics-smoke.e2e-spec.ts`       | permission-protected; no raw OTP/IP in response           |
-| **Audit**           | `test/audit-smoke.e2e-spec.ts`           | permission-protected; no raw secrets in logs              |
-| **Jobs**            | `test/jobs-smoke.e2e-spec.ts`            | permission-protected; no raw secrets in payload           |
-| **Notifications**   | `test/notifications-smoke.e2e-spec.ts`   | permission-protected; no raw OTP/phone in logs            |
-| **Media**           | `test/media-smoke.e2e-spec.ts`           | permission-protected; MIME/extension allowlist validation |
+### Operational smoke (`*-smoke.e2e-spec.ts`)
 
-**Bold rows were added in Task 0.11.2.** All other rows were created in earlier slices.
+| Area          | Spec file                              | Tests                                                     |
+| ------------- | -------------------------------------- | --------------------------------------------------------- |
+| Health        | `test/health-smoke.e2e-spec.ts`        | live/ready/dependencies; no secrets in response           |
+| Backup        | `test/backup-smoke.e2e-spec.ts`        | permission-protected; no restore endpoint; no credentials |
+| Search        | `test/search-smoke.e2e-spec.ts`        | public published-only; admin permission-protected         |
+| Analytics     | `test/analytics-smoke.e2e-spec.ts`     | permission-protected; no raw OTP/IP in response           |
+| Audit         | `test/audit-smoke.e2e-spec.ts`         | permission-protected; no raw secrets in logs              |
+| Jobs          | `test/jobs-smoke.e2e-spec.ts`          | permission-protected; no raw secrets in payload           |
+| Notifications | `test/notifications-smoke.e2e-spec.ts` | permission-protected; no raw OTP/phone in logs            |
+| Media         | `test/media-smoke.e2e-spec.ts`         | permission-protected; MIME/extension allowlist validation |
+
+### Critical flow smoke (`smoke:phase0`)
+
+| Area               | Spec file                             | Tests                                               |
+| ------------------ | ------------------------------------- | --------------------------------------------------- |
+| Auth login         | `test/auth-login.e2e-spec.ts`         | login; cookie set; token shape                      |
+| Auth refresh       | `test/auth-refresh.e2e-spec.ts`       | cookie-based refresh; rotation; 401 without cookie  |
+| Auth register      | `test/auth-register.e2e-spec.ts`      | registration; unknown field rejection               |
+| Auth full flow     | `test/auth-full-flow.e2e-spec.ts`     | register → verify → login → refresh → logout        |
+| Auth security      | `test/auth-security.e2e-spec.ts`      | replay, timing, generic error shape                 |
+| RBAC admin         | `test/rbac-admin.e2e-spec.ts`         | admin route access                                  |
+| RBAC authorization | `test/rbac-authorization.e2e-spec.ts` | allow/deny by permission, deny-by-default           |
+| Profile account    | `test/profile-account.e2e-spec.ts`    | get/update own profile, username validation         |
+| Profile public     | `test/profile-public.e2e-spec.ts`     | public profile visible/private, banned/deleted safe |
+| Content admin      | `test/content-admin.e2e-spec.ts`      | create/publish/archive; permission guard            |
+| Content public     | `test/content-public.e2e-spec.ts`     | published visible, draft/archived 404, type-scoped  |
 
 ## What is mocked
 
@@ -47,13 +57,16 @@ All smoke tests in `apps/api/test/` run entirely in-process using `@nestjs/testi
 ## How to run
 
 ```bash
-# From repo root — runs all 8 new smoke specs
+# From repo root — runs full smoke gate (operational + critical flows)
 pnpm smoke
 
-# From apps/api — same
+# Operational smoke only (8 suites, 80 tests)
 pnpm --filter @dragon/api smoke
 
-# Run a specific area
+# Critical flow smoke only (11 suites, 88 tests)
+pnpm --filter @dragon/api smoke:phase0
+
+# Run a specific operational area
 pnpm --filter @dragon/api smoke -- --testPathPattern="health-smoke"
 pnpm --filter @dragon/api smoke -- --testPathPattern="backup-smoke"
 pnpm --filter @dragon/api smoke -- --testPathPattern="search-smoke"
@@ -63,16 +76,9 @@ pnpm --filter @dragon/api smoke -- --testPathPattern="jobs-smoke"
 pnpm --filter @dragon/api smoke -- --testPathPattern="notifications-smoke"
 pnpm --filter @dragon/api smoke -- --testPathPattern="media-smoke"
 
-# Run all e2e specs including pre-existing (requires jest e2e regex)
+# Run all e2e specs (all 26 files including non-smoke auth/session/password-reset)
 cd apps/api && npx jest --testRegex=".*\\.e2e-spec\\.ts$"
 ```
-
-## Note on pre-existing e2e specs
-
-The `test/` directory contains 18 spec files from earlier slices. Some of those specs have
-pre-existing DI resolution failures (`AccessTokenGuard` dependency injection in test modules)
-that are unrelated to the smoke harness. The `pnpm smoke` script targets only the new
-`*-smoke.e2e-spec.ts` files to ensure a clean and reliable run.
 
 ## How smoke tests work
 

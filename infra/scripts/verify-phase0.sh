@@ -63,8 +63,15 @@ run_check "Unit tests (web)"          pnpm --filter @dragon/web test
 run_check "Workspace tests (all)"     pnpm test
 
 # ─── Smoke tests (api, no real services required) ───────────────────────────
+# Two suites form the official release gate:
+#   1. Operational smoke  — health, backup, search, analytics, audit, jobs, notifications, media
+#   2. Critical flow smoke — auth, RBAC, profile, content
 
-run_check "Smoke tests (api)"         pnpm smoke
+run_check "Smoke tests — operational (health/backup/search/analytics/audit/jobs/notifications/media)" \
+  pnpm --filter @dragon/api smoke
+
+run_check "Smoke tests — critical flows (auth/RBAC/profile/content)" \
+  pnpm --filter @dragon/api smoke:phase0
 
 # ─── Docker Compose config validation (no Docker daemon required) ────────────
 

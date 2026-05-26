@@ -6,7 +6,7 @@ export async function adminLogin(
   password: string,
   apiBaseUrl: string,
 ): Promise<{ token: string; identity: AdminMeResponse }> {
-  const unauthenticatedClient = createApiClient({ baseUrl: apiBaseUrl });
+  const unauthenticatedClient = createApiClient({ baseUrl: apiBaseUrl, credentials: 'include' });
   const unauthenticatedAdminAuth = createAdminAuthClient(unauthenticatedClient);
 
   let tokenResponse: TokenResponse;
@@ -23,6 +23,7 @@ export async function adminLogin(
 
   const authenticatedClient = createApiClient({
     baseUrl: apiBaseUrl,
+    credentials: 'include',
     headers: { Authorization: `Bearer ${tokenResponse.accessToken}` },
   });
   const authenticatedAdminAuth = createAdminAuthClient(authenticatedClient);
@@ -48,6 +49,7 @@ export async function fetchAdminIdentity(
 ): Promise<AdminMeResponse> {
   const client = createApiClient({
     baseUrl: apiBaseUrl,
+    credentials: 'include',
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   const adminAuth = createAdminAuthClient(client);

@@ -10,7 +10,6 @@ function mockLoginSuccess() {
     ok: true,
     json: async () => ({
       accessToken: 'test-token',
-      refreshToken: 'refresh-token',
       tokenType: 'Bearer' as const,
       expiresIn: 900,
     }),
@@ -100,6 +99,29 @@ describe('adminLogin', () => {
     expect(serialized).not.toContain('refreshTokenHash');
     expect(serialized).not.toContain('statusReason');
     expect(serialized).not.toContain('roleKeys');
+  });
+
+  it('refresh token is not returned in the login response body', async () => {
+    mockLoginSuccess();
+    mockGetMeSuccess();
+
+    const result = await adminLogin('+1234567890', 'secure-pass', '/');
+
+    expect(result.token).toBe('test-token');
+    expect(result).not.toHaveProperty('refreshToken');
+    expect(JSON.stringify(result)).not.toContain('refreshToken');
+  });
+
+  it('login uses credentials include so the browser stores the HttpOnly refresh cookie', async () => {
+    mockLoginSuccess();
+    mockGetMeSuccess();
+
+    await adminLogin('+1234567890', 'secure-pass', 'https://api.example.test');
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/auth/login'),
+      expect.objectContaining({ credentials: 'include' }),
+    );
   });
 });
 

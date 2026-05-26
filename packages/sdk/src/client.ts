@@ -4,6 +4,8 @@ export interface ApiClientOptions {
   baseUrl: string;
   fetch?: ApiFetch;
   headers?: HeadersInit;
+  /** Set to 'include' for browser clients that need to send/receive HttpOnly cookies (e.g. refresh token). */
+  credentials?: RequestCredentials;
 }
 
 export interface ApiRequestOptions extends RequestInit {
@@ -38,6 +40,7 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
 
       try {
         const response = await fetchImplementation(joinUrl(baseUrl, path), {
+          ...(options.credentials !== undefined ? { credentials: options.credentials } : {}),
           ...init,
           headers: mergeHeaders(options.headers, headers),
         });

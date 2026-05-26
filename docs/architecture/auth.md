@@ -60,9 +60,11 @@ OTP codes are never stored raw. OTP verification enforces expiration, consumed s
 
 ## Session and refresh token model
 
-Login creates a session and returns an access token plus a refresh token. Only the refresh token hash is stored.
+Login creates a session and returns a `TokenResponseDto` in the JSON body (`accessToken`, `tokenType`, `expiresIn`). The refresh token is **not** in the JSON body — it is set as an `HttpOnly` cookie (`dragon_refresh`; `SameSite=Strict`; `Secure` in production). Only the refresh token hash is stored in MongoDB.
 
-Refresh rotates the refresh token in the same session using a conditional atomic update that requires the submitted refresh-token hash to still match the session. The old refresh token must stop working after rotation, and stale or replayed refresh tokens cannot rotate twice. Access token claims remain minimal and do not include phone, password hashes, roles, permissions, profile data, or status reasons.
+Refresh reads the `dragon_refresh` cookie (no request body required) and rotates the refresh token using a conditional atomic update that requires the submitted refresh-token hash to still match the session. The old refresh token stops working immediately after rotation, and stale or replayed refresh tokens cannot rotate twice. A new `dragon_refresh` cookie is set in the rotation response. Access token claims remain minimal and do not include phone, password hashes, roles, permissions, profile data, or status reasons.
+
+Logout and logout-all clear the `dragon_refresh` cookie.
 
 ## Password reset flow
 
@@ -99,6 +101,7 @@ Slice 0.2 keeps these boundaries:
 - raw OTP codes are not stored
 - raw passwords are not stored
 - raw refresh tokens are not stored
+- the refresh token is transported as an HttpOnly cookie only — never in the JSON response body
 - sensitive response bodies avoid password hashes, token hashes, roles, permissions, profile data, and session internals
 - SMS is sent only through the provider abstraction
 - the current provider is mock-only

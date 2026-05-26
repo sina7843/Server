@@ -24,20 +24,20 @@ All routes implemented and active in Phase 0. Routes are served at the API origi
 
 ### Auth
 
-| Method | Path                                     | Auth   | Permission | Request body               | Response                    | Notes                                               |
-| ------ | ---------------------------------------- | ------ | ---------- | -------------------------- | --------------------------- | --------------------------------------------------- |
-| POST   | `/api/v1/auth/register`                  | —      | —          | `{ phone, password }`      | `AuthGenericResponseDto`    | Sends OTP; phone E.164; password required at signup  |
-| POST   | `/api/v1/auth/verify-phone`              | —      | —          | `{ phone, code }`          | `AuthGenericResponseDto`    | Verifies OTP; activates account                     |
-| POST   | `/api/v1/auth/login`                     | —      | —          | `{ phone, password }`      | `TokenResponseDto`          | Returns access token; sets HttpOnly refresh cookie  |
-| POST   | `/api/v1/auth/refresh`                   | —      | —          | — (cookie)                 | `TokenResponseDto`          | Rotates tokens; reads `dragon_refresh` cookie        |
-| POST   | `/api/v1/auth/logout`                    | Bearer | —          | `{}`                       | `AuthGenericResponseDto`    | Revokes current session                             |
-| POST   | `/api/v1/auth/logout-all`                | Bearer | —          | `{}`                       | `AuthGenericResponseDto`    | Revokes all sessions for the user                   |
-| GET    | `/api/v1/auth/me`                        | Bearer | —          | —                          | `MeResponseDto`             | Returns current authenticated identity              |
-| GET    | `/api/v1/auth/sessions`                  | Bearer | —          | —                          | `AuthSessionsResponseDto`   | Lists active sessions                               |
-| DELETE | `/api/v1/auth/sessions/:sessionId`       | Bearer | —          | —                          | `AuthGenericResponseDto`    | Revokes a specific session                          |
-| POST   | `/api/v1/auth/password/forgot`           | —      | —          | `{ phone }`                | `AuthGenericResponseDto`    | Sends password-reset OTP                            |
-| POST   | `/api/v1/auth/password/verify-reset-otp` | —      | —          | `{ phone, code }`          | `VerifyResetOtpResponseDto` | Verifies reset OTP; returns short-lived reset token |
-| POST   | `/api/v1/auth/password/reset`            | —      | —          | `{ resetToken, newPassword }` | `AuthGenericResponseDto` | Sets new password; invalidates reset token          |
+| Method | Path                                     | Auth   | Permission | Request body                  | Response                    | Notes                                               |
+| ------ | ---------------------------------------- | ------ | ---------- | ----------------------------- | --------------------------- | --------------------------------------------------- |
+| POST   | `/api/v1/auth/register`                  | —      | —          | `{ phone, password }`         | `AuthGenericResponseDto`    | Sends OTP; phone E.164; password required at signup |
+| POST   | `/api/v1/auth/verify-phone`              | —      | —          | `{ phone, code }`             | `AuthGenericResponseDto`    | Verifies OTP; activates account                     |
+| POST   | `/api/v1/auth/login`                     | —      | —          | `{ phone, password }`         | `TokenResponseDto`          | Returns access token; sets HttpOnly refresh cookie  |
+| POST   | `/api/v1/auth/refresh`                   | —      | —          | — (cookie)                    | `TokenResponseDto`          | Rotates tokens; reads `dragon_refresh` cookie       |
+| POST   | `/api/v1/auth/logout`                    | Bearer | —          | `{}`                          | `AuthGenericResponseDto`    | Revokes current session                             |
+| POST   | `/api/v1/auth/logout-all`                | Bearer | —          | `{}`                          | `AuthGenericResponseDto`    | Revokes all sessions for the user                   |
+| GET    | `/api/v1/auth/me`                        | Bearer | —          | —                             | `MeResponseDto`             | Returns current authenticated identity              |
+| GET    | `/api/v1/auth/sessions`                  | Bearer | —          | —                             | `AuthSessionsResponseDto`   | Lists active sessions                               |
+| DELETE | `/api/v1/auth/sessions/:sessionId`       | Bearer | —          | —                             | `AuthGenericResponseDto`    | Revokes a specific session                          |
+| POST   | `/api/v1/auth/password/forgot`           | —      | —          | `{ phone }`                   | `AuthGenericResponseDto`    | Sends password-reset OTP                            |
+| POST   | `/api/v1/auth/password/verify-reset-otp` | —      | —          | `{ phone, code }`             | `VerifyResetOtpResponseDto` | Verifies reset OTP; returns short-lived reset token |
+| POST   | `/api/v1/auth/password/reset`            | —      | —          | `{ resetToken, newPassword }` | `AuthGenericResponseDto`    | Sets new password; invalidates reset token          |
 
 ### Account / Profile
 

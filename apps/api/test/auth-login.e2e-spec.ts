@@ -59,10 +59,13 @@ describe('POST /api/v1/auth/login', () => {
     const body = await response.json();
     expect(body).toEqual(createLoginTokenResponse());
     expect(JSON.stringify(body)).not.toContain('refreshToken');
-    expect(authService.login).toHaveBeenCalledWith({
-      phone: '+989120000000',
-      password: 'correct-password',
-    }, expect.any(Object));
+    expect(authService.login).toHaveBeenCalledWith(
+      {
+        phone: '+989120000000',
+        password: 'correct-password',
+      },
+      expect.any(Object),
+    );
   });
 
   it('sets HttpOnly dragon_refresh cookie on successful login', async () => {

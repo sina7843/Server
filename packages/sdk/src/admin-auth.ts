@@ -11,6 +11,8 @@ export interface AdminLoginRequest {
 
 export interface AdminAuthClient {
   login(request: AdminLoginRequest): Promise<TokenResponse>;
+  /** Rotates the access token using the dragon_refresh HttpOnly cookie. No request body needed. */
+  refresh(): Promise<TokenResponse>;
   getMe(): Promise<AdminMeResponse>;
 }
 
@@ -22,6 +24,13 @@ export function createAdminAuthClient(client: ApiClient): AdminAuthClient {
         path: '/api/v1/auth/login',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(request),
+      });
+    },
+
+    refresh() {
+      return client.request<TokenResponse>({
+        method: 'POST',
+        path: '/api/v1/auth/refresh',
       });
     },
 

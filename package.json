@@ -7,7 +7,7 @@
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
-    "smoke": "pnpm --filter @dragon/api smoke",
+    "smoke": "pnpm --filter @dragon/api smoke && pnpm --filter @dragon/api smoke:phase0",
     "build": "turbo build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

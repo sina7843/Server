@@ -1,14 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService, type RequestMetadata } from './auth.service';
 import { type AuthGenericResponseDto } from './dto/auth-response.dto';
 import { parseForgotPasswordDto } from './dto/forgot-password.dto';
@@ -160,7 +150,12 @@ interface CookieResponse {
   ): void;
   clearCookie(
     name: string,
-    options: { httpOnly: boolean; secure: boolean; sameSite: 'strict' | 'lax' | 'none'; path: string },
+    options: {
+      httpOnly: boolean;
+      secure: boolean;
+      sameSite: 'strict' | 'lax' | 'none';
+      path: string;
+    },
   ): void;
 }
 

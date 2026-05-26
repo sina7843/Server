@@ -48,7 +48,7 @@ This document describes the testing approach used across Phase 0 of the Dragon E
 
 **When run:** `pnpm smoke`
 
-**Count:** 80 tests across 8 suites
+**Count:** 80 tests across 8 suites (operational)
 
 **Key characteristics:**
 
@@ -69,13 +69,15 @@ This document describes the testing approach used across Phase 0 of the Dragon E
 - Notifications: permission-protected, no raw OTP/phone
 - Media: permission-protected, MIME/extension allowlist validation
 
-### 4. Existing e2e specs (`apps/api/test/**/*.e2e-spec.ts`, pre-0.11.2)
+### 4. Critical flow e2e specs (`apps/api/test/**/*.e2e-spec.ts`)
 
-**What:** Integration-style tests for auth, RBAC, content, and profile flows. Same `@nestjs/testing` pattern as smoke tests.
+**What:** Integration-style tests for auth, RBAC, content, and profile critical flows. Same `@nestjs/testing` pattern as operational smoke tests.
 
-**When run:** `cd apps/api && npx jest --testRegex=".*\\.e2e-spec\\.ts$"`
+**When run:** `pnpm --filter @dragon/api smoke:phase0` (or `pnpm smoke` which runs both suites)
 
-**Note:** Some pre-existing specs have DI resolution failures in their test module setup (unrelated to the smoke suite). The `pnpm smoke` script targets only `*-smoke.e2e-spec.ts` to guarantee a clean run.
+**Count:** 11 suites, 88 tests covering: auth login/refresh/register/full-flow/security, RBAC admin/authorization, profile account/public, content admin/public.
+
+**Key characteristics:** Real NestJS HTTP server, mocked service dependencies, real guard/pipe/controller pipeline. No database or external services needed.
 
 ## What is intentionally NOT tested
 
@@ -95,10 +97,16 @@ This document describes the testing approach used across Phase 0 of the Dragon E
 # Unit tests (all packages)
 pnpm test
 
-# Smoke tests only (api only, no external services required)
+# Full smoke suite (operational + critical flows, no external services required)
 pnpm smoke
 
-# Both
+# Operational smoke only (health/backup/search/analytics/audit/jobs/notifications/media)
+pnpm --filter @dragon/api smoke
+
+# Critical flow smoke only (auth/RBAC/profile/content)
+pnpm --filter @dragon/api smoke:phase0
+
+# Unit + full smoke (complete automated release gate)
 pnpm test && pnpm smoke
 ```
 

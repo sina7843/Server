@@ -97,7 +97,7 @@ pnpm --filter @dragon/types typecheck
 pnpm --filter @dragon/types build
 ```
 
-> **Note:** `@dragon/types` has no runtime test suite — lint/typecheck/build are the applicable checks. All other packages (`api`, `worker`, `admin`, `web`, `sdk`) have meaningful test suites that must pass.
+> **Note:** `@dragon/types` exports only TypeScript types and has no runtime test suite — lint, typecheck, and build are the applicable checks. All other packages (`api`, `worker`, `admin`, `web`, `sdk`) have meaningful test suites that must pass.
 
 ### Repository-level verification
 
@@ -109,7 +109,7 @@ pnpm build
 pnpm format:check
 ```
 
-Expected: all commands exit 0. `pnpm test` → 1390 tests pass across 125 suites.
+Expected: all commands exit 0. `pnpm test` → 1400+ tests pass across 126+ suites.
 
 ### Smoke test verification
 
@@ -117,7 +117,12 @@ Expected: all commands exit 0. `pnpm test` → 1390 tests pass across 125 suites
 pnpm smoke
 ```
 
-Expected: 8 suites, 80 tests, 0 failures. Runs with `--runInBand` to prevent port-binding race conditions.
+`pnpm smoke` runs two suites sequentially:
+
+1. **Operational smoke** — `pnpm --filter @dragon/api smoke` — 8 suites, 80 tests covering health, backup, search, analytics, audit, jobs, notifications, and media.
+2. **Critical flow smoke** — `pnpm --filter @dragon/api smoke:phase0` — 11 suites, 88 tests covering auth, RBAC, profile, and content critical e2e flows.
+
+Expected: 19 suites total, 168 tests, 0 failures. Both run with `--runInBand`.
 
 ---
 
@@ -130,7 +135,7 @@ Expected: 8 suites, 80 tests, 0 failures. Runs with `--runInBand` to prevent por
 | `@dragon/admin`  |      |           |      |       |
 | `@dragon/web`    |      |           |      |       |
 | `@dragon/sdk`    |      |           |      |       |
-| `@dragon/types`  |      |           | n/a  |       |
+| `@dragon/types`  |      |           | —    |       |
 
 ---
 
@@ -191,13 +196,13 @@ Expected: all images build successfully with no errors. Record image IDs.
 
 ## 7. Smoke test verification
 
-Run the automated smoke suite (no real services required):
+Run the full automated smoke suite (no real services required):
 
 ```bash
 pnpm smoke
 ```
 
-Expected: 8 suites, 80 tests, 0 failures.
+Expected: 19 suites (8 operational + 11 critical flow), 168 tests, 0 failures.
 
 Then complete the post-deploy manual smoke checklist: [smoke-test-checklist.md](../operations/smoke-test-checklist.md)
 
@@ -322,10 +327,10 @@ All items must be checked before Phase 0 is declared complete and Phase 1 can be
 
 - [ ] `pnpm lint` — 0 errors, 0 warnings
 - [ ] `pnpm typecheck` — 0 errors
-- [ ] `pnpm test` — all packages pass (api: 125 suites, worker: 5 suites, admin: 13 suites, web: 4 suites, sdk: 8 suites)
+- [ ] `pnpm test` — all packages pass (api: 126+ suites, worker: 5 suites, admin: 13 suites, web: 4 suites, sdk: 8 suites)
 - [ ] `pnpm build` — all packages build
 - [ ] `pnpm format:check` — all files pass
-- [ ] `pnpm smoke` — 8 suites, 80 tests, 0 failures
+- [ ] `pnpm smoke` — 19 suites (8 operational + 11 critical flow), 168 tests, 0 failures
 - [ ] Docker compose config validated (local and prod)
 - [ ] Docker image builds pass (all 4 services)
 

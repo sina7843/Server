@@ -30,7 +30,7 @@ turbo.json               — added "smoke" task
 ### Verification commands
 
 ```bash
-# Smoke suite (8 suites, 80 tests, no external services required)
+# Full smoke gate (19 suites = 8 operational + 11 critical flows, no external services required)
 pnpm smoke
 
 # Full unit test suite (must still pass after adding smoke specs)
@@ -43,14 +43,16 @@ pnpm format:check
 
 ### Expected results
 
-| Command             | Expected                       |
-| ------------------- | ------------------------------ |
-| `pnpm smoke`        | 8 suites, 80 tests, 0 failures |
-| `pnpm test`         | 1390/1390 pass                 |
-| `pnpm lint`         | 0 errors                       |
-| `pnpm typecheck`    | 0 errors                       |
-| `pnpm build`        | all packages built             |
-| `pnpm format:check` | all files pass                 |
+| Command                                  | Expected                                                            |
+| ---------------------------------------- | ------------------------------------------------------------------- |
+| `pnpm smoke`                             | 19 suites (8 operational + 11 critical flow), 168 tests, 0 failures |
+| `pnpm --filter @dragon/api smoke`        | 8 suites, 80 tests, 0 failures (operational)                        |
+| `pnpm --filter @dragon/api smoke:phase0` | 11 suites, 88 tests, 0 failures (critical flows)                    |
+| `pnpm test`                              | 1400+ pass                                                          |
+| `pnpm lint`                              | 0 errors                                                            |
+| `pnpm typecheck`                         | 0 errors                                                            |
+| `pnpm build`                             | all packages built                                                  |
+| `pnpm format:check`                      | all files pass                                                      |
 
 ### Coverage areas
 

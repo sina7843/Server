@@ -40,36 +40,28 @@ describe('CsrfOriginGuard', () => {
     });
 
     it('passes when Origin matches an allowed origin', () => {
-      expect(
-        guard.canActivate(makeContext({ origin: 'https://app.example.com' })),
-      ).toBe(true);
+      expect(guard.canActivate(makeContext({ origin: 'https://app.example.com' }))).toBe(true);
     });
 
     it('passes when Origin matches second allowed origin', () => {
-      expect(
-        guard.canActivate(makeContext({ origin: 'https://admin.example.com' })),
-      ).toBe(true);
+      expect(guard.canActivate(makeContext({ origin: 'https://admin.example.com' }))).toBe(true);
     });
 
     it('blocks when Origin is not in the allowlist', () => {
-      expect(() =>
-        guard.canActivate(makeContext({ origin: 'https://evil.com' })),
-      ).toThrow(ForbiddenException);
+      expect(() => guard.canActivate(makeContext({ origin: 'https://evil.com' }))).toThrow(
+        ForbiddenException,
+      );
     });
 
     it('passes when Referer is from an allowed origin', () => {
-      expect(
-        guard.canActivate(
-          makeContext({ referer: 'https://app.example.com/some/page' }),
-        ),
-      ).toBe(true);
+      expect(guard.canActivate(makeContext({ referer: 'https://app.example.com/some/page' }))).toBe(
+        true,
+      );
     });
 
     it('blocks when Referer origin is not in the allowlist', () => {
       expect(() =>
-        guard.canActivate(
-          makeContext({ referer: 'https://evil.com/attack-page' }),
-        ),
+        guard.canActivate(makeContext({ referer: 'https://evil.com/attack-page' })),
       ).toThrow(ForbiddenException);
     });
 

@@ -55,4 +55,45 @@ describe('createApiClient', () => {
   it('requires a non-empty base URL', () => {
     expect(() => createApiClient({ baseUrl: ' ' })).toThrow(ApiClientError);
   });
+
+  it('forwards credentials: include to fetch for cookie-based auth', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ accessToken: 'tok', tokenType: 'Bearer', expiresIn: 900 }),
+    } as Response);
+
+    const client = createApiClient({
+      baseUrl: 'https://api.example.test',
+      fetch: fetchMock,
+      credentials: 'include',
+    });
+
+    await client.request({ path: '/api/v1/auth/login', method: 'POST', body: '{}' });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.test/api/v1/auth/login',
+      expect.objectContaining({ credentials: 'include' }),
+    );
+  });
+
+  it('token response from login does not contain refreshToken', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ accessToken: 'tok', tokenType: 'Bearer', expiresIn: 900 }),
+    } as Response);
+
+    const client = createApiClient({ baseUrl: 'https://api.example.test', fetch: fetchMock });
+    const response = await client.request<{
+      accessToken: string;
+      tokenType: string;
+      expiresIn: number;
+    }>({
+      path: '/api/v1/auth/login',
+      method: 'POST',
+    });
+
+    expect(JSON.stringify(response)).not.toContain('refreshToken');
+  });
 });

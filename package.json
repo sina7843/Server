@@ -10,7 +10,8 @@
     "smoke": "pnpm --filter @dragon/api smoke",
     "build": "turbo build",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "verify:phase0": "bash infra/scripts/verify-phase0.sh"
   },
   "devDependencies": {
     "@eslint/js": "9.28.0",

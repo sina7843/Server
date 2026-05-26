@@ -7,7 +7,7 @@
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\" --no-error-on-unmatched-pattern",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "jest",
-    "smoke": "jest --testRegex=\".*\\.e2e-spec\\.ts$\" --testPathPattern=\"smoke\"",
+    "smoke": "jest --testRegex=\".*\\.e2e-spec\\.ts$\" --testPathPattern=\"smoke\" --runInBand",
     "build": "tsc -p tsconfig.build.json",
     "seed:rbac": "node dist/rbac/seeds/run-rbac-seed.js",
     "start": "node dist/main.js",

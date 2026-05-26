@@ -475,7 +475,7 @@ Public content rendering **always uses sanitized `bodyHtml` from the backend** (
 - `buildContentSeoHead()` reads `seo.title`, `seo.description`, `seo.canonicalUrl`, and `seo.noIndex` from the DTO
 - `noindex` is set when: `seo.noIndex === true`, content is not found (404), or an error occurs
 - OG title and OG description are set only when content is indexable
-- OG image is not set — Media Library is not available; `seo.ogImageMediaId` is not resolved
+- OG image is not set — `seo.ogImageMediaId` is not resolved to a public URL by the web app; the admin Media Library exists but public OG image resolution is not implemented
 - Canonical URL is emitted as a `<link rel="canonical">` when present
 
 ### State Handling
@@ -495,12 +495,12 @@ The following are explicitly not implemented and must not be added to the public
 - Generic `/posts/[slug]` route
 - Comments
 - Related content (no real API)
-- Search feature
-- Analytics tracking
+- Per-page search UI — content detail/list pages have no embedded search widget; a global `/search` route exists separately in the app
+- Client-side analytics dashboard or tracking widgets on content pages — backend records `content.viewed` events via the analytics service; no frontend tracking pixel or dashboard widget is embedded in content pages
 - Newsletter
 - Localization
 - Visual page builder / block renderer
-- Media Library, file upload, media picker
+- Media manager, file upload, or media picker in the public web — the admin Media Library exists; the public web has no media management UI
 - User-generated content
 - Content recommendations
 - Admin UI changes

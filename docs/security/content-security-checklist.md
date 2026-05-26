@@ -111,12 +111,12 @@ This checklist covers the security properties of the content subsystem. Tasks 0.
 - [x] No client-side HTML transforms or re-processing of backend HTML
 - [x] No generic `/posts/[slug]` or `/api/v1/posts/:slug` route exists on the public web
 - [x] `noindex` is set on not-found pages, error pages, and when `seo.noIndex === true`
-- [x] OG image is not rendered — `seo.ogImageMediaId` is not resolved (no Media Library)
+- [x] OG image is not rendered — `seo.ogImageMediaId` is not resolved to a public URL by the web app
 - [x] No comments UI exists on public pages
-- [x] No search feature exists on public pages
-- [x] No analytics tracking exists on public pages
+- [x] No per-page search widget is embedded in content pages — a global `/search` route exists separately
+- [x] No client-side analytics widget or tracking pixel exists on content pages — backend records `content.viewed` events server-side
 - [x] No newsletter exists on public pages
-- [x] No media upload or Media Library exists on public pages
+- [x] No media manager, file upload, or media picker UI exists on the public web
 - [x] No page builder renderer exists on public pages
 - [x] Canonical URL is emitted only when `seo.canonicalUrl` is provided by the backend
 

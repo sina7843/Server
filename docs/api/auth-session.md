@@ -9,13 +9,13 @@ Phase 0 uses **phone-first authentication** with OTP-based verification and pass
 ```
 register(phone) → OTP sent via SMS
 verify-phone(phone, code) → account activated
-login(phone, password) → accessToken (Bearer) + refreshToken (HttpOnly cookie)
+login(phone, password) → accessToken (Bearer) in body + dragon_refresh (HttpOnly cookie)
          ↓
   [use API with Bearer accessToken]
          ↓
-refresh(refreshToken) → rotated accessToken + refreshToken
+refresh() [dragon_refresh cookie sent automatically] → rotated accessToken + new dragon_refresh cookie
          ↓
-logout() → session revoked
+logout() [dragon_refresh cookie cleared by backend] → session revoked
 ```
 
 ---

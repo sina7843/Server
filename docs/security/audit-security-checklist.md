@@ -37,7 +37,7 @@
 ## Actor Attribution
 
 - [ ] User-initiated actions include `actorId` (user's MongoDB ObjectId as string).
-- [ ] Admin-initiated actions include `actorType: 'admin'`. Actor ID enrichment planned for Task 0.8.2.
+- [ ] Admin-initiated actions include `actorType: 'admin'` and `actorId` when the admin identity is available.
 - [ ] System and job actions use `actorType: 'system'` or `actorType: 'job'` with no actorId.
 
 ## Severity Labelling

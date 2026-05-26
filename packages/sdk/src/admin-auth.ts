@@ -1,6 +1,6 @@
 import type { ApiClient } from './client';
 import type { AdminMeResponse } from './admin-auth-types';
-import type { TokenResponse } from './auth-types';
+import type { TokenResponse, LogoutResponse } from './auth-types';
 
 export interface AdminLoginRequest {
   readonly phone: string;
@@ -13,6 +13,12 @@ export interface AdminAuthClient {
   login(request: AdminLoginRequest): Promise<TokenResponse>;
   /** Rotates the access token using the dragon_refresh HttpOnly cookie. No request body needed. */
   refresh(): Promise<TokenResponse>;
+  /**
+   * Revokes the current session and clears the dragon_refresh HttpOnly cookie.
+   * Must be called with credentials: 'include' so the browser sends the cookie.
+   * Authorization Bearer header must be included when an access token exists.
+   */
+  logout(): Promise<LogoutResponse>;
   getMe(): Promise<AdminMeResponse>;
 }
 
@@ -31,6 +37,13 @@ export function createAdminAuthClient(client: ApiClient): AdminAuthClient {
       return client.request<TokenResponse>({
         method: 'POST',
         path: '/api/v1/auth/refresh',
+      });
+    },
+
+    logout() {
+      return client.request<LogoutResponse>({
+        method: 'POST',
+        path: '/api/v1/auth/logout',
       });
     },
 

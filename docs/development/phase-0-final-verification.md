@@ -24,7 +24,7 @@ What Phase 0 is:
 - Health probes, backup log, manual backup via mongodump
 - Docker Compose production stack with nginx reverse proxy
 - Security hardening (CORS, security headers, body limits, case-insensitive redactors)
-- Smoke test suite (80 tests, no real services required)
+- Smoke test suite (168 tests across 19 suites, no real services required)
 - Complete internal developer documentation
 
 What Phase 0 is not:
@@ -94,10 +94,11 @@ pnpm --filter @dragon/sdk build
 
 pnpm --filter @dragon/types lint
 pnpm --filter @dragon/types typecheck
+pnpm --filter @dragon/types test
 pnpm --filter @dragon/types build
 ```
 
-> **Note:** `@dragon/types` exports only TypeScript types and has no runtime test suite — lint, typecheck, and build are the applicable checks. All other packages (`api`, `worker`, `admin`, `web`, `sdk`) have meaningful test suites that must pass.
+> **Note:** `@dragon/types` exports only TypeScript types. Its `test` script confirms the package is runnable (exits 0) but contains no runtime assertions — `lint`, `typecheck`, and `build` are the substantive checks for this package.
 
 ### Repository-level verification
 
@@ -135,7 +136,7 @@ Expected: 19 suites total, 168 tests, 0 failures. Both run with `--runInBand`.
 | `@dragon/admin`  |      |           |      |       |
 | `@dragon/web`    |      |           |      |       |
 | `@dragon/sdk`    |      |           |      |       |
-| `@dragon/types`  |      |           | —    |       |
+| `@dragon/types`  |      |           |      |       |
 
 ---
 

@@ -1,6 +1,6 @@
 # Content Security Checklist
 
-> **Slice 0.6 is eligible for content rendering security review.** Task 0.6.3 is complete. `bodyHtml` is sanitized server-side before storage. Public DTOs return sanitized content only. Image insertion remains disabled until a safe Media API is available.
+> **Slice 0.6 is eligible for content rendering security review.** Task 0.6.3 is complete. `bodyHtml` is sanitized server-side before storage. Public DTOs return sanitized content only.
 
 This checklist covers the security properties of the content subsystem. Tasks 0.6.1 and 0.6.2 cover persistence and API surface. Task 0.6.3 covers sanitization.
 
@@ -10,25 +10,28 @@ This checklist covers the security properties of the content subsystem. Tasks 0.
 - [x] Sanitization removes `<script>`, `<style>`, event handler attributes (`onclick`, `onerror`, etc.), and unsafe tags
 - [x] `javascript:` and `data:` URL links are blocked (converted to `<span>`)
 - [x] Protocol-relative URLs `//` are blocked
-- [x] Only approved HTML tags are allowed (paragraphs, headings, lists, blockquote, table, code, links)
-- [x] `img` tags are rejected (no safe Media API yet — documented as Later)
+- [x] Only approved HTML tags are allowed (paragraphs, headings, lists, blockquote, table, code, links, constrained `img`)
+- [x] `img` tags are allowed only when `src` is an absolute `http`/`https` URL — any other src is stripped to `<span>`
+- [x] `data:` and `javascript:` image srcs are stripped; no base64 images are allowed through the sanitizer
+- [x] Allowed `img` attributes are constrained: `src` (absolute http/https only), `alt`, `title`, `data-media-id` (valid 24-char ObjectId only), `data-alignment` (left/center/right/full), `data-caption` (max 1000 chars), `class`
 - [x] `iframe`/`embed`/`object` tags are rejected
 - [x] `target="_blank"` links are supplemented with `rel="noopener noreferrer"`
 - [x] TipTap `bodyJson` is validated against an allowlist of nodes and marks on create/update
 - [x] Unknown node types are rejected with `BadRequestException`
 - [x] Unknown mark types are rejected with `BadRequestException`
-- [x] `image` nodes in `bodyJson` are rejected (image insertion disabled until Media API)
+- [x] `image` nodes in `bodyJson` are allowed only with a valid `mediaId` (24-character hex ObjectId); image nodes without a valid `mediaId` are rejected by `validateImageNode()`
 - [x] `embed`/`iframe`/`video` nodes are rejected
 - [x] Link `href` values in `bodyJson` are validated — `javascript:`, `data:`, `vbscript:`, `//` all rejected
 - [x] `PublicPostDto.bodyHtml` comment updated — marked safe to render
 - [x] Revision snapshots store sanitized `bodyHtml` (sanitized before `postService.create/update` is called)
-- [x] `mediaRefs` extraction not implemented — deferred until Media Library is available
+- [x] `mediaRefs` are extracted and persisted on every create/update — `extractInlineMediaRefs()` walks `bodyJson` for `image` nodes with valid `mediaId`; `coverMediaId` contributes a `usage: 'cover'` ref; relational integrity checks (validating asset existence) are a Phase 1 concern
 
 ## TipTap Editor Security (Task 0.6.5 ✓ / Closeout Fix ✓)
 
-- [x] TipTap editor extensions match exactly the backend-allowed node/mark allowlist — no extra nodes
-- [x] Image insertion is disabled — no `Image` extension; backend rejects `image` nodes
-- [x] No media upload button, no media picker, no fake picker in toolbar
+- [x] TipTap editor extensions match the backend-allowed node/mark allowlist — `MediaImage` is the `image` node extension
+- [x] `MediaImage` extension has `allowBase64: false` — no base64 data-URL images are accepted
+- [x] Inline image insertion uses `MediaPickerDialog` backed by the real Media Library API — no fake picker, no manual typed `mediaId`
+- [x] No direct file upload in the editor — images must be uploaded to the Media Library first
 - [x] Link extension validates URLs client-side before applying — blocks `javascript:`, `data:`, `vbscript:`, `//`
 - [x] Backend remains the security boundary — `bodyHtml` from TipTap is re-sanitized server-side on every save
 - [x] `bodyJson` from TipTap is validated server-side by `RichTextValidator` on every save

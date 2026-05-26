@@ -1,6 +1,7 @@
 import { computed } from 'vue';
 import { useAdminAuthState } from '~/composables/useAdminAuthState';
 import { useAdminPermissions } from '~/composables/useAdminPermissions';
+import { adminLogout } from '~/features/auth/admin-auth.api';
 
 export function useAdminAuth() {
   const { accessToken, identity, clearAuth } = useAdminAuthState();
@@ -10,7 +11,13 @@ export function useAdminAuth() {
 
   const displayName = computed(() => identity.value?.user.id ?? '');
 
-  function logout() {
+  async function logout() {
+    const {
+      public: { apiBaseUrl },
+    } = useRuntimeConfig();
+    if (accessToken.value) {
+      await adminLogout(accessToken.value, String(apiBaseUrl));
+    }
     clearAuth();
     clearPermissions();
   }

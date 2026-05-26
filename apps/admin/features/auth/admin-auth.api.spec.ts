@@ -1,5 +1,5 @@
 import { ApiClientError } from '@dragon/sdk';
-import { adminLogin, fetchAdminIdentity } from './admin-auth.api';
+import { adminLogin, adminLogout, fetchAdminIdentity } from './admin-auth.api';
 
 const mockFetch = jest.fn();
 
@@ -161,5 +161,52 @@ describe('fetchAdminIdentity', () => {
     mockGetMeForbidden();
 
     await expect(fetchAdminIdentity('expired-token', '/')).rejects.toBeInstanceOf(ApiClientError);
+  });
+});
+
+describe('adminLogout', () => {
+  it('calls /api/v1/auth/logout with credentials include and Authorization header', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ success: true, message: 'Logged out' }),
+    });
+
+    await adminLogout('my-access-token', 'https://api.example.test');
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/auth/logout'),
+      expect.objectContaining({
+        method: 'POST',
+        credentials: 'include',
+        headers: expect.objectContaining({ Authorization: 'Bearer my-access-token' }),
+      }),
+    );
+  });
+
+  it('resolves without throwing even when the backend logout fails — local state can always be cleared', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 401, json: async () => ({}) });
+
+    await expect(adminLogout('expired-token', '/')).resolves.toBeUndefined();
+  });
+
+  it('resolves without throwing when the network is unreachable', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('Network error'));
+
+    await expect(adminLogout('my-access-token', '/')).resolves.toBeUndefined();
+  });
+
+  it('does not read or store a refreshToken in the logout response', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ success: true, message: 'Logged out' }),
+    });
+
+    await adminLogout('my-access-token', '/');
+
+    const call = mockFetch.mock.calls[0];
+    const requestBody = call[1]?.body as string | undefined;
+
+    expect(requestBody).toBeUndefined();
+    expect(JSON.stringify(call)).not.toContain('refreshToken');
   });
 });

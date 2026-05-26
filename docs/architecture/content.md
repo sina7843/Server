@@ -17,11 +17,18 @@ All `bodyHtml` is sanitized server-side before storage. Clients never store raw 
 
 Validates TipTap-compatible `bodyJson` documents before persistence. Rejects unknown nodes, unknown marks, unsafe link hrefs, and disallowed embed types.
 
-**Allowed node types:** `doc`, `paragraph`, `heading` (levels 1–6), `text`, `bulletList`, `orderedList`, `listItem`, `blockquote`, `codeBlock`, `horizontalRule`, `hardBreak`, `table`, `tableRow`, `tableHeader`, `tableCell`
+**Allowed node types:** `doc`, `paragraph`, `heading` (levels 1–6), `text`, `bulletList`, `orderedList`, `listItem`, `blockquote`, `codeBlock`, `horizontalRule`, `hardBreak`, `image`, `table`, `tableRow`, `tableHeader`, `tableCell`
 
 **Allowed mark types:** `bold`, `italic`, `underline`, `strike`, `code`, `link`
 
-**Explicitly rejected:** `image`, `embed`, `iframe`, `video` — rejected with `BadRequestException` until a safe Media API is available.
+**Image node validation:** `image` nodes are allowed but must pass `validateImageNode()`:
+
+- `attrs.mediaId` — required, must be a valid 24-character hex ObjectId
+- `attrs.src` — if present, must be an absolute `http` or `https` URL
+- `attrs.alt` — if present, must be a string ≤ 500 characters
+- `attrs.alignment` — if present, must be one of `left`, `center`, `right`, `full`
+
+**Explicitly rejected:** `embed`, `iframe`, `video`, `audio` — rejected with `BadRequestException`. Unknown node types are also rejected.
 
 **Link href safety:** allowed: `https://`, `http://`, `mailto:`, root-relative `/`, anchor `#`. Rejected: `javascript:`, `data:`, `vbscript:`, protocol-relative `//`.
 
@@ -35,7 +42,9 @@ Wraps [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) v2.x. Appli
 - Removes all event handler attributes (`onclick`, `onerror`, `onload`, etc.)
 - Converts `javascript:` and `data:` hrefs to `<span>` (belt-and-suspenders on top of scheme allowlist)
 - Blocks protocol-relative `//` URLs (`allowProtocolRelative: false`)
-- Strips `<img>`, `<iframe>`, `<object>`, `<embed>` — image insertion disabled until Media API
+- Allows `<img>` with constrained attributes — any `img` whose `src` is not an absolute `http`/`https` URL is converted to `<span>`; `data:` and `javascript:` srcs are stripped
+- Allowed `img` attributes: `src` (absolute http/https only), `alt`, `title`, `data-media-id` (valid ObjectId), `data-alignment` (left/center/right/full), `data-caption` (max 1000 chars), `class`
+- Strips `<iframe>`, `<object>`, `<embed>` entirely
 - Adds `rel="noopener noreferrer"` to `target="_blank"` links
 - Allowed schemes for `<a>`: `http`, `https`, `mailto` only
 
@@ -45,7 +54,15 @@ Validation and sanitization happen in `AdminContentPostsService` and `AdminConte
 
 `PublicPostDto.bodyHtml` and `PublicPageDto.bodyHtml` are marked safe to render (Task 0.6.3).
 
-**`mediaRefs` extraction is not implemented.** Deferred until Media Library is available.
+**`mediaRefs` and `coverMediaId`** are persisted on the post schema and populated on every create/update:
+
+- `coverMediaId` — a single optional `ObjectId` pointing to the post's cover image; set via the cover picker in `ContentPostFormView`.
+- `mediaRefs` — an array of `PostMediaRefData` (`{ mediaId, usage, alt?, caption?, alignment? }`). Two usages are produced:
+  - `usage: 'cover'` — built from `coverMediaId` when present.
+  - `usage: 'inline'` — extracted automatically from `bodyJson` by `extractInlineMediaRefs()`, which walks the document tree and collects every `image` node with a valid `mediaId` ObjectId.
+- `buildMediaRefs(bodyJson, coverMediaId)` combines both and deduplicates; it is called on every create and update.
+
+**Automatic content-to-media extraction does not resolve signed URLs or validate that the referenced media assets still exist** — the Media Library manages asset lifecycle independently. Relational integrity checks between content and media are a Phase 1 concern.
 
 ## Module Layout
 
@@ -337,7 +354,7 @@ A **Content** nav item (`/content`) is visible to users with `content.post.read`
 Thin page files (~15 lines each) delegate to shared view components:
 
 - **`ContentRichTextEditor`** — TipTap-based rich text editor (Task 0.6.5); wraps the editor and toolbar; emits `bodyJson` and `bodyHtml` for the form
-- **`ContentEditorToolbar`** — limited toolbar exposing only backend-allowed formatting; no media upload, no media picker, no page builder
+- **`ContentEditorToolbar`** — limited toolbar exposing only backend-allowed formatting; includes an "insert image" button that opens `MediaPickerDialog` (no direct file upload in editor, no page builder)
 - **`ContentPostListView`** — status filter, paginated table, publish/archive/soft-delete actions
 - **`ContentPostFormView`** — title, slug, excerpt, TipTap body editor, categoryIds, tagIds, SEO fields
 - **`ContentPostPreviewView`** — calls preview endpoint, renders sanitized `bodyHtml` via `v-html`
@@ -359,10 +376,11 @@ Posts and pages use a TipTap rich text editor for `bodyJson`/`bodyHtml` authorin
 - Underline
 - Link (with client-side URL safety validation: blocks `javascript:`, `data:`, `vbscript:`, `//`)
 - Table, TableRow, TableCell, TableHeader
+- **`MediaImage`** (`components/content/MediaImageExtension.ts`) — extends TipTap's `Image` extension with `mediaId`, `alt`, `caption`, and `alignment` attributes; `allowBase64: false`
 
-**Image insertion is disabled.** The backend validator rejects `image` nodes. No upload, no picker, no fake picker, no manual `mediaId` field will be added until the Media Library is available.
+**Inline image insertion** is supported via `MediaPickerDialog`. Clicking the toolbar "insert image" button opens the dialog, which lists assets from the Media Library API. On selection, `setImage({ src, mediaId, alt })` inserts an `image` node into the document. No file upload is performed inside the editor — images must already be present in the Media Library. No manual typed `mediaId`, no base64 data URLs, no fake picker.
 
-**Embeds are disabled.** `embed`, `iframe`, `video`, `audio` nodes are not in the editor extensions and would be rejected by the backend validator.
+**Embeds are disabled.** `embed`, `iframe`, `video`, `audio` nodes are not in the editor extensions and are rejected by the backend validator.
 
 **bodyJson/bodyHtml submit flow:**
 
@@ -394,7 +412,8 @@ All create/edit/delete/publish/archive buttons are hidden or disabled when the u
 
 The following are explicitly not implemented and must not be added to the admin frontend:
 
-- Media Library, file upload, image upload, media picker, fake media picker, manual `mediaId` input
+- Direct file upload inside the rich-text editor (images must be uploaded to the Media Library first, then inserted via the picker)
+- Fake media picker or manual typed `mediaId` field (the picker uses the real Media Library API)
 - Page builder, drag/drop layout engine, block marketplace
 - Revision restore, rollback UI
 - Scheduled publish, approval workflow

@@ -177,19 +177,28 @@ Before starting the manual checklist, run the automated smoke suite from the rep
 require no running server and complete in under 15 seconds.
 
 ```bash
-# From repo root
+# From repo root — runs both suites sequentially
 pnpm smoke
 ```
 
-Expected: **8 suites, 80 tests, 0 failures.**
+Expected: **19 suites, 168 tests, 0 failures.**
 
-The automated suite covers:
+`pnpm smoke` runs two suites that together form the official release gate:
 
-- Health endpoint response shapes and no-secrets invariant
-- Backup API permission gates and no-restore-endpoint invariant
-- Public search published-only routing
-- Admin search/analytics/audit/jobs/notifications permission gates
-- Media MIME/extension allowlist validation
-- No raw OTP, password, token, or phone number in any API response
+1. **Operational smoke** (`pnpm --filter @dragon/api smoke`) — 8 suites, 80 tests:
 
-If the automated suite fails, do not proceed with the manual deploy checklist until it is fixed.
+   - Health endpoint response shapes and no-secrets invariant
+   - Backup API permission gates and no-restore-endpoint invariant
+   - Public search published-only routing
+   - Admin search/analytics/audit/jobs/notifications permission gates
+   - Media MIME/extension allowlist validation
+   - No raw OTP, password, token, or phone number in any API response
+
+2. **Critical flow smoke** (`pnpm --filter @dragon/api smoke:phase0`) — 11 suites, 88 tests:
+   - Auth login/refresh/register/logout and full flow
+   - Auth security (replay, timing, generic error shape)
+   - RBAC admin access and authorization (allow/deny by permission, deny-by-default)
+   - Profile get/update, public profile visibility
+   - Content create/publish/archive and public content routing
+
+If either suite fails, do not proceed with the manual deploy checklist until it is fixed.

@@ -20,7 +20,7 @@ See [README.md](README.md) for the full architecture index.
 - `packages/config` — Shared tooling configuration: TypeScript, ESLint, Prettier, Tailwind.
 - `packages/types` — Shared contracts: health DTOs, content types, pagination types.
 - `packages/utils` — Generic framework-agnostic utilities.
-- `packages/sdk` — API client foundation (no endpoint-specific methods in Phase 0).
+- `packages/sdk` — Typed API client with endpoint-specific methods for all Phase 0 domains (auth, content, media, RBAC, users, search, analytics, audit, jobs, notifications, health, backup).
 - `packages/ui` — Vue component package (placeholder components only in Phase 0).
 
 ---
@@ -47,7 +47,7 @@ See [README.md](README.md) for the full architecture index.
 - Health probes (live/ready/dependencies), BackupLog, manual backup via `mongodump`
 - Docker Compose production stack with nginx, TLS, structured logging
 - Security hardening: CORS allowlist, security headers, body limits, case-insensitive redactors
-- Smoke test suite (80 tests, no real services required)
+- Smoke test suite (168 tests across 19 suites — operational + critical flow — no real services required)
 
 **Not implemented in Phase 0:**
 

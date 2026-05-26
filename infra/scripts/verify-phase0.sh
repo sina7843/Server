@@ -57,6 +57,7 @@ run_check "Unit tests (worker)"       pnpm --filter @dragon/worker test
 run_check "Unit tests (sdk)"          pnpm --filter @dragon/sdk test
 run_check "Unit tests (admin)"        pnpm --filter @dragon/admin test
 run_check "Unit tests (web)"          pnpm --filter @dragon/web test
+run_check "Unit tests (types)"        pnpm --filter @dragon/types test
 
 # ─── Workspace-level test runner (aggregates all packages) ──────────────────
 

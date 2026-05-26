@@ -1,6 +1,25 @@
 import { ApiClientError, createAdminAuthClient, createApiClient } from '@dragon/sdk';
 import type { AdminMeResponse, TokenResponse } from '@dragon/sdk';
 
+/**
+ * Calls POST /api/v1/auth/logout to revoke the current session and clear the dragon_refresh
+ * HttpOnly cookie via the backend. Always resolves — errors are swallowed so local state
+ * can be cleared regardless of network or server failures.
+ */
+export async function adminLogout(accessToken: string, apiBaseUrl: string): Promise<void> {
+  try {
+    const client = createApiClient({
+      baseUrl: apiBaseUrl,
+      credentials: 'include',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const adminAuth = createAdminAuthClient(client);
+    await adminAuth.logout();
+  } catch {
+    // best-effort — local state must clear even if the backend is unreachable
+  }
+}
+
 export async function adminLogin(
   phone: string,
   password: string,

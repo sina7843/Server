@@ -22,7 +22,7 @@ export interface StoredObject {
 
 export interface StorageUploadInput {
   readonly objectKey: string;
-  readonly body: Buffer | Uint8Array | NodeJS.ReadableStream;
+  readonly body: Uint8Array;
   readonly mimeType: string;
   readonly sizeBytes?: number;
   readonly metadata?: Record<string, string>;

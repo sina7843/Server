@@ -20,6 +20,8 @@ defineProps<{
   list-style: none;
   margin: 0;
   padding: 0;
+  display: grid;
+  gap: 16px;
 }
 
 .content-list__item {

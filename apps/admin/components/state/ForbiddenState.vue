@@ -1,9 +1,9 @@
 <template>
   <div class="state-container" role="alert">
-    <p class="state-code">403</p>
+    <div class="state-badge">403</div>
     <p class="state-label">{{ label }}</p>
     <p class="state-hint">{{ hint }}</p>
-    <a href="/dashboard" class="back-link">بازگشت به داشبورد</a>
+    <a href="/dashboard" class="dr-btn dr-btn-secondary dr-btn-sm">بازگشت به داشبورد</a>
   </div>
 </template>
 
@@ -26,40 +26,34 @@ withDefaults(
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 3rem;
+  gap: 10px;
+  padding: 48px 24px;
   text-align: center;
 }
 
-.state-code {
-  margin: 0;
-  font-size: 3.5rem;
+.state-badge {
+  font-family: var(--font-display);
+  font-size: 56px;
   font-weight: 700;
-  color: #e2e8f0;
   line-height: 1;
+  background: var(--brand-gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
 }
 
 .state-label {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #374151;
+  font-size: var(--text-h4-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
 }
 
 .state-hint {
   margin: 0;
-  font-size: 0.9rem;
-  color: #94a3b8;
-}
-
-.back-link {
-  margin-block-start: 1rem;
-  color: #3b82f6;
-  font-size: 0.9rem;
-  text-decoration: none;
-}
-
-.back-link:hover {
-  text-decoration: underline;
+  font-size: var(--text-body-sm-size);
+  color: var(--text-muted);
 }
 </style>

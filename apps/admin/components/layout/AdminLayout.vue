@@ -1,8 +1,8 @@
 <template>
   <div class="admin-shell">
-    <AdminTopbar />
-    <div class="admin-body">
-      <AdminSidebar />
+    <AdminSidebar />
+    <div class="admin-main">
+      <AdminTopbar />
       <main class="admin-content">
         <slot />
       </main>
@@ -13,26 +13,31 @@
 <style scoped>
 .admin-shell {
   display: flex;
-  flex-direction: column;
   min-height: 100vh;
-  background: #f8f9fa;
+  direction: rtl;
 }
 
-.admin-body {
-  display: flex;
+.admin-main {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
   overflow: hidden;
 }
 
 .admin-content {
   flex: 1;
   overflow-y: auto;
-  padding: 1.5rem;
+  padding: 28px 32px;
 }
 
 @media (max-width: 768px) {
-  .admin-body {
+  .admin-shell {
     flex-direction: column;
+  }
+
+  .admin-content {
+    padding: 20px 16px;
   }
 }
 </style>

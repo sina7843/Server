@@ -8,7 +8,7 @@
     "typecheck": "nuxt typecheck",
     "test": "jest --config jest.config.cjs --runInBand features",
     "build": "nuxt build",
-    "dev": "nuxt dev",
+    "dev": "nuxt dev --host 0.0.0.0 --port 3001",
     "start": "node .output/server/index.mjs"
   },
   "dependencies": {

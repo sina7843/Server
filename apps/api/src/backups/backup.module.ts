@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuditModule } from '../audit/audit.module';
+import { AuthModule } from '../auth/auth.module';
 import { RbacModule } from '../rbac/rbac.module';
 import { StorageModule } from '../storage/storage.module';
 import { BackupLog, BackupLogSchema } from './backup-log.schema';
@@ -12,6 +13,7 @@ import { AdminBackupController } from './admin-backup.controller';
   imports: [
     MongooseModule.forFeature([{ name: BackupLog.name, schema: BackupLogSchema }]),
     AuditModule,
+    AuthModule,
     RbacModule,
     StorageModule,
   ],

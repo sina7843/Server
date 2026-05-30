@@ -4,6 +4,7 @@ import { Post, PostSchema } from '../content/posts/post.schema';
 import { Page, PageSchema } from '../content/pages/page.schema';
 import { User, UserSchema } from '../auth/users/user.schema';
 import { MediaAsset, MediaAssetSchema } from '../media/media-asset.schema';
+import { AuthModule } from '../auth/auth.module';
 import { RbacModule } from '../rbac/rbac.module';
 import { JobsModule } from '../jobs/jobs.module';
 import { SearchService } from './search.service';
@@ -19,6 +20,7 @@ import { AdminSearchController } from './admin-search.controller';
       { name: User.name, schema: UserSchema },
       { name: MediaAsset.name, schema: MediaAssetSchema },
     ]),
+    AuthModule,
     JobsModule,
     RbacModule,
   ],

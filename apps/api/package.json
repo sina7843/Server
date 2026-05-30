@@ -12,7 +12,7 @@
     "build": "tsc -p tsconfig.build.json",
     "seed:rbac": "node dist/rbac/seeds/run-rbac-seed.js",
     "start": "node dist/main.js",
-    "dev": "tsc --watch -p tsconfig.build.json"
+    "dev": "concurrently -k -n api:build,api:serve -c blue,cyan \"tsc --watch -p tsconfig.build.json\" \"wait-on dist/main.js && node --env-file=.env.example --watch dist/main.js\""
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.799.0",
@@ -64,6 +64,7 @@
       ]
     },
     "testEnvironment": "node",
+    "maxWorkers": 2,
     "moduleNameMapper": {
       "^@dragon/utils$": "<rootDir>/../../packages/utils/src/index.ts",
       "^@dragon/types$": "<rootDir>/../../packages/types/src/index.ts"

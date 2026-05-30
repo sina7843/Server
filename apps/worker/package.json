@@ -10,7 +10,7 @@
     "test": "jest",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
-    "dev": "tsc --watch -p tsconfig.json"
+    "dev": "concurrently -k -n worker:build,worker:serve -c magenta,cyan \"tsc --watch -p tsconfig.json\" \"wait-on dist/main.js && node --env-file=.env.example --watch dist/main.js\""
   },
   "devDependencies": {
     "@types/jest": "29.5.14",

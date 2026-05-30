@@ -6,6 +6,18 @@ Compose file: `infra/docker/docker-compose.local.yml`
 
 Starts MongoDB, Redis, and MinIO for local development only. Does **not** start the API, worker, web, or admin application containers.
 
+### Local port contract
+
+| Service       | Port  |
+| ------------- | ----- |
+| Web (public)  | 3000  |
+| Admin         | 3001  |
+| API           | 4000  |
+| MongoDB       | 27017 |
+| Redis         | 6379  |
+| MinIO S3      | 9000  |
+| MinIO console | 9001  |
+
 From the repository root:
 
 ```bash

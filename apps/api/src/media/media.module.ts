@@ -24,7 +24,7 @@ import { MediaUploadPipeline } from './media-upload-pipeline.service';
     AuditModule,
     AnalyticsModule,
     forwardRef(() => AuthModule),
-    RbacModule,
+    forwardRef(() => RbacModule),
   ],
   controllers: [AdminMediaController],
   providers: [

@@ -11,18 +11,30 @@
     "build": "turbo build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify:phase0": "bash infra/scripts/verify-phase0.sh"
+    "verify:phase0": "bash infra/scripts/verify-phase0.sh",
+    "dev:infra": "docker compose -f infra/docker/docker-compose.local.yml --env-file infra/docker/.env.example up -d",
+    "dev:infra:down": "docker compose -f infra/docker/docker-compose.local.yml down",
+    "dev:apps": "concurrently -k -n api,worker,web,admin -c blue,magenta,green,yellow \"pnpm --filter @dragon/api dev\" \"pnpm --filter @dragon/worker dev\" \"pnpm --filter @dragon/web dev\" \"pnpm --filter @dragon/admin dev\"",
+    "dev:local": "pnpm dev:infra && pnpm dev:apps"
   },
   "devDependencies": {
     "@eslint/js": "9.28.0",
+    "@types/jest": "29.5.14",
+    "concurrently": "^9.1.2",
     "eslint": "9.28.0",
+    "jest": "29.7.0",
     "prettier": "3.5.3",
+    "ts-jest": "29.2.6",
     "turbo": "2.5.4",
     "typescript": "5.8.3",
-    "typescript-eslint": "8.33.1"
+    "typescript-eslint": "8.33.1",
+    "wait-on": "^8.0.3"
   },
   "engines": {
     "node": ">=20 <21",
     "pnpm": ">=10 <11"
+  },
+  "dependencies": {
+    "dev": "0.1.3"
   }
 }

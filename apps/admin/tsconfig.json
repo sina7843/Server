@@ -2,10 +2,11 @@
   "extends": "./.nuxt/tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "types": ["node"],
     "paths": {
       "~/*": ["./*"],
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@dragon/sdk": ["../../packages/sdk/src/index"],
+      "@dragon/types": ["../../packages/types/src/index"]
     }
   },
   "include": [

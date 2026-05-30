@@ -30,7 +30,7 @@ async function bootstrap(): Promise<void> {
 
   app.useGlobalInterceptors(new LoggingInterceptor());
 
-  const port = process.env['PORT'] ? Number(process.env['PORT']) : 3000;
+  const port = process.env['PORT'] ? Number(process.env['PORT']) : 4000;
 
   await app.listen(port);
 }

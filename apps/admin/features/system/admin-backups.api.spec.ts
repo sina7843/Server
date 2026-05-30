@@ -1,7 +1,7 @@
 import { ApiClientError, createAdminBackupsClient, createApiClient } from '@dragon/sdk';
 
 const mockFetch = jest.fn();
-global.fetch = mockFetch;
+Object.assign(globalThis, { fetch: mockFetch });
 
 function mockJson(data: unknown, status = 200) {
   mockFetch.mockResolvedValueOnce({ ok: status < 400, status, json: async () => data });

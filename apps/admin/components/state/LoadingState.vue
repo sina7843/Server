@@ -20,28 +20,23 @@ withDefaults(
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  padding: 3rem;
-  color: #64748b;
+  gap: 14px;
+  padding: 48px 24px;
+  color: var(--text-muted);
 }
 
 .spinner {
-  width: 2rem;
-  height: 2rem;
-  border: 3px solid #e2e8f0;
-  border-top-color: #3b82f6;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  animation: spin 0.75s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  border: 2px solid var(--glass-border-strong);
+  border-top-color: var(--purple-400);
+  animation: dr-spin 0.8s linear infinite;
 }
 
 .state-label {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: var(--text-body-sm-size);
+  color: var(--text-muted);
 }
 </style>

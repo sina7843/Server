@@ -3,7 +3,7 @@ import { adminLogin, adminLogout, fetchAdminIdentity } from './admin-auth.api';
 
 const mockFetch = jest.fn();
 
-global.fetch = mockFetch;
+Object.assign(globalThis, { fetch: mockFetch });
 
 function mockLoginSuccess() {
   mockFetch.mockResolvedValueOnce({

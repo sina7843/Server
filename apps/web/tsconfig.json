@@ -1,7 +1,11 @@
 {
   "extends": "../../packages/config/tsconfig/vue.json",
   "compilerOptions": {
-    "types": ["node"]
+    "baseUrl": ".",
+    "paths": {
+      "@dragon/sdk": ["../../packages/sdk/src/index"],
+      "@dragon/types": ["../../packages/types/src/index"]
+    }
   },
   "include": ["app.vue", "nuxt.config.ts"],
   "exclude": ["node_modules", ".nuxt", ".output"]

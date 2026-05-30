@@ -1,6 +1,8 @@
 <template>
   <div class="page">
-    <h1 class="page-title">داشبورد</h1>
+    <div class="page-header">
+      <h1 class="page-title">داشبورد</h1>
+    </div>
 
     <ForbiddenState v-if="!hasPermission(Permissions.ADMIN_DASHBOARD_VIEW)" />
 
@@ -10,23 +12,41 @@
 
     <template v-else-if="summary">
       <div v-if="summary.users" class="stat-grid">
-        <div class="stat-card">
-          <span class="stat-label">کل کاربران</span>
-          <span class="stat-value">{{ summary.users.total }}</span>
+        <div class="stat-card dr-card">
+          <div class="stat-icon-wrap" style="background: rgba(124,58,237,0.15); color: var(--purple-400);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+          </div>
+          <div>
+            <div class="stat-label">کل کاربران</div>
+            <div class="stat-value">{{ summary.users.total }}</div>
+          </div>
         </div>
-        <div v-if="summary.users.active !== undefined" class="stat-card">
-          <span class="stat-label">کاربران فعال</span>
-          <span class="stat-value stat-active">{{ summary.users.active }}</span>
+
+        <div v-if="summary.users.active !== undefined" class="stat-card dr-card">
+          <div class="stat-icon-wrap" style="background: rgba(16,185,129,0.15); color: var(--success-400);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
+          </div>
+          <div>
+            <div class="stat-label">کاربران فعال</div>
+            <div class="stat-value stat-value--green">{{ summary.users.active }}</div>
+          </div>
         </div>
-        <div v-if="summary.users.pending !== undefined" class="stat-card">
-          <span class="stat-label">در انتظار تأیید</span>
-          <span class="stat-value stat-pending">{{ summary.users.pending }}</span>
+
+        <div v-if="summary.users.pending !== undefined" class="stat-card dr-card">
+          <div class="stat-icon-wrap" style="background: rgba(251,191,36,0.15); color: var(--warning-400);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+          </div>
+          <div>
+            <div class="stat-label">در انتظار تأیید</div>
+            <div class="stat-value stat-value--amber">{{ summary.users.pending }}</div>
+          </div>
         </div>
       </div>
 
-      <div v-if="summary.system" class="system-row">
+      <div v-if="summary.system" class="system-card dr-card">
         <span class="system-label">وضعیت سیستم</span>
         <span
+          class="status-badge"
           :class="{
             'badge-ok': summary.system.status === 'ok',
             'badge-degraded': summary.system.status === 'degraded',
@@ -71,93 +91,82 @@ onMounted(() => {
   max-width: 860px;
 }
 
+.page-header {
+  margin-bottom: 28px;
+}
+
 .page-title {
-  margin: 0 0 1.5rem;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #1e293b;
+  margin: 0;
+  font-size: var(--text-h2-size);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--text-h2-tracking);
+  color: var(--text-primary);
 }
 
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-block-end: 1.5rem;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
 .stat-card {
   display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  padding: 1.1rem 1.25rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
-  background: #fff;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+}
+
+.stat-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .stat-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
 }
 
 .stat-value {
-  font-size: 1.75rem;
+  font-family: var(--font-display);
   font-weight: 700;
-  color: #1e293b;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--text-primary);
 }
+.stat-value--green { color: var(--success-400); }
+.stat-value--amber { color: var(--warning-400); }
 
-.stat-active {
-  color: #16a34a;
-}
-
-.stat-pending {
-  color: #ca8a04;
-}
-
-.system-row {
+.system-card {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.9rem 1.25rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
-  background: #fff;
+  gap: 12px;
+  padding: 16px 20px;
 }
 
 .system-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
-.badge-ok {
-  display: inline-block;
-  padding: 0.2rem 0.65rem;
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: 12px;
   font-weight: 600;
-  background: #dcfce7;
-  color: #166534;
 }
-
-.badge-degraded {
-  display: inline-block;
-  padding: 0.2rem 0.65rem;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  background: #fef9c3;
-  color: #854d0e;
-}
-
-.badge-unavailable {
-  display: inline-block;
-  padding: 0.2rem 0.65rem;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  background: #fee2e2;
-  color: #991b1b;
-}
+.badge-ok         { background: rgba(16, 185, 129, 0.15); color: var(--success-400); }
+.badge-degraded   { background: rgba(245, 158, 11, 0.15); color: var(--warning-400); }
+.badge-unavailable { background: rgba(239, 68, 68, 0.12);  color: var(--danger-400); }
 </style>

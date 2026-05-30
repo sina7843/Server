@@ -29,12 +29,12 @@ This document describes all environment variables used by the Dragon Ecosystem b
 
 ### Node / app
 
-| Variable   | Dev value     | Notes |
-| ---------- | ------------- | ----- |
-| `NODE_ENV` | `development` |       |
-| `APP_ENV`  | `development` |       |
-| `API_HOST` | `0.0.0.0`     |       |
-| `API_PORT` | `3000`        |       |
+| Variable   | Dev value     | Notes                             |
+| ---------- | ------------- | --------------------------------- |
+| `NODE_ENV` | `development` |                                   |
+| `APP_ENV`  | `development` |                                   |
+| `API_HOST` | `0.0.0.0`     |                                   |
+| `PORT`     | `4000`        | Port the NestJS server listens on |
 
 ### MongoDB
 
@@ -89,10 +89,10 @@ For local dev, `SMS_PROVIDER=mock` is always used. The mock provider records sen
 | -------------------------------- | ------------------------------- | ---------------------------------- |
 | `STORAGE_PROVIDER`               | `local`                         | Options: `local`, `minio`, `arvan` |
 | `STORAGE_BUCKET`                 | `dragon-local`                  |                                    |
-| `STORAGE_PUBLIC_BASE_URL`        | `http://localhost:3000/storage` |                                    |
+| `STORAGE_PUBLIC_BASE_URL`        | `http://localhost:4000/storage` |                                    |
 | `STORAGE_SIGNED_URL_TTL_SECONDS` | `3600`                          |                                    |
 | `STORAGE_LOCAL_ROOT`             | `/tmp/dragon-storage`           | Local adapter path                 |
-| `STORAGE_LOCAL_PUBLIC_BASE_URL`  | `http://localhost:3000/storage` |                                    |
+| `STORAGE_LOCAL_PUBLIC_BASE_URL`  | `http://localhost:4000/storage` |                                    |
 
 For local dev with MinIO, set `STORAGE_PROVIDER=minio` and fill in the S3-compatible vars from `infra/docker/.env.example`. For production, use `STORAGE_PROVIDER=arvan`.
 
@@ -129,7 +129,7 @@ For local dev with MinIO, set `STORAGE_PROVIDER=minio` and fill in the S3-compat
 
 | Variable               | Dev value                                     | Notes                                                        |
 | ---------------------- | --------------------------------------------- | ------------------------------------------------------------ |
-| `CORS_ALLOWED_ORIGINS` | `http://localhost:3001,http://localhost:3002` | Comma-separated; wildcard `*` is rejected by the CORS config |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:3000,http://localhost:3001` | Comma-separated; wildcard `*` is rejected by the CORS config |
 
 ---
 
@@ -153,16 +153,16 @@ The local compose file starts MongoDB, Redis, and MinIO for development.
 
 | Variable                     | Dev value               |
 | ---------------------------- | ----------------------- |
-| `NUXT_API_INTERNAL_BASE_URL` | `http://localhost:3000` |
-| `NUXT_PUBLIC_API_BASE_URL`   | `http://localhost:3000` |
-| `NUXT_PUBLIC_SITE_URL`       | `http://localhost:3001` |
+| `NUXT_API_INTERNAL_BASE_URL` | `http://localhost:4000` |
+| `NUXT_PUBLIC_API_BASE_URL`   | `http://localhost:4000` |
+| `NUXT_PUBLIC_SITE_URL`       | `http://localhost:3000` |
 
 ### `apps/admin/.env.example`
 
 | Variable                   | Dev value               |
 | -------------------------- | ----------------------- |
-| `NUXT_PUBLIC_API_BASE_URL` | `http://localhost:3000` |
-| `NUXT_PUBLIC_ADMIN_URL`    | `http://localhost:3002` |
+| `NUXT_PUBLIC_API_BASE_URL` | `http://localhost:4000` |
+| `NUXT_PUBLIC_ADMIN_URL`    | `http://localhost:3001` |
 
 ---
 

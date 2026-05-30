@@ -1,9 +1,11 @@
 <template>
   <div class="state-container" role="alert">
-    <p class="state-icon" aria-hidden="true">!</p>
+    <div class="state-icon" aria-hidden="true">!</div>
     <p class="state-label">{{ label }}</p>
     <p v-if="message" class="state-message">{{ message }}</p>
-    <button v-if="onRetry" class="retry-btn" type="button" @click="onRetry">تلاش مجدد</button>
+    <button v-if="onRetry" class="dr-btn dr-btn-secondary dr-btn-sm retry-btn" type="button" @click="onRetry">
+      تلاش مجدد
+    </button>
   </div>
 </template>
 
@@ -24,50 +26,38 @@ withDefaults(
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 3rem;
-  color: #64748b;
+  gap: 10px;
+  padding: 48px 24px;
 }
 
 .state-icon {
-  margin: 0;
-  font-size: 2rem;
-  width: 3rem;
-  height: 3rem;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fee2e2;
-  color: #dc2626;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: var(--danger-400);
   border-radius: 50%;
   font-weight: 700;
+  font-size: 18px;
 }
 
 .state-label {
   margin: 0;
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: #dc2626;
+  font-size: var(--text-body-sm-size);
+  font-weight: var(--weight-medium);
+  color: var(--danger-400);
 }
 
 .state-message {
   margin: 0;
-  font-size: 0.85rem;
-  color: #94a3b8;
+  font-size: var(--text-caption-size);
+  color: var(--text-muted);
 }
 
 .retry-btn {
-  margin-block-start: 0.5rem;
-  padding: 0.4rem 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 4px;
-  background: white;
-  cursor: pointer;
-  font-size: 0.85rem;
-  color: #374151;
-}
-
-.retry-btn:hover {
-  background: #f8fafc;
+  margin-top: 6px;
 }
 </style>

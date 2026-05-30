@@ -1,12 +1,12 @@
 import type {
   PublicContentSearchQueryDto,
   SearchResultResponseDto,
-  TournamentListQueryDto,
+  TournamentSearchQueryDto,
   TournamentListResponseDto,
 } from '@dragon/types';
 
 export type SearchContentParams = PublicContentSearchQueryDto;
-export type TournamentSearchParams = TournamentListQueryDto;
+export type TournamentSearchParams = TournamentSearchQueryDto;
 
 export interface SearchClient {
   searchContent(params?: SearchContentParams): Promise<SearchResultResponseDto>;

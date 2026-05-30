@@ -1,10 +1,14 @@
-import type { PublicGameDto, GameDto, GameListQueryDto, GameListResponseDto } from '@dragon/types';
+import type {
+  GameDto,
+  GamePublicListResponseDto,
+  GameListResponseDto,
+  GameListQueryDto,
+} from '@dragon/types';
 
 export type GamesListParams = GameListQueryDto;
 
 export interface GamesClient {
-  list(params?: GamesListParams): Promise<GameListResponseDto>;
-  getBySlug(slug: string): Promise<PublicGameDto>;
+  list(params?: GamesListParams): Promise<GamePublicListResponseDto>;
 }
 
 export interface AdminGamesClient {
@@ -15,6 +19,5 @@ export interface AdminGamesClient {
     id: string,
     input: Partial<Omit<GameDto, 'id' | 'createdAt' | 'updatedAt'>>,
   ): Promise<GameDto>;
-  updateStatus(id: string, status: GameDto['status']): Promise<GameDto>;
   delete(id: string): Promise<void>;
 }

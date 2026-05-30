@@ -41,8 +41,10 @@ export function createAdminTournamentParticipantsClient(
 
     remove(tournamentId: string, participantId: string): Promise<void> {
       return client.request<void>({
-        method: 'DELETE',
-        path: `/admin/v1/tournaments/${encodeURIComponent(tournamentId)}/participants/${encodeURIComponent(participantId)}`,
+        method: 'POST',
+        path: `/admin/v1/tournaments/${encodeURIComponent(tournamentId)}/participants/${encodeURIComponent(participantId)}/remove`,
+        body: JSON.stringify({}),
+        headers: { 'Content-Type': 'application/json' },
       });
     },
 

@@ -7,17 +7,16 @@ import type {
   UpdateTournamentRegistrationDto,
   MyTournamentRegistrationDto,
   TournamentStandingsDto,
-  BracketProjectionDto,
+  TournamentBracketDto,
   TournamentMatchResultDto,
+  TournamentParticipantListResponseDto,
+  TournamentMatchListResponseDto,
 } from '@dragon/types';
-import type { AdminTournamentParticipantListResponseDto } from './admin-tournament-participants-types';
-import type { AdminTournamentMatchListResponseDto } from './admin-tournament-matches-types';
 
 export function createTournamentsClient(client: ApiClient): TournamentsClient {
   return {
     list(params?: TournamentListParams): Promise<TournamentListResponseDto> {
       const search = new URLSearchParams();
-      if (params?.q) search.set('q', params.q);
       if (params?.gameId) search.set('gameId', params.gameId);
       if (params?.status) search.set('status', params.status);
       if (params?.format) search.set('format', params.format);
@@ -79,15 +78,15 @@ export function createTournamentsClient(client: ApiClient): TournamentsClient {
       });
     },
 
-    getParticipants(slug: string): Promise<AdminTournamentParticipantListResponseDto> {
-      return client.request<AdminTournamentParticipantListResponseDto>({
+    getParticipants(slug: string): Promise<TournamentParticipantListResponseDto> {
+      return client.request<TournamentParticipantListResponseDto>({
         method: 'GET',
         path: `/api/v1/tournaments/${encodeURIComponent(slug)}/participants`,
       });
     },
 
-    getMatches(slug: string): Promise<AdminTournamentMatchListResponseDto> {
-      return client.request<AdminTournamentMatchListResponseDto>({
+    getMatches(slug: string): Promise<TournamentMatchListResponseDto> {
+      return client.request<TournamentMatchListResponseDto>({
         method: 'GET',
         path: `/api/v1/tournaments/${encodeURIComponent(slug)}/matches`,
       });
@@ -107,8 +106,8 @@ export function createTournamentsClient(client: ApiClient): TournamentsClient {
       });
     },
 
-    getBracket(slug: string): Promise<BracketProjectionDto> {
-      return client.request<BracketProjectionDto>({
+    getBracket(slug: string): Promise<TournamentBracketDto> {
+      return client.request<TournamentBracketDto>({
         method: 'GET',
         path: `/api/v1/tournaments/${encodeURIComponent(slug)}/bracket`,
       });

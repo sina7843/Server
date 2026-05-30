@@ -8,7 +8,12 @@
 import { DragonPermissions } from './constants/permissions';
 import type { DragonRoleKey } from './constants/permissions';
 import { ANALYTICS_EVENT_TYPES } from './constants/analytics';
-import type { TournamentStatus, TournamentFormat, TournamentDto } from './contracts/tournaments';
+import type {
+  TournamentStatus,
+  TournamentFormat,
+  TournamentDto,
+  TournamentParticipantType,
+} from './contracts/tournaments';
 import type {
   RegistrationStatus,
   TournamentRegistrationType,
@@ -117,6 +122,24 @@ describe('TournamentMatchStatus locked values', () => {
 
   it('does not contain bye', () => {
     expect(STATUSES as readonly string[]).not.toContain('bye');
+  });
+});
+
+// ─── TournamentParticipantType ────────────────────────────────────────────────
+
+describe('TournamentParticipantType locked values', () => {
+  const TYPES: TournamentParticipantType[] = ['individual', 'team', 'both'];
+
+  it('contains exactly the three locked values', () => {
+    expect(TYPES).toHaveLength(3);
+    expect(TYPES).toContain('individual');
+    expect(TYPES).toContain('team');
+    expect(TYPES).toContain('both');
+  });
+
+  it('both is a valid TournamentParticipantType (tournaments open to all)', () => {
+    const t: TournamentParticipantType = 'both';
+    expect(t).toBe('both');
   });
 });
 

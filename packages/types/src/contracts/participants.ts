@@ -30,3 +30,10 @@ export interface TournamentParticipantPublicDto {
   readonly status: ParticipantStatus;
   readonly teamName?: string;
 }
+
+export interface TournamentParticipantListResponseDto {
+  readonly items: readonly TournamentParticipantPublicDto[];
+  readonly total: number;
+  readonly page: number;
+  readonly limit: number;
+}

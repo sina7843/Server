@@ -40,9 +40,18 @@ export interface GameListQueryDto {
   readonly limit?: number;
 }
 
+export interface GamePublicListResponseDto {
+  readonly items: readonly PublicGameDto[];
+  readonly total: number;
+  readonly page: number;
+  readonly limit: number;
+}
+
 export interface GameListResponseDto {
   readonly items: readonly GameDto[];
   readonly total: number;
   readonly page: number;
   readonly limit: number;
 }
+
+export type AdminGameListResponseDto = GameListResponseDto;

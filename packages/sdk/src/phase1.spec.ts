@@ -30,12 +30,12 @@ describe('createEsportsClient', () => {
     return { request, client };
   }
 
-  it('getHome calls GET /api/v1/home', async () => {
+  it('getHome calls GET /api/v1/esports/home', async () => {
     const { request, client } = make();
     request.mockResolvedValue({});
     await client.getHome();
     expect(request).toHaveBeenCalledWith(
-      expect.objectContaining({ method: 'GET', path: '/api/v1/home' }),
+      expect.objectContaining({ method: 'GET', path: '/api/v1/esports/home' }),
     );
   });
 
@@ -72,13 +72,9 @@ describe('createGamesClient', () => {
     );
   });
 
-  it('getBySlug calls GET /api/v1/games/:slug', async () => {
-    const { request, client } = make();
-    request.mockResolvedValue({});
-    await client.getBySlug('dota2');
-    expect(request).toHaveBeenCalledWith(
-      expect.objectContaining({ method: 'GET', path: '/api/v1/games/dota2' }),
-    );
+  it('has no getBySlug method (not locked by Backend Spec)', () => {
+    const { client } = make();
+    expect('getBySlug' in client).toBe(false);
   });
 
   it('has no hardcoded domain', () => {
@@ -138,13 +134,9 @@ describe('createAdminGamesClient', () => {
     );
   });
 
-  it('updateStatus calls PATCH /admin/v1/games/:id/status', async () => {
-    const { request, client } = make();
-    request.mockResolvedValue({});
-    await client.updateStatus('g1', 'inactive');
-    expect(request).toHaveBeenCalledWith(
-      expect.objectContaining({ path: '/admin/v1/games/g1/status' }),
-    );
+  it('has no updateStatus method (not locked by Backend Spec)', () => {
+    const { client } = make();
+    expect('updateStatus' in client).toBe(false);
   });
 
   it('delete calls DELETE /admin/v1/games/:id', async () => {
@@ -175,22 +167,21 @@ describe('createTournamentsClient', () => {
     );
   });
 
-  it('list passes q, gameId, status, format, registrationOpen filters', async () => {
+  it('list passes gameId, status, format, registrationOpen filters (no q — use search.tournaments() for text search)', async () => {
     const { request, client } = make();
     request.mockResolvedValue(emptyList);
     await client.list({
-      q: 'dragon',
       gameId: 'g1',
       status: 'registration_open',
       format: 'single_elimination',
       registrationOpen: true,
     });
     const callArg = request.mock.calls[0]?.[0] as { path: string };
-    expect(callArg.path).toContain('q=dragon');
     expect(callArg.path).toContain('gameId=g1');
     expect(callArg.path).toContain('status=registration_open');
     expect(callArg.path).toContain('format=single_elimination');
     expect(callArg.path).toContain('registrationOpen=true');
+    expect(callArg.path).not.toContain('q=');
   });
 
   it('getBySlug calls GET /api/v1/tournaments/:slug', async () => {
@@ -510,14 +501,14 @@ describe('createAdminTournamentParticipantsClient', () => {
     );
   });
 
-  it('remove calls DELETE /admin/v1/tournaments/:id/participants/:pid', async () => {
+  it('remove calls POST /admin/v1/tournaments/:id/participants/:pid/remove', async () => {
     const { request, client } = make();
     request.mockResolvedValue(undefined);
     await client.remove('t1', 'p1');
     expect(request).toHaveBeenCalledWith(
       expect.objectContaining({
-        method: 'DELETE',
-        path: '/admin/v1/tournaments/t1/participants/p1',
+        method: 'POST',
+        path: '/admin/v1/tournaments/t1/participants/p1/remove',
       }),
     );
   });
@@ -639,14 +630,14 @@ describe('createAdminTournamentResultsClient', () => {
     );
   });
 
-  it('void calls DELETE .../matches/:mid/result', async () => {
+  it('void calls POST .../matches/:mid/result/void', async () => {
     const { request, client } = make();
     request.mockResolvedValue(undefined);
     await client.void('t1', 'm1');
     expect(request).toHaveBeenCalledWith(
       expect.objectContaining({
-        method: 'DELETE',
-        path: '/admin/v1/tournaments/t1/matches/m1/result',
+        method: 'POST',
+        path: '/admin/v1/tournaments/t1/matches/m1/result/void',
       }),
     );
   });

@@ -3,12 +3,12 @@ import type {
   AdminReindexRequestDto,
   AdminReindexResponseDto,
   SearchResultResponseDto,
-  TournamentListQueryDto,
+  TournamentSearchQueryDto,
   TournamentListResponseDto,
 } from '@dragon/types';
 
 export type AdminSearchParams = AdminSearchQueryDto;
-export type AdminTournamentSearchParams = TournamentListQueryDto;
+export type AdminTournamentSearchParams = TournamentSearchQueryDto;
 
 export interface AdminSearchClient {
   searchUsers(params?: AdminSearchParams): Promise<SearchResultResponseDto>;

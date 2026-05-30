@@ -11,7 +11,7 @@ export type TournamentStatus =
   | 'archived';
 
 export type TournamentFormat = 'single_elimination' | 'round_robin' | 'manual';
-export type TournamentParticipantType = 'individual' | 'team';
+export type TournamentParticipantType = 'individual' | 'team' | 'both';
 
 // ─── Public response DTOs ────────────────────────────────────────────────────
 
@@ -80,13 +80,16 @@ export type UpdateTournamentDto = Partial<Omit<TournamentDto, 'id' | 'createdAt'
 // ─── Query / response envelopes ──────────────────────────────────────────────
 
 export interface TournamentListQueryDto {
-  readonly q?: string;
   readonly gameId?: string;
   readonly status?: TournamentStatus;
   readonly format?: TournamentFormat;
   readonly registrationOpen?: boolean;
   readonly page?: number;
   readonly limit?: number;
+}
+
+export interface TournamentSearchQueryDto extends TournamentListQueryDto {
+  readonly q?: string;
 }
 
 export interface TournamentListResponseDto {

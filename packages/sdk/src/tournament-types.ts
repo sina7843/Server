@@ -9,11 +9,11 @@ import type {
   MyTournamentRegistrationDto,
   UpdateTournamentRegistrationDto,
   TournamentStandingsDto,
-  BracketProjectionDto,
+  TournamentBracketDto,
+  TournamentMatchResultDto,
+  TournamentParticipantListResponseDto,
+  TournamentMatchListResponseDto,
 } from '@dragon/types';
-import type { AdminTournamentParticipantListResponseDto } from './admin-tournament-participants-types';
-import type { AdminTournamentMatchListResponseDto } from './admin-tournament-matches-types';
-import type { TournamentMatchResultDto } from '@dragon/types';
 
 export type TournamentListParams = TournamentListQueryDto;
 
@@ -30,11 +30,11 @@ export interface TournamentsClient {
     input: UpdateTournamentRegistrationDto,
   ): Promise<MyTournamentRegistrationDto>;
   withdrawMyRegistration(slug: string): Promise<void>;
-  getParticipants(slug: string): Promise<AdminTournamentParticipantListResponseDto>;
-  getMatches(slug: string): Promise<AdminTournamentMatchListResponseDto>;
+  getParticipants(slug: string): Promise<TournamentParticipantListResponseDto>;
+  getMatches(slug: string): Promise<TournamentMatchListResponseDto>;
   getResults(slug: string): Promise<readonly TournamentMatchResultDto[]>;
   getStandings(slug: string): Promise<TournamentStandingsDto>;
-  getBracket(slug: string): Promise<BracketProjectionDto>;
+  getBracket(slug: string): Promise<TournamentBracketDto>;
 }
 
 export interface AdminTournamentsClient {

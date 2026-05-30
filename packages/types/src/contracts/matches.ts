@@ -34,6 +34,13 @@ export interface AdminTournamentMatchDto extends TournamentMatchDto {
 
 export type TournamentMatchPublicDto = PublicTournamentMatchDto;
 
+export interface TournamentMatchListResponseDto {
+  readonly items: readonly PublicTournamentMatchDto[];
+  readonly total: number;
+  readonly page: number;
+  readonly limit: number;
+}
+
 export interface CreateTournamentMatchDto {
   readonly round: number;
   readonly matchNumber: number;

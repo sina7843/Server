@@ -238,8 +238,11 @@ describe('no forbidden admin routes defined', () => {
     expect(hasTournamentPreview).toBe(false);
   });
 
-  // SLICE 1 PRECONDITION: The following two checks are temporary. Remove or
-  // update them when admin tournament/games pages are added in later slices.
+  // SLICE 1 PRECONDITION: The following two checks are TEMPORARY.
+  // They verify that no admin tournament/games pages exist in Slice 1.
+  // ACTION REQUIRED: When the slice that implements admin tournament or games pages
+  // is merged, remove the corresponding it() block below. Leaving it in place will
+  // permanently block a legal future route. These are NOT permanent guardrails.
   it('[slice-1-precondition] no admin tournament pages yet (remove when implemented)', () => {
     const hasTournamentPage = ADMIN_PAGES.some((f) => {
       const normalized = f.replace(/\\/g, '/');
@@ -262,15 +265,24 @@ describe('no forbidden admin routes defined', () => {
 describe('no forbidden public routes defined', () => {
   const WEB_PAGES = collectFiles(join(WEB_ROOT, 'pages'), ['.vue', '.ts']);
 
-  // PERMANENTLY forbidden: public match detail route is never allowed in Phase 1
-  it('no public page exists for /tournaments/:slug/matches/:matchId route (permanently forbidden)', () => {
-    const hasMatchDetailPage = WEB_PAGES.some(
-      (f) => f.includes('tournaments') && f.includes('matches'),
-    );
+  // PERMANENTLY forbidden: public match DETAIL route is never allowed in Phase 1.
+  // NOTE: /tournaments/:slug/matches (list) IS legal in a future slice — do not block it.
+  // In Nuxt file routing, the match detail page appears as matches/[matchId].vue
+  // (a dynamic segment inside a matches/ folder). The matches list page appears as
+  // matches.vue or matches/index.vue and does NOT have a dynamic segment after /matches/.
+  it('no public page exists for /tournaments/:slug/matches/:matchId (match detail — permanently forbidden)', () => {
+    const hasMatchDetailPage = WEB_PAGES.some((f) => {
+      const normalized = f.replace(/\\/g, '/');
+      return normalized.includes('tournaments') && /\/matches\/\[/.test(normalized);
+    });
     expect(hasMatchDetailPage).toBe(false);
   });
 
-  // SLICE 1 PRECONDITION: remove or update when public tournament/games pages are added
+  // SLICE 1 PRECONDITION: The following two checks are TEMPORARY.
+  // They verify that no public tournament/games pages exist in Slice 1.
+  // ACTION REQUIRED: When the slice that implements public tournament or games pages
+  // is merged, remove the corresponding it() block below. Leaving it in place will
+  // permanently block a legal future route. These are NOT permanent guardrails.
   it('[slice-1-precondition] no public tournament pages yet (remove when implemented)', () => {
     const hasTournamentPage = WEB_PAGES.some((f) => {
       const normalized = f.replace(/\\/g, '/');

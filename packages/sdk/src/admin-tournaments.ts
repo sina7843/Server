@@ -11,7 +11,6 @@ export function createAdminTournamentsClient(client: ApiClient): AdminTournament
   return {
     list(params?: TournamentListParams): Promise<TournamentListResponseDto> {
       const search = new URLSearchParams();
-      if (params?.q) search.set('q', params.q);
       if (params?.gameId) search.set('gameId', params.gameId);
       if (params?.status) search.set('status', params.status);
       if (params?.format) search.set('format', params.format);

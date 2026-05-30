@@ -7,7 +7,7 @@ export function createEsportsClient(client: ApiClient): EsportsClient {
     getHome(): Promise<EsportsHomeDto> {
       return client.request<EsportsHomeDto>({
         method: 'GET',
-        path: '/api/v1/home',
+        path: '/api/v1/esports/home',
       });
     },
   };

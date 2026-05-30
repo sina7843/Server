@@ -38,8 +38,10 @@ export function createAdminTournamentResultsClient(
 
     void(tournamentId: string, matchId: string): Promise<void> {
       return client.request<void>({
-        method: 'DELETE',
-        path: `/admin/v1/tournaments/${encodeURIComponent(tournamentId)}/matches/${encodeURIComponent(matchId)}/result`,
+        method: 'POST',
+        path: `/admin/v1/tournaments/${encodeURIComponent(tournamentId)}/matches/${encodeURIComponent(matchId)}/result/void`,
+        body: JSON.stringify({}),
+        headers: { 'Content-Type': 'application/json' },
       });
     },
   };

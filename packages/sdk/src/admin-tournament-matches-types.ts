@@ -1,8 +1,8 @@
 import type {
   AdminTournamentMatchDto,
   TournamentMatchStatus,
-  TournamentResultDto,
-  UpdateTournamentResultDto,
+  CreateTournamentMatchDto,
+  UpdateTournamentMatchDto,
 } from '@dragon/types';
 
 export interface AdminTournamentMatchListParams {
@@ -24,10 +24,12 @@ export interface AdminTournamentMatchesClient {
     tournamentId: string,
     params?: AdminTournamentMatchListParams,
   ): Promise<AdminTournamentMatchListResponseDto>;
-  getById(tournamentId: string, matchId: string): Promise<AdminTournamentMatchDto>;
-  updateResult(
+  create(tournamentId: string, input: CreateTournamentMatchDto): Promise<AdminTournamentMatchDto>;
+  generate(tournamentId: string): Promise<AdminTournamentMatchListResponseDto>;
+  update(
     tournamentId: string,
     matchId: string,
-    input: UpdateTournamentResultDto,
-  ): Promise<TournamentResultDto>;
+    input: UpdateTournamentMatchDto,
+  ): Promise<AdminTournamentMatchDto>;
+  cancel(tournamentId: string, matchId: string): Promise<AdminTournamentMatchDto>;
 }

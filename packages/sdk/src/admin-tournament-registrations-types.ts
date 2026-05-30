@@ -1,7 +1,7 @@
-import type { AdminTournamentRegistrationDto, TournamentRegistrationStatus } from '@dragon/types';
+import type { AdminTournamentRegistrationDto, RegistrationStatus } from '@dragon/types';
 
 export interface AdminTournamentRegistrationListParams {
-  readonly status?: TournamentRegistrationStatus;
+  readonly status?: RegistrationStatus;
   readonly type?: 'individual' | 'team';
   readonly page?: number;
   readonly limit?: number;
@@ -19,11 +19,12 @@ export interface AdminTournamentRegistrationsClient {
     tournamentId: string,
     params?: AdminTournamentRegistrationListParams,
   ): Promise<AdminTournamentRegistrationListResponseDto>;
-  getById(tournamentId: string, registrationId: string): Promise<AdminTournamentRegistrationDto>;
+  get(tournamentId: string, registrationId: string): Promise<AdminTournamentRegistrationDto>;
   approve(tournamentId: string, registrationId: string): Promise<AdminTournamentRegistrationDto>;
   reject(
     tournamentId: string,
     registrationId: string,
     input?: { reason?: string },
   ): Promise<AdminTournamentRegistrationDto>;
+  cancel(tournamentId: string, registrationId: string): Promise<AdminTournamentRegistrationDto>;
 }

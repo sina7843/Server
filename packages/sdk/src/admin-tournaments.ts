@@ -11,9 +11,12 @@ export function createAdminTournamentsClient(client: ApiClient): AdminTournament
   return {
     list(params?: TournamentListParams): Promise<TournamentListResponseDto> {
       const search = new URLSearchParams();
+      if (params?.q) search.set('q', params.q);
       if (params?.gameId) search.set('gameId', params.gameId);
       if (params?.status) search.set('status', params.status);
       if (params?.format) search.set('format', params.format);
+      if (params?.registrationOpen !== undefined)
+        search.set('registrationOpen', String(params.registrationOpen));
       if (params?.page !== undefined) search.set('page', String(params.page));
       if (params?.limit !== undefined) search.set('limit', String(params.limit));
       const qs = search.toString();
@@ -23,7 +26,7 @@ export function createAdminTournamentsClient(client: ApiClient): AdminTournament
       });
     },
 
-    getById(id: string): Promise<AdminTournamentDto> {
+    get(id: string): Promise<AdminTournamentDto> {
       return client.request<AdminTournamentDto>({
         method: 'GET',
         path: `/admin/v1/tournaments/${encodeURIComponent(id)}`,
@@ -77,6 +80,13 @@ export function createAdminTournamentsClient(client: ApiClient): AdminTournament
         path: `/admin/v1/tournaments/${encodeURIComponent(id)}/archive`,
         body: JSON.stringify(input ?? {}),
         headers: { 'Content-Type': 'application/json' },
+      });
+    },
+
+    delete(id: string): Promise<void> {
+      return client.request<void>({
+        method: 'DELETE',
+        path: `/admin/v1/tournaments/${encodeURIComponent(id)}`,
       });
     },
 

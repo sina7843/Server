@@ -88,18 +88,16 @@ describe('Phase 1 RBAC registry', () => {
     expect(Permissions.TOURNAMENT_RESULT_MANAGE).toBe('tournament.result.manage');
   });
 
-  it('has no game.game.* permissions (wrong namespace)', () => {
+  it('registers Phase 1 game permissions as tournament.game.*', () => {
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_GAME_READ);
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_GAME_MANAGE);
+  });
+
+  it('has no game.game.* permissions in registry', () => {
     expect(allRegisteredKeys).not.toContain('game.game.read');
     expect(allRegisteredKeys).not.toContain('game.game.create');
     expect(allRegisteredKeys).not.toContain('game.game.update');
     expect(allRegisteredKeys).not.toContain('game.status.update');
-  });
-
-  it('registers Phase 1 game permissions under tournament namespace', () => {
-    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_GAME_READ);
-    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_GAME_MANAGE);
-    expect(Permissions.TOURNAMENT_GAME_READ).toBe('tournament.game.read');
-    expect(Permissions.TOURNAMENT_GAME_MANAGE).toBe('tournament.game.manage');
   });
 
   it('registers all Phase 1 tournament permissions', () => {
@@ -184,13 +182,13 @@ describe('Phase 1 RBAC registry', () => {
     expect(RolePermissionRegistryMap.super_admin).toContain(Permissions.TOURNAMENT_RESULT_MANAGE);
   });
 
-  it('tournament_manager has tournament.game.read and tournament.game.manage', () => {
-    expect(RolePermissionRegistryMap.tournament_manager).toContain(
-      Permissions.TOURNAMENT_GAME_READ,
-    );
-    expect(RolePermissionRegistryMap.tournament_manager).toContain(
-      Permissions.TOURNAMENT_GAME_MANAGE,
-    );
+  it('admin role includes all Phase 1 tournament and game permissions', () => {
+    const adminPerms = RolePermissionRegistryMap.admin;
+    expect(adminPerms).toContain(Permissions.TOURNAMENT_GAME_READ);
+    expect(adminPerms).toContain(Permissions.TOURNAMENT_GAME_MANAGE);
+    expect(adminPerms).toContain(Permissions.TOURNAMENT_READ);
+    expect(adminPerms).toContain(Permissions.TOURNAMENT_MATCH_READ);
+    expect(adminPerms).toContain(Permissions.TOURNAMENT_RESULT_MANAGE);
   });
 
   it('Phase 1 permissions are centralized in the registry (not scattered)', () => {

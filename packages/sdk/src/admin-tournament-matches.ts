@@ -6,8 +6,8 @@ import type {
 } from './admin-tournament-matches-types';
 import type {
   AdminTournamentMatchDto,
-  TournamentResultDto,
-  UpdateTournamentResultDto,
+  CreateTournamentMatchDto,
+  UpdateTournamentMatchDto,
 } from '@dragon/types';
 
 export function createAdminTournamentMatchesClient(
@@ -30,22 +30,45 @@ export function createAdminTournamentMatchesClient(
       });
     },
 
-    getById(tournamentId: string, matchId: string): Promise<AdminTournamentMatchDto> {
+    create(
+      tournamentId: string,
+      input: CreateTournamentMatchDto,
+    ): Promise<AdminTournamentMatchDto> {
       return client.request<AdminTournamentMatchDto>({
-        method: 'GET',
-        path: `/admin/v1/tournaments/${encodeURIComponent(tournamentId)}/matches/${encodeURIComponent(matchId)}`,
+        method: 'POST',
+        path: `/admin/v1/tournaments/${encodeURIComponent(tournamentId)}/matches`,
+        body: JSON.stringify(input),
+        headers: { 'Content-Type': 'application/json' },
       });
     },
 
-    updateResult(
+    generate(tournamentId: string): Promise<AdminTournamentMatchListResponseDto> {
+      return client.request<AdminTournamentMatchListResponseDto>({
+        method: 'POST',
+        path: `/admin/v1/tournaments/${encodeURIComponent(tournamentId)}/matches/generate`,
+        body: JSON.stringify({}),
+        headers: { 'Content-Type': 'application/json' },
+      });
+    },
+
+    update(
       tournamentId: string,
       matchId: string,
-      input: UpdateTournamentResultDto,
-    ): Promise<TournamentResultDto> {
-      return client.request<TournamentResultDto>({
-        method: 'PUT',
-        path: `/admin/v1/tournaments/${encodeURIComponent(tournamentId)}/matches/${encodeURIComponent(matchId)}/result`,
+      input: UpdateTournamentMatchDto,
+    ): Promise<AdminTournamentMatchDto> {
+      return client.request<AdminTournamentMatchDto>({
+        method: 'PATCH',
+        path: `/admin/v1/tournaments/${encodeURIComponent(tournamentId)}/matches/${encodeURIComponent(matchId)}`,
         body: JSON.stringify(input),
+        headers: { 'Content-Type': 'application/json' },
+      });
+    },
+
+    cancel(tournamentId: string, matchId: string): Promise<AdminTournamentMatchDto> {
+      return client.request<AdminTournamentMatchDto>({
+        method: 'POST',
+        path: `/admin/v1/tournaments/${encodeURIComponent(tournamentId)}/matches/${encodeURIComponent(matchId)}/cancel`,
+        body: JSON.stringify({}),
         headers: { 'Content-Type': 'application/json' },
       });
     },

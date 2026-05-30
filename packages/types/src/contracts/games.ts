@@ -28,24 +28,9 @@ export interface GameDto {
 }
 
 export type AdminGameDto = GameDto;
-
 export type GamePublicDto = PublicGameDto;
-
-export interface CreateGameDto {
-  readonly slug: string;
-  readonly name: string;
-  readonly description?: string;
-  readonly coverMediaId?: string;
-  readonly iconMediaId?: string;
-}
-
-export interface UpdateGameDto {
-  readonly name?: string;
-  readonly description?: string;
-  readonly coverMediaId?: string;
-  readonly iconMediaId?: string;
-  readonly status?: GameStatus;
-}
+export type CreateGameDto = Omit<GameDto, 'id' | 'createdAt' | 'updatedAt'>;
+export type UpdateGameDto = Partial<Omit<GameDto, 'id' | 'createdAt' | 'updatedAt'>>;
 
 // ─── Query / response envelopes ──────────────────────────────────────────────
 

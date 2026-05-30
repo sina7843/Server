@@ -238,7 +238,9 @@ describe('no forbidden admin routes defined', () => {
     expect(hasTournamentPreview).toBe(false);
   });
 
-  it('no admin tournament pages exist at all (reserved for later slices)', () => {
+  // SLICE 1 PRECONDITION: The following two checks are temporary. Remove or
+  // update them when admin tournament/games pages are added in later slices.
+  it('[slice-1-precondition] no admin tournament pages yet (remove when implemented)', () => {
     const hasTournamentPage = ADMIN_PAGES.some((f) => {
       const normalized = f.replace(/\\/g, '/');
       return normalized.includes('/pages/tournaments/');
@@ -246,7 +248,7 @@ describe('no forbidden admin routes defined', () => {
     expect(hasTournamentPage).toBe(false);
   });
 
-  it('no admin games pages exist (reserved for later slices)', () => {
+  it('[slice-1-precondition] no admin games pages yet (remove when implemented)', () => {
     const hasGamesPage = ADMIN_PAGES.some((f) => {
       const normalized = f.replace(/\\/g, '/');
       return normalized.includes('/pages/games/');
@@ -260,14 +262,16 @@ describe('no forbidden admin routes defined', () => {
 describe('no forbidden public routes defined', () => {
   const WEB_PAGES = collectFiles(join(WEB_ROOT, 'pages'), ['.vue', '.ts']);
 
-  it('no public page exists for /tournaments/:slug/matches/:matchId route', () => {
+  // PERMANENTLY forbidden: public match detail route is never allowed in Phase 1
+  it('no public page exists for /tournaments/:slug/matches/:matchId route (permanently forbidden)', () => {
     const hasMatchDetailPage = WEB_PAGES.some(
       (f) => f.includes('tournaments') && f.includes('matches'),
     );
     expect(hasMatchDetailPage).toBe(false);
   });
 
-  it('no public tournament pages exist at all (reserved for later slices)', () => {
+  // SLICE 1 PRECONDITION: remove or update when public tournament/games pages are added
+  it('[slice-1-precondition] no public tournament pages yet (remove when implemented)', () => {
     const hasTournamentPage = WEB_PAGES.some((f) => {
       const normalized = f.replace(/\\/g, '/');
       return normalized.includes('/pages/tournaments/');
@@ -275,7 +279,7 @@ describe('no forbidden public routes defined', () => {
     expect(hasTournamentPage).toBe(false);
   });
 
-  it('no public games pages exist (reserved for later slices)', () => {
+  it('[slice-1-precondition] no public games pages yet (remove when implemented)', () => {
     const hasGamesPage = WEB_PAGES.some((f) => {
       const normalized = f.replace(/\\/g, '/');
       return normalized.includes('/pages/games/');

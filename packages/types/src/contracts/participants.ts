@@ -16,7 +16,6 @@ export interface ParticipantDto {
 
 export interface TournamentParticipantDto {
   readonly id: string;
-  readonly tournamentId: string;
   readonly userId: string;
   readonly displayName: string;
   readonly seed?: number;
@@ -28,5 +27,6 @@ export interface TournamentParticipantPublicDto {
   readonly id: string;
   readonly displayName: string;
   readonly seed?: number;
+  readonly status: ParticipantStatus;
   readonly teamName?: string;
 }

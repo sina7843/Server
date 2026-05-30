@@ -56,9 +56,12 @@ export function createAdminSearchClient(client: ApiClient): AdminSearchClient {
 
     tournaments(params?: AdminTournamentSearchParams): Promise<TournamentListResponseDto> {
       const search = new URLSearchParams();
+      if (params?.q) search.set('q', params.q);
       if (params?.gameId) search.set('gameId', params.gameId);
       if (params?.status) search.set('status', params.status);
       if (params?.format) search.set('format', params.format);
+      if (params?.registrationOpen !== undefined)
+        search.set('registrationOpen', String(params.registrationOpen));
       if (params?.page !== undefined) search.set('page', String(params.page));
       if (params?.limit !== undefined) search.set('limit', String(params.limit));
       const qs = search.toString();

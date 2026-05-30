@@ -26,7 +26,7 @@ export function createAdminTournamentRegistrationsClient(
       });
     },
 
-    getById(tournamentId: string, registrationId: string): Promise<AdminTournamentRegistrationDto> {
+    get(tournamentId: string, registrationId: string): Promise<AdminTournamentRegistrationDto> {
       return client.request<AdminTournamentRegistrationDto>({
         method: 'GET',
         path: `/admin/v1/tournaments/${encodeURIComponent(tournamentId)}/registrations/${encodeURIComponent(registrationId)}`,
@@ -51,6 +51,15 @@ export function createAdminTournamentRegistrationsClient(
         method: 'POST',
         path: `/admin/v1/tournaments/${encodeURIComponent(tournamentId)}/registrations/${encodeURIComponent(registrationId)}/reject`,
         body: JSON.stringify(input ?? {}),
+        headers: { 'Content-Type': 'application/json' },
+      });
+    },
+
+    cancel(tournamentId: string, registrationId: string): Promise<AdminTournamentRegistrationDto> {
+      return client.request<AdminTournamentRegistrationDto>({
+        method: 'POST',
+        path: `/admin/v1/tournaments/${encodeURIComponent(tournamentId)}/registrations/${encodeURIComponent(registrationId)}/cancel`,
+        body: JSON.stringify({}),
         headers: { 'Content-Type': 'application/json' },
       });
     },

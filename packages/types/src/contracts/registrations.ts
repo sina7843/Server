@@ -41,8 +41,8 @@ export interface TournamentRegistrationInputDto {
 export type CreateTournamentRegistrationDto = TournamentRegistrationInputDto;
 
 export interface UpdateTournamentRegistrationDto {
-  readonly status: RegistrationStatus;
-  readonly reason?: string;
+  readonly teamName?: string;
+  readonly members?: readonly TeamRegistrationMemberDto[];
 }
 
 // ─── Response DTOs ───────────────────────────────────────────────────────────
@@ -52,7 +52,7 @@ export interface TournamentRegistrationDto {
   readonly tournamentId: string;
   readonly userId: string;
   readonly type: TournamentRegistrationType;
-  readonly status: RegistrationStatus;
+  readonly status: TournamentRegistrationStatus;
   readonly teamName?: string;
   readonly members?: readonly TeamRegistrationMemberDto[];
   readonly registeredAt: string;
@@ -63,7 +63,7 @@ export interface MyTournamentRegistrationDto {
   readonly id: string;
   readonly tournamentId: string;
   readonly type: TournamentRegistrationType;
-  readonly status: RegistrationStatus;
+  readonly status: TournamentRegistrationStatus;
   readonly teamName?: string;
   readonly members?: readonly TeamRegistrationMemberDto[];
   readonly registeredAt: string;
@@ -74,7 +74,7 @@ export interface AdminTournamentRegistrationDto {
   readonly tournamentId: string;
   readonly userId: string;
   readonly type: TournamentRegistrationType;
-  readonly status: RegistrationStatus;
+  readonly status: TournamentRegistrationStatus;
   readonly teamName?: string;
   readonly members?: readonly TeamRegistrationMemberDto[];
   readonly registeredAt: string;

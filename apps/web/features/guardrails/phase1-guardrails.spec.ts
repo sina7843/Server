@@ -93,18 +93,22 @@ describe('search.tournaments() locked method name', () => {
     expect('listTournaments' in client).toBe(false);
   });
 
-  it('tournaments() passes gameId, status, format filters in query string', async () => {
+  it('tournaments() passes gameId, status, format, q, registrationOpen filters', async () => {
     const fetcher = jest.fn().mockResolvedValue(emptyListResponse());
     const client = createSearchClient(createApiClient({ baseUrl: '/', fetch: fetcher as never }));
     await client.tournaments({
+      q: 'dragon',
       gameId: 'g1',
       status: 'registration_open',
       format: 'single_elimination',
+      registrationOpen: true,
     });
     const [[calledUrl]] = fetcher.mock.calls as [[string]];
+    expect(calledUrl).toContain('q=dragon');
     expect(calledUrl).toContain('gameId=g1');
     expect(calledUrl).toContain('status=registration_open');
     expect(calledUrl).toContain('format=single_elimination');
+    expect(calledUrl).toContain('registrationOpen=true');
   });
 });
 

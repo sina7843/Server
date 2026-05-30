@@ -34,6 +34,27 @@ export const RolePermissionRegistryMap = {
     Permissions.SEARCH_CONTENT_READ,
     Permissions.SEARCH_MEDIA_READ,
     Permissions.SEARCH_REINDEX,
+
+    Permissions.TOURNAMENT_GAME_READ,
+    Permissions.TOURNAMENT_GAME_MANAGE,
+
+    Permissions.TOURNAMENT_READ,
+    Permissions.TOURNAMENT_CREATE,
+    Permissions.TOURNAMENT_UPDATE,
+    Permissions.TOURNAMENT_PUBLISH,
+    Permissions.TOURNAMENT_CANCEL,
+    Permissions.TOURNAMENT_ARCHIVE,
+
+    Permissions.TOURNAMENT_REGISTRATION_READ,
+    Permissions.TOURNAMENT_REGISTRATION_MANAGE,
+
+    Permissions.TOURNAMENT_PARTICIPANT_READ,
+    Permissions.TOURNAMENT_PARTICIPANT_MANAGE,
+
+    Permissions.TOURNAMENT_MATCH_READ,
+    Permissions.TOURNAMENT_MATCH_MANAGE,
+
+    Permissions.TOURNAMENT_RESULT_MANAGE,
   ],
 
   content_manager: [

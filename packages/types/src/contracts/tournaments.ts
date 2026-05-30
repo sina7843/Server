@@ -11,7 +11,6 @@ export type TournamentStatus =
   | 'archived';
 
 export type TournamentFormat = 'single_elimination' | 'round_robin' | 'manual';
-
 export type TournamentParticipantType = 'individual' | 'team';
 
 // ─── Public response DTOs ────────────────────────────────────────────────────
@@ -47,8 +46,6 @@ export interface TournamentListItemDto {
   readonly publishedAt?: string;
 }
 
-export type TournamentSummaryDto = TournamentListItemDto;
-
 // ─── Admin response DTOs ─────────────────────────────────────────────────────
 
 export interface TournamentDto {
@@ -71,43 +68,23 @@ export interface TournamentDto {
   readonly updatedAt: string;
 }
 
-export type TournamentDetailDto = TournamentDto;
-
 export type AdminTournamentDto = TournamentDto;
-
-// ─── Input DTOs ──────────────────────────────────────────────────────────────
-
-export interface CreateTournamentDto {
-  readonly gameId: string;
-  readonly title: string;
-  readonly slug: string;
-  readonly description?: string;
-  readonly format: TournamentFormat;
-  readonly capacity: number;
-  readonly registrationOpenAt?: string;
-  readonly registrationCloseAt?: string;
-  readonly startsAt?: string;
-  readonly endsAt?: string;
-  readonly rules?: string;
-}
-
-export interface UpdateTournamentDto {
-  readonly title?: string;
-  readonly description?: string;
-  readonly capacity?: number;
-  readonly registrationOpenAt?: string;
-  readonly registrationCloseAt?: string;
-  readonly startsAt?: string;
-  readonly endsAt?: string;
-  readonly rules?: string;
-}
+export type TournamentSummaryDto = TournamentListItemDto;
+export type TournamentDetailDto = PublicTournamentDto;
+export type CreateTournamentDto = Omit<
+  TournamentDto,
+  'id' | 'createdAt' | 'updatedAt' | 'publishedAt' | 'cancelledAt'
+>;
+export type UpdateTournamentDto = Partial<Omit<TournamentDto, 'id' | 'createdAt' | 'updatedAt'>>;
 
 // ─── Query / response envelopes ──────────────────────────────────────────────
 
 export interface TournamentListQueryDto {
+  readonly q?: string;
   readonly gameId?: string;
   readonly status?: TournamentStatus;
   readonly format?: TournamentFormat;
+  readonly registrationOpen?: boolean;
   readonly page?: number;
   readonly limit?: number;
 }

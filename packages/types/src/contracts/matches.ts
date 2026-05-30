@@ -28,14 +28,13 @@ export interface PublicTournamentMatchDto {
   readonly scheduledAt?: string;
 }
 
-export type TournamentMatchPublicDto = PublicTournamentMatchDto;
-
 export interface AdminTournamentMatchDto extends TournamentMatchDto {
   readonly notes?: string;
 }
 
+export type TournamentMatchPublicDto = PublicTournamentMatchDto;
+
 export interface CreateTournamentMatchDto {
-  readonly tournamentId: string;
   readonly round: number;
   readonly matchNumber: number;
   readonly participant1Id?: string;
@@ -61,15 +60,16 @@ export interface TournamentResultDto {
   readonly recordedAt: string;
 }
 
-export type TournamentMatchResultDto = TournamentResultDto;
-
-export interface CreateMatchResultDto {
+export interface UpdateTournamentResultDto {
   readonly winnerId: string;
   readonly participant1Score?: number;
   readonly participant2Score?: number;
+  readonly notes?: string;
 }
 
-export interface UpdateTournamentResultDto {
+export type TournamentMatchResultDto = TournamentResultDto;
+
+export interface CreateMatchResultDto {
   readonly winnerId: string;
   readonly participant1Score?: number;
   readonly participant2Score?: number;

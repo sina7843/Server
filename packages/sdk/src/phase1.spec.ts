@@ -12,12 +12,38 @@ import { createAdminTournamentsClient } from './admin-tournaments';
 import { createAdminTournamentRegistrationsClient } from './admin-tournament-registrations';
 import { createAdminTournamentParticipantsClient } from './admin-tournament-participants';
 import { createAdminTournamentMatchesClient } from './admin-tournament-matches';
+import { createAdminTournamentResultsClient } from './admin-tournament-results';
 import { createAdminTournamentStandingsClient } from './admin-tournament-standings';
 import { createAdminTournamentBracketClient } from './admin-tournament-bracket';
+import { createEsportsClient } from './esports';
 import { createSearchClient } from './search';
 import { createAdminSearchClient } from './admin-search';
 
 const emptyList = { items: [], total: 0, page: 1, limit: 20 };
+
+// ─── EsportsClient ────────────────────────────────────────────────────────────
+
+describe('createEsportsClient', () => {
+  function make() {
+    const request = jest.fn();
+    const client = createEsportsClient({ request } as never);
+    return { request, client };
+  }
+
+  it('getHome calls GET /api/v1/home', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue({});
+    await client.getHome();
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({ method: 'GET', path: '/api/v1/home' }),
+    );
+  });
+
+  it('has no hardcoded domain in path', () => {
+    const { client } = make();
+    expect(client).toBeDefined();
+  });
+});
 
 // ─── GamesClient ─────────────────────────────────────────────────────────────
 
@@ -82,11 +108,16 @@ describe('createAdminGamesClient', () => {
     );
   });
 
-  it('getById calls GET /admin/v1/games/:id', async () => {
+  it('get calls GET /admin/v1/games/:id (locked name — not getById)', async () => {
     const { request, client } = make();
     request.mockResolvedValue({});
-    await client.getById('g1');
+    await client.get('g1');
     expect(request).toHaveBeenCalledWith(expect.objectContaining({ path: '/admin/v1/games/g1' }));
+  });
+
+  it('has no getById alias', () => {
+    const { client } = make();
+    expect('getById' in client).toBe(false);
   });
 
   it('create calls POST /admin/v1/games', async () => {
@@ -115,6 +146,15 @@ describe('createAdminGamesClient', () => {
       expect.objectContaining({ path: '/admin/v1/games/g1/status' }),
     );
   });
+
+  it('delete calls DELETE /admin/v1/games/:id', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue(undefined);
+    await client.delete('g1');
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({ method: 'DELETE', path: '/admin/v1/games/g1' }),
+    );
+  });
 });
 
 // ─── TournamentsClient ────────────────────────────────────────────────────────
@@ -135,14 +175,22 @@ describe('createTournamentsClient', () => {
     );
   });
 
-  it('list passes gameId, status, format filters', async () => {
+  it('list passes q, gameId, status, format, registrationOpen filters', async () => {
     const { request, client } = make();
     request.mockResolvedValue(emptyList);
-    await client.list({ gameId: 'g1', status: 'registration_open', format: 'single_elimination' });
+    await client.list({
+      q: 'dragon',
+      gameId: 'g1',
+      status: 'registration_open',
+      format: 'single_elimination',
+      registrationOpen: true,
+    });
     const callArg = request.mock.calls[0]?.[0] as { path: string };
+    expect(callArg.path).toContain('q=dragon');
     expect(callArg.path).toContain('gameId=g1');
     expect(callArg.path).toContain('status=registration_open');
     expect(callArg.path).toContain('format=single_elimination');
+    expect(callArg.path).toContain('registrationOpen=true');
   });
 
   it('getBySlug calls GET /api/v1/tournaments/:slug', async () => {
@@ -193,15 +241,59 @@ describe('createTournamentsClient', () => {
     );
   });
 
-  it('withdrawRegistration calls DELETE /api/v1/tournaments/:slug/my-registration', async () => {
+  it('updateMyRegistration calls PATCH /api/v1/tournaments/:slug/my-registration', async () => {
     const { request, client } = make();
-    request.mockResolvedValue(undefined);
-    await client.withdrawRegistration('dragon-cup-2026');
+    request.mockResolvedValue({});
+    await client.updateMyRegistration('dragon-cup-2026', { teamName: 'Alpha' });
     expect(request).toHaveBeenCalledWith(
       expect.objectContaining({
-        method: 'DELETE',
+        method: 'PATCH',
         path: '/api/v1/tournaments/dragon-cup-2026/my-registration',
       }),
+    );
+  });
+
+  it('withdrawMyRegistration calls POST .../my-registration/withdraw (not DELETE)', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue(undefined);
+    await client.withdrawMyRegistration('dragon-cup-2026');
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'POST',
+        path: '/api/v1/tournaments/dragon-cup-2026/my-registration/withdraw',
+      }),
+    );
+  });
+
+  it('has no withdrawRegistration alias (locked: withdrawMyRegistration)', () => {
+    const { client } = make();
+    expect('withdrawRegistration' in client).toBe(false);
+  });
+
+  it('getParticipants calls GET /api/v1/tournaments/:slug/participants', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue(emptyList);
+    await client.getParticipants('dragon-cup-2026');
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({ path: '/api/v1/tournaments/dragon-cup-2026/participants' }),
+    );
+  });
+
+  it('getMatches calls GET /api/v1/tournaments/:slug/matches', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue(emptyList);
+    await client.getMatches('dragon-cup-2026');
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({ path: '/api/v1/tournaments/dragon-cup-2026/matches' }),
+    );
+  });
+
+  it('getResults calls GET /api/v1/tournaments/:slug/results', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue([]);
+    await client.getResults('dragon-cup-2026');
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({ path: '/api/v1/tournaments/dragon-cup-2026/results' }),
     );
   });
 
@@ -229,13 +321,18 @@ describe('createAdminTournamentsClient', () => {
     );
   });
 
-  it('getById calls GET /admin/v1/tournaments/:id', async () => {
+  it('get calls GET /admin/v1/tournaments/:id (locked name — not getById)', async () => {
     const { request, client } = make();
     request.mockResolvedValue({});
-    await client.getById('t1');
+    await client.get('t1');
     expect(request).toHaveBeenCalledWith(
       expect.objectContaining({ path: '/admin/v1/tournaments/t1' }),
     );
+  });
+
+  it('has no getById alias', () => {
+    const { client } = make();
+    expect('getById' in client).toBe(false);
   });
 
   it('publish calls POST /admin/v1/tournaments/:id/publish', async () => {
@@ -262,6 +359,15 @@ describe('createAdminTournamentsClient', () => {
     await client.archive('t1');
     expect(request).toHaveBeenCalledWith(
       expect.objectContaining({ path: '/admin/v1/tournaments/t1/archive' }),
+    );
+  });
+
+  it('delete calls DELETE /admin/v1/tournaments/:id', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue(undefined);
+    await client.delete('t1');
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({ method: 'DELETE', path: '/admin/v1/tournaments/t1' }),
     );
   });
 
@@ -311,7 +417,7 @@ describe('createAdminTournamentRegistrationsClient', () => {
     );
   });
 
-  it('list passes status and type filters', async () => {
+  it('list passes status and type filters (submitted is valid status)', async () => {
     const { request, client } = make();
     request.mockResolvedValue(emptyList);
     await client.list('t1', { status: 'submitted', type: 'team' });
@@ -320,7 +426,21 @@ describe('createAdminTournamentRegistrationsClient', () => {
     expect(callArg.path).toContain('type=team');
   });
 
-  it('approve calls POST /admin/v1/tournaments/:id/registrations/:rid/approve', async () => {
+  it('get calls GET .../registrations/:rid (locked name — not getById)', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue({});
+    await client.get('t1', 'r1');
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({ path: '/admin/v1/tournaments/t1/registrations/r1' }),
+    );
+  });
+
+  it('has no getById alias', () => {
+    const { client } = make();
+    expect('getById' in client).toBe(false);
+  });
+
+  it('approve calls POST .../registrations/:rid/approve', async () => {
     const { request, client } = make();
     request.mockResolvedValue({});
     await client.approve('t1', 'r1');
@@ -329,12 +449,24 @@ describe('createAdminTournamentRegistrationsClient', () => {
     );
   });
 
-  it('reject calls POST /admin/v1/tournaments/:id/registrations/:rid/reject', async () => {
+  it('reject calls POST .../registrations/:rid/reject', async () => {
     const { request, client } = make();
     request.mockResolvedValue({});
     await client.reject('t1', 'r1', { reason: 'Incomplete team' });
     expect(request).toHaveBeenCalledWith(
       expect.objectContaining({ path: '/admin/v1/tournaments/t1/registrations/r1/reject' }),
+    );
+  });
+
+  it('cancel calls POST .../registrations/:rid/cancel', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue({});
+    await client.cancel('t1', 'r1');
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'POST',
+        path: '/admin/v1/tournaments/t1/registrations/r1/cancel',
+      }),
     );
   });
 });
@@ -365,6 +497,42 @@ describe('createAdminTournamentParticipantsClient', () => {
       expect.objectContaining({ path: '/admin/v1/tournaments/t1/participants?status=active' }),
     );
   });
+
+  it('update calls PATCH /admin/v1/tournaments/:id/participants/:pid', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue({});
+    await client.update('t1', 'p1', { seed: 1 });
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'PATCH',
+        path: '/admin/v1/tournaments/t1/participants/p1',
+      }),
+    );
+  });
+
+  it('remove calls DELETE /admin/v1/tournaments/:id/participants/:pid', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue(undefined);
+    await client.remove('t1', 'p1');
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'DELETE',
+        path: '/admin/v1/tournaments/t1/participants/p1',
+      }),
+    );
+  });
+
+  it('disqualify calls POST .../participants/:pid/disqualify', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue({});
+    await client.disqualify('t1', 'p1');
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'POST',
+        path: '/admin/v1/tournaments/t1/participants/p1/disqualify',
+      }),
+    );
+  });
 });
 
 // ─── AdminTournamentMatchesClient ─────────────────────────────────────────────
@@ -385,23 +553,47 @@ describe('createAdminTournamentMatchesClient', () => {
     );
   });
 
-  it('getById calls GET /admin/v1/tournaments/:id/matches/:mid', async () => {
+  it('create calls POST /admin/v1/tournaments/:id/matches', async () => {
     const { request, client } = make();
     request.mockResolvedValue({});
-    await client.getById('t1', 'm1');
+    await client.create('t1', { round: 1, matchNumber: 1 });
     expect(request).toHaveBeenCalledWith(
-      expect.objectContaining({ path: '/admin/v1/tournaments/t1/matches/m1' }),
+      expect.objectContaining({ method: 'POST', path: '/admin/v1/tournaments/t1/matches' }),
     );
   });
 
-  it('updateResult calls PUT /admin/v1/tournaments/:id/matches/:mid/result', async () => {
+  it('generate calls POST /admin/v1/tournaments/:id/matches/generate', async () => {
     const { request, client } = make();
-    request.mockResolvedValue({});
-    await client.updateResult('t1', 'm1', { winnerId: 'p1' });
+    request.mockResolvedValue(emptyList);
+    await client.generate('t1');
     expect(request).toHaveBeenCalledWith(
       expect.objectContaining({
-        method: 'PUT',
-        path: '/admin/v1/tournaments/t1/matches/m1/result',
+        method: 'POST',
+        path: '/admin/v1/tournaments/t1/matches/generate',
+      }),
+    );
+  });
+
+  it('update calls PATCH /admin/v1/tournaments/:id/matches/:mid', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue({});
+    await client.update('t1', 'm1', { notes: 'rescheduled' });
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'PATCH',
+        path: '/admin/v1/tournaments/t1/matches/m1',
+      }),
+    );
+  });
+
+  it('cancel calls POST /admin/v1/tournaments/:id/matches/:mid/cancel', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue({});
+    await client.cancel('t1', 'm1');
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'POST',
+        path: '/admin/v1/tournaments/t1/matches/m1/cancel',
       }),
     );
   });
@@ -410,6 +602,53 @@ describe('createAdminTournamentMatchesClient', () => {
     const { client } = make();
     expect('updateLiveScore' in client).toBe(false);
     expect('setStream' in client).toBe(false);
+    expect('updateResult' in client).toBe(false);
+  });
+});
+
+// ─── AdminTournamentResultsClient ────────────────────────────────────────────
+
+describe('createAdminTournamentResultsClient', () => {
+  function make() {
+    const request = jest.fn();
+    const client = createAdminTournamentResultsClient({ request } as never);
+    return { request, client };
+  }
+
+  it('record calls POST .../matches/:mid/result', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue({});
+    await client.record('t1', 'm1', { winnerId: 'p1' });
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'POST',
+        path: '/admin/v1/tournaments/t1/matches/m1/result',
+      }),
+    );
+  });
+
+  it('update calls PATCH .../matches/:mid/result', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue({});
+    await client.update('t1', 'm1', { winnerId: 'p2' });
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'PATCH',
+        path: '/admin/v1/tournaments/t1/matches/m1/result',
+      }),
+    );
+  });
+
+  it('void calls DELETE .../matches/:mid/result', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue(undefined);
+    await client.void('t1', 'm1');
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'DELETE',
+        path: '/admin/v1/tournaments/t1/matches/m1/result',
+      }),
+    );
   });
 });
 
@@ -522,6 +761,15 @@ describe('createSearchClient – tournaments()', () => {
     );
   });
 
+  it('tournaments passes q and registrationOpen filters', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue(emptyList);
+    await client.tournaments({ q: 'dragon', registrationOpen: true });
+    const callArg = request.mock.calls[0]?.[0] as { path: string };
+    expect(callArg.path).toContain('q=dragon');
+    expect(callArg.path).toContain('registrationOpen=true');
+  });
+
   it('tournaments passes gameId and status filters', async () => {
     const { request, client } = make();
     request.mockResolvedValue(emptyList);
@@ -574,6 +822,7 @@ describe('createAdminSearchClient – tournaments()', () => {
 
 describe('Phase 1 SDK paths have no hardcoded domains', () => {
   const clients = [
+    { name: 'esports', client: createEsportsClient({ request: jest.fn() } as never) },
     { name: 'games', client: createGamesClient({ request: jest.fn() } as never) },
     { name: 'admin-games', client: createAdminGamesClient({ request: jest.fn() } as never) },
     { name: 'tournaments', client: createTournamentsClient({ request: jest.fn() } as never) },

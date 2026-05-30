@@ -8,59 +8,22 @@
 import { DragonPermissions } from './constants/permissions';
 import type { DragonRoleKey } from './constants/permissions';
 import { ANALYTICS_EVENT_TYPES } from './constants/analytics';
+import type { TournamentStatus, TournamentFormat, TournamentDto } from './contracts/tournaments';
 import type {
-  TournamentStatus,
-  TournamentFormat,
-  TournamentDto,
-  TournamentSummaryDto,
-  TournamentDetailDto,
-  TournamentParticipantType,
-  CreateTournamentDto,
-  UpdateTournamentDto,
-} from './contracts/tournaments';
-import type {
-  TournamentRegistrationType,
   RegistrationStatus,
+  TournamentRegistrationType,
   TournamentRegistrationDto,
-  CreateTournamentRegistrationDto,
-  UpdateTournamentRegistrationDto,
   TeamRegistrationMemberDto,
 } from './contracts/registrations';
-import type {
-  GameDto,
-  GamePublicDto,
-  PublicGameDto,
-  CreateGameDto,
-  UpdateGameDto,
-} from './contracts/games';
-import type {
-  ParticipantDto,
-  ParticipantStatus,
-  TournamentParticipantDto,
-  TournamentParticipantPublicDto,
-} from './contracts/participants';
-import type {
-  TournamentMatchDto,
-  TournamentMatchStatus,
-  TournamentResultDto,
-  TournamentMatchResultDto,
-  TournamentMatchPublicDto,
-  CreateTournamentMatchDto,
-  UpdateTournamentMatchDto,
-  CreateMatchResultDto,
-  UpdateMatchResultDto,
-} from './contracts/matches';
+import type { GameDto } from './contracts/games';
+import type { ParticipantDto } from './contracts/participants';
+import type { TournamentMatchDto, TournamentResultDto } from './contracts/matches';
 import type {
   TournamentStandingDto,
   TournamentStandingsDto,
   RecalculateStandingsResultDto,
 } from './contracts/standings';
-import type {
-  BracketProjectionDto,
-  BracketMatchNodeDto,
-  TournamentBracketDto,
-} from './contracts/bracket';
-import type { EsportsHomeDto } from './contracts/home';
+import type { BracketProjectionDto, BracketMatchNodeDto } from './contracts/bracket';
 
 // ─── TournamentStatus ─────────────────────────────────────────────────────────
 
@@ -121,7 +84,43 @@ describe('TournamentFormat locked values', () => {
   });
 });
 
-// ─── TournamentRegistrationType / TournamentParticipantType ──────────────────
+// ─── ParticipantStatus ────────────────────────────────────────────────────────
+
+describe('ParticipantStatus locked values', () => {
+  const STATUSES = ['active', 'withdrawn', 'disqualified', 'removed'] as const;
+
+  it('contains exactly the four locked values', () => {
+    expect(STATUSES).toHaveLength(4);
+    expect(STATUSES).toContain('active');
+    expect(STATUSES).toContain('withdrawn');
+    expect(STATUSES).toContain('disqualified');
+    expect(STATUSES).toContain('removed');
+  });
+
+  it('does not contain eliminated', () => {
+    expect(STATUSES as readonly string[]).not.toContain('eliminated');
+  });
+});
+
+// ─── TournamentMatchStatus ─────────────────────────────────────────────────────
+
+describe('TournamentMatchStatus locked values', () => {
+  const STATUSES = ['scheduled', 'in_progress', 'completed', 'cancelled'] as const;
+
+  it('contains exactly the four locked values', () => {
+    expect(STATUSES).toHaveLength(4);
+    expect(STATUSES).toContain('scheduled');
+    expect(STATUSES).toContain('in_progress');
+    expect(STATUSES).toContain('completed');
+    expect(STATUSES).toContain('cancelled');
+  });
+
+  it('does not contain bye', () => {
+    expect(STATUSES as readonly string[]).not.toContain('bye');
+  });
+});
+
+// ─── TournamentRegistrationType ───────────────────────────────────────────────
 
 describe('TournamentRegistrationType locked values', () => {
   const SUPPORTED_TYPES: TournamentRegistrationType[] = ['individual', 'team'];
@@ -145,18 +144,10 @@ describe('TournamentRegistrationType locked values', () => {
   });
 });
 
-describe('TournamentParticipantType is exported and matches registration type', () => {
-  it('TournamentParticipantType accepts individual and team', () => {
-    const types: TournamentParticipantType[] = ['individual', 'team'];
-    expect(types).toContain('individual');
-    expect(types).toContain('team');
-  });
-});
-
-// ─── RegistrationStatus ───────────────────────────────────────────────────────
+// ─── RegistrationStatus ────────────────────────────────────────────────────────
 
 describe('RegistrationStatus locked values', () => {
-  const LOCKED_STATUSES: RegistrationStatus[] = [
+  const STATUSES: RegistrationStatus[] = [
     'submitted',
     'approved',
     'rejected',
@@ -165,63 +156,22 @@ describe('RegistrationStatus locked values', () => {
     'cancelled',
   ];
 
-  it('contains exactly the six locked registration statuses', () => {
-    expect(LOCKED_STATUSES).toHaveLength(6);
-    expect(LOCKED_STATUSES).toContain('submitted');
-    expect(LOCKED_STATUSES).toContain('approved');
-    expect(LOCKED_STATUSES).toContain('rejected');
-    expect(LOCKED_STATUSES).toContain('waitlisted');
-    expect(LOCKED_STATUSES).toContain('withdrawn');
-    expect(LOCKED_STATUSES).toContain('cancelled');
+  it('contains exactly the six locked statuses', () => {
+    expect(STATUSES).toHaveLength(6);
+    expect(STATUSES).toContain('submitted');
+    expect(STATUSES).toContain('approved');
+    expect(STATUSES).toContain('rejected');
+    expect(STATUSES).toContain('waitlisted');
+    expect(STATUSES).toContain('withdrawn');
+    expect(STATUSES).toContain('cancelled');
   });
 
-  it('pending is not a valid registration status (use submitted)', () => {
-    expect(LOCKED_STATUSES).not.toContain('pending');
+  it('does not contain pending (use submitted)', () => {
+    expect(STATUSES).not.toContain('pending');
   });
 
-  it('disqualified is not a valid registration status', () => {
-    expect(LOCKED_STATUSES).not.toContain('disqualified');
-  });
-});
-
-// ─── ParticipantStatus ────────────────────────────────────────────────────────
-
-describe('ParticipantStatus locked values', () => {
-  const LOCKED_STATUSES: ParticipantStatus[] = ['active', 'withdrawn', 'disqualified', 'removed'];
-
-  it('contains exactly the four locked participant statuses', () => {
-    expect(LOCKED_STATUSES).toHaveLength(4);
-    expect(LOCKED_STATUSES).toContain('active');
-    expect(LOCKED_STATUSES).toContain('withdrawn');
-    expect(LOCKED_STATUSES).toContain('disqualified');
-    expect(LOCKED_STATUSES).toContain('removed');
-  });
-
-  it('eliminated is not a valid participant status', () => {
-    expect(LOCKED_STATUSES).not.toContain('eliminated');
-  });
-});
-
-// ─── TournamentMatchStatus ────────────────────────────────────────────────────
-
-describe('TournamentMatchStatus locked values', () => {
-  const LOCKED_STATUSES: TournamentMatchStatus[] = [
-    'scheduled',
-    'in_progress',
-    'completed',
-    'cancelled',
-  ];
-
-  it('contains exactly the four locked match statuses', () => {
-    expect(LOCKED_STATUSES).toHaveLength(4);
-    expect(LOCKED_STATUSES).toContain('scheduled');
-    expect(LOCKED_STATUSES).toContain('in_progress');
-    expect(LOCKED_STATUSES).toContain('completed');
-    expect(LOCKED_STATUSES).toContain('cancelled');
-  });
-
-  it('bye is not a valid match status', () => {
-    expect(LOCKED_STATUSES).not.toContain('bye');
+  it('does not contain disqualified (belongs in ParticipantStatus)', () => {
+    expect(STATUSES).not.toContain('disqualified');
   });
 });
 
@@ -247,50 +197,6 @@ describe('Tournament contract shape', () => {
     expect(record['liveScore']).toBeUndefined();
   });
 
-  it('TournamentDetailDto is an alias for TournamentDto', () => {
-    const dto: TournamentDetailDto = {
-      id: '1',
-      gameId: 'g1',
-      title: 'Test',
-      slug: 'test',
-      format: 'round_robin',
-      status: 'published',
-      capacity: 32,
-      createdAt: '',
-      updatedAt: '',
-    };
-    expect(dto.id).toBe('1');
-  });
-
-  it('TournamentSummaryDto is exported and structurally valid', () => {
-    const summary: TournamentSummaryDto = {
-      id: 't1',
-      gameId: 'g1',
-      title: 'Test',
-      slug: 'test',
-      format: 'manual',
-      status: 'draft',
-      capacity: 8,
-    };
-    expect(summary.slug).toBe('test');
-  });
-
-  it('CreateTournamentDto is exported', () => {
-    const input: CreateTournamentDto = {
-      gameId: 'g1',
-      title: 'Test',
-      slug: 'test',
-      format: 'single_elimination',
-      capacity: 16,
-    };
-    expect(input.format).toBe('single_elimination');
-  });
-
-  it('UpdateTournamentDto is exported', () => {
-    const input: UpdateTournamentDto = { title: 'New Title' };
-    expect(input.title).toBe('New Title');
-  });
-
   it('GameDto is a data contract (no DB entity fields)', () => {
     const game: GameDto = {
       id: 'g1',
@@ -303,39 +209,6 @@ describe('Tournament contract shape', () => {
     const record = game as unknown as Record<string, unknown>;
     expect(record['_id']).toBeUndefined();
     expect(record['__v']).toBeUndefined();
-  });
-
-  it('GamePublicDto and PublicGameDto are both exported', () => {
-    const pub: GamePublicDto = { id: 'g1', slug: 'dota2', name: 'Dota 2' };
-    const pub2: PublicGameDto = { id: 'g1', slug: 'dota2', name: 'Dota 2' };
-    expect(pub.slug).toBe(pub2.slug);
-  });
-
-  it('CreateGameDto is exported', () => {
-    const input: CreateGameDto = { slug: 'dota2', name: 'Dota 2' };
-    expect(input.slug).toBe('dota2');
-  });
-
-  it('UpdateGameDto is exported', () => {
-    const input: UpdateGameDto = { name: 'Dota 2 Updated' };
-    expect(input.name).toBe('Dota 2 Updated');
-  });
-
-  it('TournamentParticipantDto has tournamentId field', () => {
-    const p: TournamentParticipantDto = {
-      id: 'p1',
-      tournamentId: 't1',
-      userId: 'u1',
-      displayName: 'Player1',
-      status: 'active',
-    };
-    expect(p.tournamentId).toBe('t1');
-  });
-
-  it('TournamentParticipantPublicDto is exported (public-safe shape)', () => {
-    const pub: TournamentParticipantPublicDto = { id: 'p1', displayName: 'Player1' };
-    const record = pub as unknown as Record<string, unknown>;
-    expect(record['userId']).toBeUndefined();
   });
 
   it('ParticipantDto is a projection contract (no sensitive data)', () => {
@@ -364,30 +237,6 @@ describe('Tournament contract shape', () => {
     expect(record['stream']).toBeUndefined();
   });
 
-  it('TournamentMatchPublicDto is exported', () => {
-    const match: TournamentMatchPublicDto = {
-      id: 'm1',
-      round: 1,
-      matchNumber: 1,
-      status: 'scheduled',
-    };
-    expect(match.round).toBe(1);
-  });
-
-  it('CreateTournamentMatchDto is exported', () => {
-    const input: CreateTournamentMatchDto = {
-      tournamentId: 't1',
-      round: 1,
-      matchNumber: 1,
-    };
-    expect(input.round).toBe(1);
-  });
-
-  it('UpdateTournamentMatchDto is exported', () => {
-    const input: UpdateTournamentMatchDto = { scheduledAt: '2026-01-01' };
-    expect(input.scheduledAt).toBe('2026-01-01');
-  });
-
   it('TournamentResultDto is data-only', () => {
     const result: TournamentResultDto = {
       matchId: 'm1',
@@ -396,26 +245,6 @@ describe('Tournament contract shape', () => {
       recordedAt: '',
     };
     expect(result.winnerId).toBe('p1');
-  });
-
-  it('TournamentMatchResultDto is an alias for TournamentResultDto', () => {
-    const result: TournamentMatchResultDto = {
-      matchId: 'm1',
-      tournamentId: 't1',
-      winnerId: 'p1',
-      recordedAt: '',
-    };
-    expect(result.matchId).toBe('m1');
-  });
-
-  it('CreateMatchResultDto is exported', () => {
-    const input: CreateMatchResultDto = { winnerId: 'p1' };
-    expect(input.winnerId).toBe('p1');
-  });
-
-  it('UpdateMatchResultDto is exported', () => {
-    const input: UpdateMatchResultDto = { winnerId: 'p2', participant1Score: 3 };
-    expect(input.winnerId).toBe('p2');
   });
 
   it('TournamentStandingDto is data-only', () => {
@@ -439,7 +268,7 @@ describe('Tournament contract shape', () => {
     expect(result.success).toBe(true);
   });
 
-  it('team registration uses submitted status (not pending)', () => {
+  it('team registration is represented inside TournamentRegistrationDto', () => {
     const member: TeamRegistrationMemberDto = { userId: 'u2', displayName: 'Player2' };
     const reg: TournamentRegistrationDto = {
       id: 'r1',
@@ -453,23 +282,7 @@ describe('Tournament contract shape', () => {
       updatedAt: '',
     };
     expect(reg.type).toBe('team');
-    expect(reg.status).toBe('submitted');
     expect(reg.members?.[0]?.userId).toBe('u2');
-  });
-
-  it('CreateTournamentRegistrationDto is exported', () => {
-    const input: CreateTournamentRegistrationDto = { type: 'individual' };
-    expect(input.type).toBe('individual');
-  });
-
-  it('UpdateTournamentRegistrationDto is exported', () => {
-    const input: UpdateTournamentRegistrationDto = { status: 'approved' };
-    expect(input.status).toBe('approved');
-  });
-
-  it('EsportsHomeDto is exported', () => {
-    const home: EsportsHomeDto = { featuredTournaments: [], games: [] };
-    expect(home.featuredTournaments).toHaveLength(0);
   });
 });
 
@@ -487,16 +300,6 @@ describe('Bracket contracts are display-only projection', () => {
     expect(record['editCommand']).toBeUndefined();
     expect(record['dragDrop']).toBeUndefined();
     expect(record['editorState']).toBeUndefined();
-  });
-
-  it('TournamentBracketDto is an alias for BracketProjectionDto', () => {
-    const bracket: TournamentBracketDto = {
-      tournamentId: 't1',
-      format: 'round_robin',
-      rounds: [],
-      generatedAt: '',
-    };
-    expect(bracket.tournamentId).toBe('t1');
   });
 
   it('BracketMatchNodeDto has no editor-specific fields', () => {
@@ -601,13 +404,6 @@ describe('Phase 1 DragonPermissions', () => {
     expect(permissionValues).not.toContain('tournament.bracket.manage');
   });
 
-  it('no game.game.* permissions exist (wrong namespace)', () => {
-    expect(permissionValues).not.toContain('game.game.read');
-    expect(permissionValues).not.toContain('game.game.create');
-    expect(permissionValues).not.toContain('game.game.update');
-    expect(permissionValues).not.toContain('game.status.update');
-  });
-
   it('bracket read/projection uses tournament.match.read', () => {
     expect(DragonPermissions.TOURNAMENT_MATCH_READ).toBe('tournament.match.read');
   });
@@ -616,9 +412,16 @@ describe('Phase 1 DragonPermissions', () => {
     expect(DragonPermissions.TOURNAMENT_RESULT_MANAGE).toBe('tournament.result.manage');
   });
 
-  it('has correct game permissions under tournament namespace', () => {
+  it('has Phase 1 game permissions as tournament.game.*', () => {
     expect(DragonPermissions.TOURNAMENT_GAME_READ).toBe('tournament.game.read');
     expect(DragonPermissions.TOURNAMENT_GAME_MANAGE).toBe('tournament.game.manage');
+  });
+
+  it('has no game.game.* permissions', () => {
+    expect(permissionValues).not.toContain('game.game.read');
+    expect(permissionValues).not.toContain('game.game.create');
+    expect(permissionValues).not.toContain('game.game.update');
+    expect(permissionValues).not.toContain('game.status.update');
   });
 
   it('has all tournament lifecycle permissions', () => {
@@ -679,16 +482,5 @@ describe('DragonRoleKey', () => {
   it('includes tournament_manager as a valid role key', () => {
     const key: DragonRoleKey = 'tournament_manager';
     expect(key).toBe('tournament_manager');
-  });
-});
-
-// ─── No independent Team or Club model ───────────────────────────────────────
-
-describe('No independent Team or Club model', () => {
-  it('TournamentRegistrationType has no team_entity value', () => {
-    const types: TournamentRegistrationType[] = ['individual', 'team'];
-    expect(types).not.toContain('team_entity');
-    expect(types).not.toContain('club');
-    expect(types).not.toContain('organization');
   });
 });

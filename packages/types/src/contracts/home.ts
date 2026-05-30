@@ -1,9 +1,7 @@
-// ─── Esports home DTOs ────────────────────────────────────────────────────────
+// ─── Esports home DTOs ───────────────────────────────────────────────────────
 
-import type { TournamentSummaryDto } from './tournaments';
-import type { GamePublicDto } from './games';
+import type { TournamentListItemDto } from './tournaments';
 
 export interface EsportsHomeDto {
-  readonly featuredTournaments: readonly TournamentSummaryDto[];
-  readonly games: readonly GamePublicDto[];
+  readonly featuredTournaments: readonly TournamentListItemDto[];
 }

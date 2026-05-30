@@ -16,7 +16,7 @@ export function createAdminGamesClient(client: ApiClient): AdminGamesClient {
       });
     },
 
-    getById(id: string): Promise<GameDto> {
+    get(id: string): Promise<GameDto> {
       return client.request<GameDto>({
         method: 'GET',
         path: `/admin/v1/games/${encodeURIComponent(id)}`,
@@ -50,6 +50,13 @@ export function createAdminGamesClient(client: ApiClient): AdminGamesClient {
         path: `/admin/v1/games/${encodeURIComponent(id)}/status`,
         body: JSON.stringify({ status }),
         headers: { 'Content-Type': 'application/json' },
+      });
+    },
+
+    delete(id: string): Promise<void> {
+      return client.request<void>({
+        method: 'DELETE',
+        path: `/admin/v1/games/${encodeURIComponent(id)}`,
       });
     },
   };

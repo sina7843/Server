@@ -234,7 +234,7 @@ export const PermissionRegistry = [
     'tournament',
     'game',
     'manage',
-    'Create, update, and manage game status',
+    'Create, update, and manage games',
   ),
 
   // ─── Phase 1: Tournament permissions ────────────────────────────────────────

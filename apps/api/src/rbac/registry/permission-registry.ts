@@ -222,10 +222,20 @@ export const PermissionRegistry = [
   ),
 
   // ─── Phase 1: Game permissions ──────────────────────────────────────────────
-  permission(Permissions.GAME_READ, 'game', 'game', 'read', 'Read game list and detail'),
-  permission(Permissions.GAME_CREATE, 'game', 'game', 'create', 'Create a game'),
-  permission(Permissions.GAME_UPDATE, 'game', 'game', 'update', 'Update game fields'),
-  permission(Permissions.GAME_STATUS_UPDATE, 'game', 'status', 'update', 'Update game status'),
+  permission(
+    Permissions.TOURNAMENT_GAME_READ,
+    'tournament',
+    'game',
+    'read',
+    'Read game list and detail',
+  ),
+  permission(
+    Permissions.TOURNAMENT_GAME_MANAGE,
+    'tournament',
+    'game',
+    'manage',
+    'Create, update, and manage game status',
+  ),
 
   // ─── Phase 1: Tournament permissions ────────────────────────────────────────
   permission(

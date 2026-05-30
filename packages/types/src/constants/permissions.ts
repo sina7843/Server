@@ -60,10 +60,8 @@ export const DragonPermissions = {
   SEARCH_REINDEX: 'search.index.reindex',
 
   // ─── Phase 1: Game permissions ──────────────────────────────────────────────
-  GAME_READ: 'game.game.read',
-  GAME_CREATE: 'game.game.create',
-  GAME_UPDATE: 'game.game.update',
-  GAME_STATUS_UPDATE: 'game.status.update',
+  TOURNAMENT_GAME_READ: 'tournament.game.read',
+  TOURNAMENT_GAME_MANAGE: 'tournament.game.manage',
 
   // ─── Phase 1: Tournament permissions ────────────────────────────────────────
   TOURNAMENT_READ: 'tournament.tournament.read',

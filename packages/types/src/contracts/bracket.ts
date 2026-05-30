@@ -3,6 +3,8 @@
 // No editable bracket, no separate bracket collection, no drag/drop contract.
 // Bracket read access uses the tournament.match.read permission policy.
 
+import type { TournamentFormat } from './tournaments';
+
 export interface BracketParticipantSeedDto {
   readonly participantId: string;
   readonly displayName: string;
@@ -27,7 +29,9 @@ export interface BracketRoundDto {
 
 export interface BracketProjectionDto {
   readonly tournamentId: string;
-  readonly format: string;
+  readonly format: TournamentFormat;
   readonly rounds: readonly BracketRoundDto[];
   readonly generatedAt: string;
 }
+
+export type TournamentBracketDto = BracketProjectionDto;

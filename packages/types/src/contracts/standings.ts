@@ -1,5 +1,7 @@
 // ─── Standing DTOs ───────────────────────────────────────────────────────────
 
+import type { TournamentFormat } from './tournaments';
+
 export interface TournamentStandingDto {
   readonly rank: number;
   readonly participantId: string;
@@ -11,7 +13,7 @@ export interface TournamentStandingDto {
 
 export interface TournamentStandingsDto {
   readonly tournamentId: string;
-  readonly format: string;
+  readonly format: TournamentFormat;
   readonly standings: readonly TournamentStandingDto[];
   readonly updatedAt: string;
 }

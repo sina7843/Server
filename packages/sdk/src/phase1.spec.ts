@@ -314,9 +314,9 @@ describe('createAdminTournamentRegistrationsClient', () => {
   it('list passes status and type filters', async () => {
     const { request, client } = make();
     request.mockResolvedValue(emptyList);
-    await client.list('t1', { status: 'pending', type: 'team' });
+    await client.list('t1', { status: 'submitted', type: 'team' });
     const callArg = request.mock.calls[0]?.[0] as { path: string };
-    expect(callArg.path).toContain('status=pending');
+    expect(callArg.path).toContain('status=submitted');
     expect(callArg.path).toContain('type=team');
   });
 

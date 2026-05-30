@@ -120,6 +120,56 @@ describe('ADMIN_NAV_ITEMS', () => {
   });
 });
 
+// ─── Phase 1 navigation guardrails ───────────────────────────────────────────
+
+describe('Phase 1 navigation guardrails', () => {
+  it('does not contain games nav items (no page exists yet)', () => {
+    const keys = ADMIN_NAV_ITEMS.map((i) => i.key);
+    expect(keys).not.toContain('games');
+    expect(keys).not.toContain('game-management');
+  });
+
+  it('does not contain tournaments nav items (no page exists yet)', () => {
+    const keys = ADMIN_NAV_ITEMS.map((i) => i.key);
+    expect(keys).not.toContain('tournaments');
+    expect(keys).not.toContain('tournament-management');
+    expect(keys).not.toContain('tournament-manager');
+  });
+
+  it('has no placeholder nav paths', () => {
+    const PLACEHOLDER_PATHS = ['#', '/coming-soon', '/placeholder', '/soon', '/tbd'];
+    for (const item of ADMIN_NAV_ITEMS) {
+      expect(item.path).toMatch(/^\//);
+      for (const placeholder of PLACEHOLDER_PATHS) {
+        expect(item.path).not.toBe(placeholder);
+      }
+    }
+  });
+
+  it('has no coming-soon or disabled nav items (no placeholder label text)', () => {
+    const PLACEHOLDER_LABELS = ['Coming Soon', 'coming-soon', 'Disabled', 'Placeholder', 'TBD'];
+    for (const item of ADMIN_NAV_ITEMS) {
+      for (const label of PLACEHOLDER_LABELS) {
+        expect(item.label).not.toContain(label);
+        expect(item.labelEn).not.toContain(label);
+      }
+    }
+  });
+
+  it('all nav items use DragonPermissions constants (no raw permission strings)', () => {
+    const permissionValues = Object.values(DragonPermissions) as string[];
+    for (const item of ADMIN_NAV_ITEMS) {
+      expect(permissionValues).toContain(item.permission);
+    }
+  });
+
+  it('no forbidden bracket permission used as nav gate', () => {
+    const permissions = ADMIN_NAV_ITEMS.map((i) => i.permission);
+    expect(permissions).not.toContain('tournament.bracket.read');
+    expect(permissions).not.toContain('tournament.bracket.manage');
+  });
+});
+
 describe('filterNavByPermissions', () => {
   it('returns empty array with no permissions and no super_admin flag', () => {
     const result = filterNavByPermissions(ADMIN_NAV_ITEMS, new Set(), false);

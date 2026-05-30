@@ -88,11 +88,18 @@ describe('Phase 1 RBAC registry', () => {
     expect(Permissions.TOURNAMENT_RESULT_MANAGE).toBe('tournament.result.manage');
   });
 
-  it('registers all Phase 1 game permissions', () => {
-    expect(allRegisteredKeys).toContain(Permissions.GAME_READ);
-    expect(allRegisteredKeys).toContain(Permissions.GAME_CREATE);
-    expect(allRegisteredKeys).toContain(Permissions.GAME_UPDATE);
-    expect(allRegisteredKeys).toContain(Permissions.GAME_STATUS_UPDATE);
+  it('has no game.game.* permissions (wrong namespace)', () => {
+    expect(allRegisteredKeys).not.toContain('game.game.read');
+    expect(allRegisteredKeys).not.toContain('game.game.create');
+    expect(allRegisteredKeys).not.toContain('game.game.update');
+    expect(allRegisteredKeys).not.toContain('game.status.update');
+  });
+
+  it('registers Phase 1 game permissions under tournament namespace', () => {
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_GAME_READ);
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_GAME_MANAGE);
+    expect(Permissions.TOURNAMENT_GAME_READ).toBe('tournament.game.read');
+    expect(Permissions.TOURNAMENT_GAME_MANAGE).toBe('tournament.game.manage');
   });
 
   it('registers all Phase 1 tournament permissions', () => {
@@ -177,12 +184,19 @@ describe('Phase 1 RBAC registry', () => {
     expect(RolePermissionRegistryMap.super_admin).toContain(Permissions.TOURNAMENT_RESULT_MANAGE);
   });
 
+  it('tournament_manager has tournament.game.read and tournament.game.manage', () => {
+    expect(RolePermissionRegistryMap.tournament_manager).toContain(
+      Permissions.TOURNAMENT_GAME_READ,
+    );
+    expect(RolePermissionRegistryMap.tournament_manager).toContain(
+      Permissions.TOURNAMENT_GAME_MANAGE,
+    );
+  });
+
   it('Phase 1 permissions are centralized in the registry (not scattered)', () => {
     const phase1Keys = [
-      Permissions.GAME_READ,
-      Permissions.GAME_CREATE,
-      Permissions.GAME_UPDATE,
-      Permissions.GAME_STATUS_UPDATE,
+      Permissions.TOURNAMENT_GAME_READ,
+      Permissions.TOURNAMENT_GAME_MANAGE,
       Permissions.TOURNAMENT_READ,
       Permissions.TOURNAMENT_CREATE,
       Permissions.TOURNAMENT_UPDATE,

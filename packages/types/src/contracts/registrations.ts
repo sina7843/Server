@@ -2,12 +2,15 @@
 
 export type TournamentRegistrationType = 'individual' | 'team';
 
-export type TournamentRegistrationStatus =
-  | 'pending'
+export type RegistrationStatus =
+  | 'submitted'
   | 'approved'
   | 'rejected'
+  | 'waitlisted'
   | 'withdrawn'
-  | 'disqualified';
+  | 'cancelled';
+
+export type TournamentRegistrationStatus = RegistrationStatus;
 
 // ─── Sub-DTOs ────────────────────────────────────────────────────────────────
 
@@ -35,6 +38,13 @@ export interface TournamentRegistrationInputDto {
   readonly members?: readonly TeamRegistrationMemberDto[];
 }
 
+export type CreateTournamentRegistrationDto = TournamentRegistrationInputDto;
+
+export interface UpdateTournamentRegistrationDto {
+  readonly status: RegistrationStatus;
+  readonly reason?: string;
+}
+
 // ─── Response DTOs ───────────────────────────────────────────────────────────
 
 export interface TournamentRegistrationDto {
@@ -42,7 +52,7 @@ export interface TournamentRegistrationDto {
   readonly tournamentId: string;
   readonly userId: string;
   readonly type: TournamentRegistrationType;
-  readonly status: TournamentRegistrationStatus;
+  readonly status: RegistrationStatus;
   readonly teamName?: string;
   readonly members?: readonly TeamRegistrationMemberDto[];
   readonly registeredAt: string;
@@ -53,7 +63,7 @@ export interface MyTournamentRegistrationDto {
   readonly id: string;
   readonly tournamentId: string;
   readonly type: TournamentRegistrationType;
-  readonly status: TournamentRegistrationStatus;
+  readonly status: RegistrationStatus;
   readonly teamName?: string;
   readonly members?: readonly TeamRegistrationMemberDto[];
   readonly registeredAt: string;
@@ -64,7 +74,7 @@ export interface AdminTournamentRegistrationDto {
   readonly tournamentId: string;
   readonly userId: string;
   readonly type: TournamentRegistrationType;
-  readonly status: TournamentRegistrationStatus;
+  readonly status: RegistrationStatus;
   readonly teamName?: string;
   readonly members?: readonly TeamRegistrationMemberDto[];
   readonly registeredAt: string;

@@ -77,7 +77,8 @@ export const RolePermissionRegistryMap = {
   user: [],
 
   tournament_manager: [
-    Permissions.GAME_READ,
+    Permissions.TOURNAMENT_GAME_READ,
+    Permissions.TOURNAMENT_GAME_MANAGE,
 
     Permissions.TOURNAMENT_READ,
     Permissions.TOURNAMENT_CREATE,

@@ -7,7 +7,9 @@
             <div class="brand-mark">D</div>
             <span class="brand-name">DRAGON</span>
           </div>
-          <p class="brand-desc">اکوسیستم رسمی محتوای گیمینگ ایران. اخبار، مقالات، راهنما و بیشتر.</p>
+          <p class="brand-desc">
+            اکوسیستم رسمی محتوای گیمینگ ایران. اخبار، مقالات، راهنما و بیشتر.
+          </p>
         </div>
 
         <div class="footer-col">
@@ -134,7 +136,9 @@
   text-decoration: none;
   transition: color 120ms var(--ease-out);
 }
-.col-link:hover { color: var(--text-primary); }
+.col-link:hover {
+  color: var(--text-primary);
+}
 
 .footer-bottom {
   display: flex;
@@ -160,7 +164,9 @@
   text-decoration: none;
   transition: color 120ms;
 }
-.legal-link:hover { color: var(--text-secondary); }
+.legal-link:hover {
+  color: var(--text-secondary);
+}
 
 @media (max-width: 768px) {
   .footer-cols {

@@ -75,4 +75,26 @@ export const RolePermissionRegistryMap = {
   ],
 
   user: [],
+
+  tournament_manager: [
+    Permissions.GAME_READ,
+
+    Permissions.TOURNAMENT_READ,
+    Permissions.TOURNAMENT_CREATE,
+    Permissions.TOURNAMENT_UPDATE,
+    Permissions.TOURNAMENT_PUBLISH,
+    Permissions.TOURNAMENT_CANCEL,
+    Permissions.TOURNAMENT_ARCHIVE,
+
+    Permissions.TOURNAMENT_REGISTRATION_READ,
+    Permissions.TOURNAMENT_REGISTRATION_MANAGE,
+
+    Permissions.TOURNAMENT_PARTICIPANT_READ,
+    Permissions.TOURNAMENT_PARTICIPANT_MANAGE,
+
+    Permissions.TOURNAMENT_MATCH_READ,
+    Permissions.TOURNAMENT_MATCH_MANAGE,
+
+    Permissions.TOURNAMENT_RESULT_MANAGE,
+  ],
 } as const satisfies RolePermissionRegistry;

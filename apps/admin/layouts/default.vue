@@ -46,7 +46,9 @@
   padding: 40px;
   backdrop-filter: blur(28px) saturate(160%);
   -webkit-backdrop-filter: blur(28px) saturate(160%);
-  box-shadow: var(--shadow-xl), inset 0 1px 0 var(--glass-inset-highlight);
+  box-shadow:
+    var(--shadow-xl),
+    inset 0 1px 0 var(--glass-inset-highlight);
 }
 
 .auth-brand {

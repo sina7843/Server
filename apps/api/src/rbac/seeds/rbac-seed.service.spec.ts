@@ -113,13 +113,13 @@ describe('RbacSeedService', () => {
     const second = await service.runRbacSeed();
 
     expect(first.permissionsCreated).toBeGreaterThan(0);
-    expect(first.rolesCreated).toBe(5);
+    expect(first.rolesCreated).toBe(6);
     expect(first.rolePermissionsAttached).toBeGreaterThan(0);
 
     expect(second.permissionsCreated).toBe(0);
     expect(second.permissionsUpdated).toBeGreaterThan(0);
     expect(second.rolesCreated).toBe(0);
-    expect(second.rolesUpdated).toBe(5);
+    expect(second.rolesUpdated).toBe(6);
     expect(second.rolePermissionsAttached).toBe(0);
     expect(repositories.rolePermissionRepository.attachPermissionForSeed).toHaveBeenCalled();
   });

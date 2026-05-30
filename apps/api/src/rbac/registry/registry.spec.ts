@@ -27,10 +27,17 @@ describe('RBAC registry', () => {
     expect(new Set(triples).size).toBe(triples.length);
   });
 
-  it('defines the locked base roles once', () => {
+  it('defines the locked base roles once including tournament_manager', () => {
     const roleKeys = RoleRegistry.map((role) => role.key);
 
-    expect(roleKeys).toEqual(['super_admin', 'admin', 'content_manager', 'support', 'user']);
+    expect(roleKeys).toEqual([
+      'super_admin',
+      'admin',
+      'content_manager',
+      'support',
+      'user',
+      'tournament_manager',
+    ]);
     expect(new Set(roleKeys).size).toBe(roleKeys.length);
   });
 
@@ -57,5 +64,142 @@ describe('RBAC registry', () => {
     expect(RolePermissionRegistryMap.support).toContain(Permissions.USER_READ);
     expect(RolePermissionRegistryMap.support).not.toContain('rbac.role.create');
     expect(RolePermissionRegistryMap.user).toEqual([]);
+  });
+});
+
+describe('Phase 1 RBAC registry', () => {
+  const allRegisteredKeys = PermissionRegistry.map((p) => p.key);
+
+  it('has no tournament.bracket.read permission in registry', () => {
+    expect(allRegisteredKeys).not.toContain('tournament.bracket.read');
+  });
+
+  it('has no tournament.bracket.manage permission in registry', () => {
+    expect(allRegisteredKeys).not.toContain('tournament.bracket.manage');
+  });
+
+  it('uses tournament.match.read for bracket projection access', () => {
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_MATCH_READ);
+    expect(Permissions.TOURNAMENT_MATCH_READ).toBe('tournament.match.read');
+  });
+
+  it('uses tournament.result.manage for standings recalculation', () => {
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_RESULT_MANAGE);
+    expect(Permissions.TOURNAMENT_RESULT_MANAGE).toBe('tournament.result.manage');
+  });
+
+  it('registers all Phase 1 game permissions', () => {
+    expect(allRegisteredKeys).toContain(Permissions.GAME_READ);
+    expect(allRegisteredKeys).toContain(Permissions.GAME_CREATE);
+    expect(allRegisteredKeys).toContain(Permissions.GAME_UPDATE);
+    expect(allRegisteredKeys).toContain(Permissions.GAME_STATUS_UPDATE);
+  });
+
+  it('registers all Phase 1 tournament permissions', () => {
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_READ);
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_CREATE);
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_UPDATE);
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_PUBLISH);
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_CANCEL);
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_ARCHIVE);
+  });
+
+  it('registers all Phase 1 registration permissions', () => {
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_REGISTRATION_READ);
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_REGISTRATION_MANAGE);
+  });
+
+  it('registers all Phase 1 participant permissions', () => {
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_PARTICIPANT_READ);
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_PARTICIPANT_MANAGE);
+  });
+
+  it('registers all Phase 1 match permissions', () => {
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_MATCH_READ);
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_MATCH_MANAGE);
+  });
+
+  it('registers the Phase 1 result permission', () => {
+    expect(allRegisteredKeys).toContain(Permissions.TOURNAMENT_RESULT_MANAGE);
+  });
+
+  it('tournament_manager role is registered', () => {
+    const roleKeys = RoleRegistry.map((r) => r.key);
+    expect(roleKeys).toContain('tournament_manager');
+  });
+
+  it('tournament_manager role is system-managed and assignable', () => {
+    const role = RoleRegistry.find((r) => r.key === 'tournament_manager');
+    expect(role).toBeDefined();
+    expect(role?.isSystem).toBe(true);
+    expect(role?.isAssignable).toBe(true);
+    expect(role?.isActive).toBe(true);
+  });
+
+  it('tournament_manager has tournament.match.read permission (bracket projection)', () => {
+    expect(RolePermissionRegistryMap.tournament_manager).toContain(
+      Permissions.TOURNAMENT_MATCH_READ,
+    );
+  });
+
+  it('tournament_manager has tournament.result.manage permission (standings)', () => {
+    expect(RolePermissionRegistryMap.tournament_manager).toContain(
+      Permissions.TOURNAMENT_RESULT_MANAGE,
+    );
+  });
+
+  it('tournament_manager does not have content or media permissions', () => {
+    const tmPerms = RolePermissionRegistryMap.tournament_manager;
+    expect(tmPerms).not.toContain(Permissions.CONTENT_POST_CREATE);
+    expect(tmPerms).not.toContain(Permissions.MEDIA_ASSET_DELETE);
+    expect(tmPerms).not.toContain(Permissions.RBAC_ROLE_CREATE);
+  });
+
+  it('tournament_manager permissions are a subset of all registered permissions', () => {
+    const knownKeys = new Set(allRegisteredKeys);
+    for (const key of RolePermissionRegistryMap.tournament_manager) {
+      expect(knownKeys.has(key)).toBe(true);
+    }
+  });
+
+  it('tournament_manager seed is idempotent (permissions defined in registry)', () => {
+    const knownKeys = new Set(allRegisteredKeys);
+    const tmPerms = RolePermissionRegistryMap.tournament_manager;
+    for (const key of tmPerms) {
+      expect(knownKeys.has(key)).toBe(true);
+    }
+    expect(new Set(tmPerms).size).toBe(tmPerms.length);
+  });
+
+  it('super_admin still maps to all permissions including Phase 1 additions', () => {
+    expect(new Set(RolePermissionRegistryMap.super_admin)).toEqual(new Set(PermissionKeys));
+    expect(RolePermissionRegistryMap.super_admin).toContain(Permissions.TOURNAMENT_MATCH_READ);
+    expect(RolePermissionRegistryMap.super_admin).toContain(Permissions.TOURNAMENT_RESULT_MANAGE);
+  });
+
+  it('Phase 1 permissions are centralized in the registry (not scattered)', () => {
+    const phase1Keys = [
+      Permissions.GAME_READ,
+      Permissions.GAME_CREATE,
+      Permissions.GAME_UPDATE,
+      Permissions.GAME_STATUS_UPDATE,
+      Permissions.TOURNAMENT_READ,
+      Permissions.TOURNAMENT_CREATE,
+      Permissions.TOURNAMENT_UPDATE,
+      Permissions.TOURNAMENT_PUBLISH,
+      Permissions.TOURNAMENT_CANCEL,
+      Permissions.TOURNAMENT_ARCHIVE,
+      Permissions.TOURNAMENT_REGISTRATION_READ,
+      Permissions.TOURNAMENT_REGISTRATION_MANAGE,
+      Permissions.TOURNAMENT_PARTICIPANT_READ,
+      Permissions.TOURNAMENT_PARTICIPANT_MANAGE,
+      Permissions.TOURNAMENT_MATCH_READ,
+      Permissions.TOURNAMENT_MATCH_MANAGE,
+      Permissions.TOURNAMENT_RESULT_MANAGE,
+    ];
+
+    for (const key of phase1Keys) {
+      expect(allRegisteredKeys).toContain(key);
+    }
   });
 });

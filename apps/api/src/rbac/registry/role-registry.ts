@@ -41,4 +41,12 @@ export const RoleRegistry = [
     isAssignable: true,
     isActive: true,
   },
+  {
+    key: 'tournament_manager',
+    name: 'Tournament Manager',
+    description: 'Phase 1 esports tournament management role.',
+    isSystem: true,
+    isAssignable: true,
+    isActive: true,
+  },
 ] as const satisfies readonly RegisteredRole[];

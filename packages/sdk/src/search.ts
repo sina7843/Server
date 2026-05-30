@@ -1,6 +1,6 @@
 import type { ApiClient } from './client';
-import type { SearchClient, SearchContentParams } from './search-types';
-import type { SearchResultResponseDto } from '@dragon/types';
+import type { SearchClient, SearchContentParams, TournamentSearchParams } from './search-types';
+import type { SearchResultResponseDto, TournamentListResponseDto } from '@dragon/types';
 
 export function createSearchClient(client: ApiClient): SearchClient {
   return {
@@ -16,6 +16,20 @@ export function createSearchClient(client: ApiClient): SearchClient {
       return client.request<SearchResultResponseDto>({
         method: 'GET',
         path: `/api/v1/search/content${qs ? `?${qs}` : ''}`,
+      });
+    },
+
+    tournaments(params?: TournamentSearchParams): Promise<TournamentListResponseDto> {
+      const search = new URLSearchParams();
+      if (params?.gameId) search.set('gameId', params.gameId);
+      if (params?.status) search.set('status', params.status);
+      if (params?.format) search.set('format', params.format);
+      if (params?.page !== undefined) search.set('page', String(params.page));
+      if (params?.limit !== undefined) search.set('limit', String(params.limit));
+      const qs = search.toString();
+      return client.request<TournamentListResponseDto>({
+        method: 'GET',
+        path: `/api/v1/search/tournaments${qs ? `?${qs}` : ''}`,
       });
     },
   };

@@ -1,9 +1,14 @@
 import type { ApiClient } from './client';
-import type { AdminSearchClient, AdminSearchParams } from './admin-search-types';
+import type {
+  AdminSearchClient,
+  AdminSearchParams,
+  AdminTournamentSearchParams,
+} from './admin-search-types';
 import type {
   AdminReindexRequestDto,
   AdminReindexResponseDto,
   SearchResultResponseDto,
+  TournamentListResponseDto,
 } from '@dragon/types';
 
 function buildSearchQs(params?: AdminSearchParams): string {
@@ -46,6 +51,20 @@ export function createAdminSearchClient(client: ApiClient): AdminSearchClient {
         path: '/admin/v1/search/reindex',
         body: JSON.stringify(input ?? {}),
         headers: { 'Content-Type': 'application/json' },
+      });
+    },
+
+    tournaments(params?: AdminTournamentSearchParams): Promise<TournamentListResponseDto> {
+      const search = new URLSearchParams();
+      if (params?.gameId) search.set('gameId', params.gameId);
+      if (params?.status) search.set('status', params.status);
+      if (params?.format) search.set('format', params.format);
+      if (params?.page !== undefined) search.set('page', String(params.page));
+      if (params?.limit !== undefined) search.set('limit', String(params.limit));
+      const qs = search.toString();
+      return client.request<TournamentListResponseDto>({
+        method: 'GET',
+        path: `/admin/v1/search/tournaments${qs ? `?${qs}` : ''}`,
       });
     },
   };

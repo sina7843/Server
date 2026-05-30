@@ -35,12 +35,16 @@ function formatDate(iso: string): string {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  transition: border-color 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
+  transition:
+    border-color 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out);
 }
 
 .content-card:hover {
   border-color: var(--glass-border-strong);
-  box-shadow: var(--shadow-sm), inset 0 1px 0 var(--glass-inset-highlight);
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 var(--glass-inset-highlight);
 }
 
 .content-card__cat {
@@ -64,7 +68,9 @@ function formatDate(iso: string): string {
   text-decoration: none;
   transition: color 120ms var(--ease-out);
 }
-.content-card__link:hover { color: var(--purple-300); }
+.content-card__link:hover {
+  color: var(--purple-300);
+}
 
 .content-card__excerpt {
   color: var(--text-secondary);

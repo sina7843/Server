@@ -26,7 +26,9 @@ defineProps<{
   font-size: var(--text-body-sm-size);
 }
 
-.state-msg--error { color: var(--danger-400); }
+.state-msg--error {
+  color: var(--danger-400);
+}
 
 .state-spinner {
   width: 24px;

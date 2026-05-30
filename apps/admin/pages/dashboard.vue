@@ -13,8 +13,25 @@
     <template v-else-if="summary">
       <div v-if="summary.users" class="stat-grid">
         <div class="stat-card dr-card">
-          <div class="stat-icon-wrap" style="background: rgba(124,58,237,0.15); color: var(--purple-400);">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+          <div
+            class="stat-icon-wrap"
+            style="background: rgba(124, 58, 237, 0.15); color: var(--purple-400)"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
           </div>
           <div>
             <div class="stat-label">کل کاربران</div>
@@ -23,8 +40,22 @@
         </div>
 
         <div v-if="summary.users.active !== undefined" class="stat-card dr-card">
-          <div class="stat-icon-wrap" style="background: rgba(16,185,129,0.15); color: var(--success-400);">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
+          <div
+            class="stat-icon-wrap"
+            style="background: rgba(16, 185, 129, 0.15); color: var(--success-400)"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg>
           </div>
           <div>
             <div class="stat-label">کاربران فعال</div>
@@ -33,8 +64,23 @@
         </div>
 
         <div v-if="summary.users.pending !== undefined" class="stat-card dr-card">
-          <div class="stat-icon-wrap" style="background: rgba(251,191,36,0.15); color: var(--warning-400);">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+          <div
+            class="stat-icon-wrap"
+            style="background: rgba(251, 191, 36, 0.15); color: var(--warning-400)"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
           </div>
           <div>
             <div class="stat-label">در انتظار تأیید</div>
@@ -142,8 +188,12 @@ onMounted(() => {
   line-height: 1;
   color: var(--text-primary);
 }
-.stat-value--green { color: var(--success-400); }
-.stat-value--amber { color: var(--warning-400); }
+.stat-value--green {
+  color: var(--success-400);
+}
+.stat-value--amber {
+  color: var(--warning-400);
+}
 
 .system-card {
   display: flex;
@@ -166,7 +216,16 @@ onMounted(() => {
   font-size: 12px;
   font-weight: 600;
 }
-.badge-ok         { background: rgba(16, 185, 129, 0.15); color: var(--success-400); }
-.badge-degraded   { background: rgba(245, 158, 11, 0.15); color: var(--warning-400); }
-.badge-unavailable { background: rgba(239, 68, 68, 0.12);  color: var(--danger-400); }
+.badge-ok {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success-400);
+}
+.badge-degraded {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warning-400);
+}
+.badge-unavailable {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--danger-400);
+}
 </style>

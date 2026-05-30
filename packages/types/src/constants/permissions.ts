@@ -58,8 +58,43 @@ export const DragonPermissions = {
   SEARCH_USER_READ: 'search.user.read',
   SEARCH_MEDIA_READ: 'search.media.read',
   SEARCH_REINDEX: 'search.index.reindex',
+
+  // ─── Phase 1: Game permissions ──────────────────────────────────────────────
+  GAME_READ: 'game.game.read',
+  GAME_CREATE: 'game.game.create',
+  GAME_UPDATE: 'game.game.update',
+  GAME_STATUS_UPDATE: 'game.status.update',
+
+  // ─── Phase 1: Tournament permissions ────────────────────────────────────────
+  TOURNAMENT_READ: 'tournament.tournament.read',
+  TOURNAMENT_CREATE: 'tournament.tournament.create',
+  TOURNAMENT_UPDATE: 'tournament.tournament.update',
+  TOURNAMENT_PUBLISH: 'tournament.tournament.publish',
+  TOURNAMENT_CANCEL: 'tournament.tournament.cancel',
+  TOURNAMENT_ARCHIVE: 'tournament.tournament.archive',
+
+  // ─── Phase 1: Registration permissions ──────────────────────────────────────
+  TOURNAMENT_REGISTRATION_READ: 'tournament.registration.read',
+  TOURNAMENT_REGISTRATION_MANAGE: 'tournament.registration.manage',
+
+  // ─── Phase 1: Participant permissions ────────────────────────────────────────
+  TOURNAMENT_PARTICIPANT_READ: 'tournament.participant.read',
+  TOURNAMENT_PARTICIPANT_MANAGE: 'tournament.participant.manage',
+
+  // ─── Phase 1: Match permissions (also covers bracket projection read) ────────
+  TOURNAMENT_MATCH_READ: 'tournament.match.read',
+  TOURNAMENT_MATCH_MANAGE: 'tournament.match.manage',
+
+  // ─── Phase 1: Result permissions (also covers standings recalculation) ────────
+  TOURNAMENT_RESULT_MANAGE: 'tournament.result.manage',
 } as const;
 
 export type DragonPermissionKey = (typeof DragonPermissions)[keyof typeof DragonPermissions];
 
-export type DragonRoleKey = 'super_admin' | 'admin' | 'content_manager' | 'support' | 'user';
+export type DragonRoleKey =
+  | 'super_admin'
+  | 'admin'
+  | 'content_manager'
+  | 'support'
+  | 'user'
+  | 'tournament_manager';

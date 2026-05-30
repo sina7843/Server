@@ -18,7 +18,30 @@
   "scripts": {
     "lint": "eslint \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "node -e \"console.log('test: no runtime tests for shared types package yet')\"",
-    "build": "tsc -p tsconfig.json"
+    "test": "jest",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "tsconfig": {
+            "module": "CommonJS",
+            "moduleResolution": "Node",
+            "esModuleInterop": true,
+            "strict": true
+          }
+        }
+      ]
+    },
+    "testEnvironment": "node"
   }
 }

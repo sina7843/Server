@@ -5,7 +5,16 @@
         <nav class="breadcrumb" aria-label="مسیر">
           <NuxtLink to="/dashboard" class="crumb-link">داشبورد</NuxtLink>
           <span class="crumb-sep">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </span>
@@ -17,14 +26,34 @@
 
     <div class="topbar-end">
       <div class="search-box" role="button" tabindex="0" @click="$emit('search')">
-        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+        <svg
+          class="search-icon"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
         <span class="search-placeholder">جستجو در سیستم…</span>
       </div>
 
       <button class="icon-btn" aria-label="اعلان‌ها" type="button">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
@@ -92,9 +121,11 @@ const pageTitle = computed(
   gap: 24px;
 }
 
-.topbar-start {}
+.topbar-start {
+}
 
-.page-meta {}
+.page-meta {
+}
 
 .breadcrumb {
   display: flex;
@@ -110,7 +141,9 @@ const pageTitle = computed(
   text-decoration: none;
   transition: color 120ms;
 }
-.crumb-link:hover { color: var(--text-secondary); }
+.crumb-link:hover {
+  color: var(--text-secondary);
+}
 
 .crumb-sep {
   display: flex;
@@ -148,12 +181,21 @@ const pageTitle = computed(
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  transition: border-color 120ms var(--ease-out), box-shadow 120ms;
+  transition:
+    border-color 120ms var(--ease-out),
+    box-shadow 120ms;
 }
-.search-box:hover { border-color: var(--glass-border-strong); }
-.search-box:focus { outline: 2px solid var(--focus-ring); }
+.search-box:hover {
+  border-color: var(--glass-border-strong);
+}
+.search-box:focus {
+  outline: 2px solid var(--focus-ring);
+}
 
-.search-icon { color: var(--text-muted); flex-shrink: 0; }
+.search-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
 
 .search-placeholder {
   font-size: 13px;
@@ -176,7 +218,10 @@ const pageTitle = computed(
   transition: all 120ms var(--ease-out);
   position: relative;
 }
-.icon-btn:hover { background: var(--hover-overlay); color: var(--text-primary); }
+.icon-btn:hover {
+  background: var(--hover-overlay);
+  color: var(--text-primary);
+}
 
 .notif-dot {
   position: absolute;
@@ -185,8 +230,8 @@ const pageTitle = computed(
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #EF4444;
-  box-shadow: 0 0 6px #EF4444;
+  background: #ef4444;
+  box-shadow: 0 0 6px #ef4444;
   border: 2px solid var(--surface-page);
 }
 

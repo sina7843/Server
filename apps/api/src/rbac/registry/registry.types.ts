@@ -1,6 +1,12 @@
 import type { PermissionKey } from './permission-keys';
 
-export type BaseRoleKey = 'super_admin' | 'admin' | 'content_manager' | 'support' | 'user';
+export type BaseRoleKey =
+  | 'super_admin'
+  | 'admin'
+  | 'content_manager'
+  | 'support'
+  | 'user'
+  | 'tournament_manager';
 
 export interface RegisteredPermission {
   readonly key: PermissionKey;

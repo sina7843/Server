@@ -10,10 +10,23 @@
         <NuxtLink to="/news" class="nav-link" active-class="nav-link--active">اخبار</NuxtLink>
         <NuxtLink to="/articles" class="nav-link" active-class="nav-link--active">مقالات</NuxtLink>
         <NuxtLink to="/guides" class="nav-link" active-class="nav-link--active">راهنما</NuxtLink>
-        <NuxtLink to="/categories" class="nav-link" active-class="nav-link--active">دسته‌بندی‌ها</NuxtLink>
+        <NuxtLink to="/categories" class="nav-link" active-class="nav-link--active"
+          >دسته‌بندی‌ها</NuxtLink
+        >
         <NuxtLink to="/search" class="nav-link" active-class="nav-link--active">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
           جستجو
         </NuxtLink>

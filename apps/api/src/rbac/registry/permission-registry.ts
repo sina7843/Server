@@ -220,4 +220,111 @@ export const PermissionRegistry = [
     'reindex',
     'Trigger search reindex job',
   ),
+
+  // ─── Phase 1: Game permissions ──────────────────────────────────────────────
+  permission(Permissions.GAME_READ, 'game', 'game', 'read', 'Read game list and detail'),
+  permission(Permissions.GAME_CREATE, 'game', 'game', 'create', 'Create a game'),
+  permission(Permissions.GAME_UPDATE, 'game', 'game', 'update', 'Update game fields'),
+  permission(Permissions.GAME_STATUS_UPDATE, 'game', 'status', 'update', 'Update game status'),
+
+  // ─── Phase 1: Tournament permissions ────────────────────────────────────────
+  permission(
+    Permissions.TOURNAMENT_READ,
+    'tournament',
+    'tournament',
+    'read',
+    'Read tournament data (admin)',
+  ),
+  permission(
+    Permissions.TOURNAMENT_CREATE,
+    'tournament',
+    'tournament',
+    'create',
+    'Create a tournament',
+  ),
+  permission(
+    Permissions.TOURNAMENT_UPDATE,
+    'tournament',
+    'tournament',
+    'update',
+    'Update tournament fields',
+  ),
+  permission(
+    Permissions.TOURNAMENT_PUBLISH,
+    'tournament',
+    'tournament',
+    'publish',
+    'Publish a tournament (status transition)',
+  ),
+  permission(
+    Permissions.TOURNAMENT_CANCEL,
+    'tournament',
+    'tournament',
+    'cancel',
+    'Cancel a tournament',
+  ),
+  permission(
+    Permissions.TOURNAMENT_ARCHIVE,
+    'tournament',
+    'tournament',
+    'archive',
+    'Archive a tournament',
+  ),
+
+  // ─── Phase 1: Registration permissions ──────────────────────────────────────
+  permission(
+    Permissions.TOURNAMENT_REGISTRATION_READ,
+    'tournament',
+    'registration',
+    'read',
+    'Read tournament registrations',
+  ),
+  permission(
+    Permissions.TOURNAMENT_REGISTRATION_MANAGE,
+    'tournament',
+    'registration',
+    'manage',
+    'Approve or reject tournament registrations',
+  ),
+
+  // ─── Phase 1: Participant permissions ────────────────────────────────────────
+  permission(
+    Permissions.TOURNAMENT_PARTICIPANT_READ,
+    'tournament',
+    'participant',
+    'read',
+    'Read tournament participant list',
+  ),
+  permission(
+    Permissions.TOURNAMENT_PARTICIPANT_MANAGE,
+    'tournament',
+    'participant',
+    'manage',
+    'Manage tournament participants (seed, disqualify)',
+  ),
+
+  // ─── Phase 1: Match permissions (also covers bracket projection read) ─────────
+  permission(
+    Permissions.TOURNAMENT_MATCH_READ,
+    'tournament',
+    'match',
+    'read',
+    'Read tournament matches and bracket projection',
+  ),
+  permission(
+    Permissions.TOURNAMENT_MATCH_MANAGE,
+    'tournament',
+    'match',
+    'manage',
+    'Manage tournament match data',
+  ),
+
+  // ─── Phase 1: Result permissions (also covers standings recalculation) ────────
+  permission(
+    Permissions.TOURNAMENT_RESULT_MANAGE,
+    'tournament',
+    'result',
+    'manage',
+    'Manage tournament results and trigger standings recalculation',
+  ),
 ] as const satisfies readonly RegisteredPermission[];

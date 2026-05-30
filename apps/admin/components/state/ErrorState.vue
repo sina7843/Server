@@ -3,7 +3,12 @@
     <div class="state-icon" aria-hidden="true">!</div>
     <p class="state-label">{{ label }}</p>
     <p v-if="message" class="state-message">{{ message }}</p>
-    <button v-if="onRetry" class="dr-btn dr-btn-secondary dr-btn-sm retry-btn" type="button" @click="onRetry">
+    <button
+      v-if="onRetry"
+      class="dr-btn dr-btn-secondary dr-btn-sm retry-btn"
+      type="button"
+      @click="onRetry"
+    >
       تلاش مجدد
     </button>
   </div>

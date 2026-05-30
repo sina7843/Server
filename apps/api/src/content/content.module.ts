@@ -65,6 +65,8 @@ import { PublicTagsController } from './public/public-tags.controller';
     HtmlSanitizer,
   ],
   exports: [
+    CategoryRepository,
+    TagRepository,
     CategoryService,
     TagService,
     PostService,

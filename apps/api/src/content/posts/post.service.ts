@@ -33,6 +33,10 @@ export class PostService {
     return this.postRepository.list(filter, page, limit);
   }
 
+  listTopPublished(limit: number): Promise<PostDocument[]> {
+    return this.postRepository.findTopPublished(limit);
+  }
+
   async isSlugTaken(
     type: ContentPostType,
     slugNormalized: string,

@@ -21,6 +21,7 @@ import { JobsModule } from './jobs/jobs.module';
 import { MediaModule } from './media/media.module';
 import { ProfileModule } from './profiles/profile.module';
 import { RbacModule } from './rbac/rbac.module';
+import { EsportsModule } from './esports/esports.module';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { SecurityHeadersMiddleware } from './common/middleware/security-headers.middleware';
 
@@ -34,6 +35,7 @@ import { SecurityHeadersMiddleware } from './common/middleware/security-headers.
     RbacModule,
     ProfileModule,
     ContentModule,
+    EsportsModule,
     HealthModule,
     BackupsModule,
     AdminAuthModule,

@@ -156,4 +156,12 @@ export class PostRepository {
       .exec()
       .then(() => undefined);
   }
+
+  findTopPublished(limit: number): Promise<PostDocument[]> {
+    return this.postModel
+      .find({ status: 'published', deletedAt: { $exists: false } })
+      .sort({ viewCount: -1, publishedAt: -1 })
+      .limit(limit)
+      .exec();
+  }
 }

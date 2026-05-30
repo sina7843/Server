@@ -62,4 +62,23 @@ export class CategoryRepository {
       .findByIdAndUpdate(id, { $set: { deletedAt: new Date() } }, { new: true })
       .exec();
   }
+
+  async upsertBySlugForSeed(input: {
+    name: string;
+    slug: string;
+    slugNormalized: string;
+    sortOrder?: number;
+  }): Promise<{ document: CategoryDocument; created: boolean }> {
+    const existing = await this.categoryModel
+      .findOne({ slugNormalized: input.slugNormalized })
+      .exec();
+    if (existing) return { document: existing as CategoryDocument, created: false };
+    const doc = await this.categoryModel.create({
+      name: input.name,
+      slug: input.slug,
+      slugNormalized: input.slugNormalized,
+      sortOrder: input.sortOrder ?? 0,
+    });
+    return { document: doc as CategoryDocument, created: true };
+  }
 }

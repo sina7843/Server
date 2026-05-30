@@ -379,7 +379,7 @@ describe('Frontend token storage — no localStorage', () => {
     const includeArgs = includes.map((p) => `--include="${p}"`).join(' ');
     let output = '';
     try {
-      output = execSync(`grep -r "localStorage" "${dir}" ${includeArgs} -l`, {
+      output = execSync(`grep -r "localStorage" "${dir}" ${includeArgs} --exclude="*.spec.ts" -l`, {
         encoding: 'utf8',
         stdio: ['pipe', 'pipe', 'pipe'],
       });

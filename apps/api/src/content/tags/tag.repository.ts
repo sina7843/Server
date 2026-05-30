@@ -49,4 +49,19 @@ export class TagRepository {
       .findByIdAndUpdate(id, { $set: { deletedAt: new Date() } }, { new: true })
       .exec();
   }
+
+  async upsertBySlugForSeed(input: {
+    name: string;
+    slug: string;
+    slugNormalized: string;
+  }): Promise<{ document: TagDocument; created: boolean }> {
+    const existing = await this.tagModel.findOne({ slugNormalized: input.slugNormalized }).exec();
+    if (existing) return { document: existing as TagDocument, created: false };
+    const doc = await this.tagModel.create({
+      name: input.name,
+      slug: input.slug,
+      slugNormalized: input.slugNormalized,
+    });
+    return { document: doc as TagDocument, created: true };
+  }
 }

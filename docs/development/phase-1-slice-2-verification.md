@@ -41,13 +41,16 @@ export interface EsportsHomeDto {
 
 ### Data sources
 
-| Field                 | Source                                            | Sort             |
-| --------------------- | ------------------------------------------------- | ---------------- |
-| `featuredPosts`       | Content Engine — `type=article, status=published` | `createdAt desc` |
-| `latestNews`          | Content Engine — `type=news, status=published`    | `createdAt desc` |
-| `topContent`          | Content Engine — `status=published` (all types)   | `viewCount desc` |
-| `activeTournaments`   | None (TournamentModule not implemented)           | Always `[]`      |
-| `upcomingTournaments` | None (TournamentModule not implemented)           | Always `[]`      |
+| Field                 | Source                                                       | Sort             |
+| --------------------- | ------------------------------------------------------------ | ---------------- |
+| `featuredPosts`       | Content Engine — `tag=featured, status=published` (any type) | `createdAt desc` |
+| `latestNews`          | Content Engine — `type=news, status=published`               | `createdAt desc` |
+| `topContent`          | Content Engine — `status=published` (all types)              | `viewCount desc` |
+| `activeTournaments`   | None (TournamentModule not implemented)                      | Always `[]`      |
+| `upcomingTournaments` | None (TournamentModule not implemented)                      | Always `[]`      |
+
+> **Note:** `featuredPosts` returns `[]` when the `featured` tag does not exist in the database
+> or when no published posts carry that tag. It does **not** fall back to `type=article`.
 
 ### Seeds
 
@@ -100,7 +103,7 @@ export function useEsportsHome() {
 
 | Section                                         | Shown when                                                       | Behavior when empty                 |
 | ----------------------------------------------- | ---------------------------------------------------------------- | ----------------------------------- |
-| Hero (`EsportsHero`)                            | Always rendered                                                  | Shows informational empty message   |
+| Hero (`EsportsHero`)                            | `featuredPosts[0]` exists                                        | Hidden with `v-if`                  |
 | Featured cards (`EsportsFeaturedCards`)         | `featuredPosts.length > 1`                                       | Hidden with `v-if`                  |
 | Latest news (`EsportsNewsGrid`)                 | Always rendered                                                  | `ContentStateMessage state="empty"` |
 | Top content (`EsportsTopContent`)               | `topContent.length > 0`                                          | Hidden with `v-if`                  |
@@ -110,7 +113,7 @@ export function useEsportsHome() {
 
 **Empty real data is always acceptable. Fake data is always forbidden.**
 
-- If `featuredPosts` is empty, the hero shows an informational alternative message — no fake post.
+- If `featuredPosts` is empty, both the hero and the featured cards sections are omitted — no placeholder hero message, no fake post.
 - If `latestNews` is empty, `ContentStateMessage` empty state is shown — no fake news card.
 - If `topContent` is empty, the section is omitted — no placeholder cards.
 - If `activeTournaments` and `upcomingTournaments` are both empty, the tournament section is
@@ -123,11 +126,14 @@ export function useEsportsHome() {
 ### Homepage SEO metadata
 
 ```typescript
+const siteName = (runtimeConfig.public?.siteName as string | undefined) ?? 'Dragon';
+const SITE_TITLE = `${siteName} — پلتفرم اسپورت`;
+
 useHead({
-  title: 'Dragon — پلتفرم اسپورت',
+  title: SITE_TITLE,
   meta: [
     { name: 'description', content: '...' },
-    { property: 'og:title', content: '...' },
+    { property: 'og:title', content: SITE_TITLE },
     { property: 'og:description', content: '...' },
     { property: 'og:type', content: 'website' },
   ],
@@ -135,7 +141,9 @@ useHead({
 });
 ```
 
-- The canonical URL comes from `runtimeConfig.public.siteUrl` (set via `NUXT_PUBLIC_SITE_URL`).
+- `siteName` comes from `runtimeConfig.public.siteName` (set via `NUXT_PUBLIC_SITE_NAME`); falls back to `'Dragon'` when unset.
+- The canonical URL comes from `runtimeConfig.public.siteUrl` (set via `NUXT_PUBLIC_SITE_URL`); omitted when unset.
+- No hardcoded brand name is required — all branding is config-driven at runtime.
 - No OG image — no fake media URL is hardcoded.
 - Homepage is indexable (no `noindex`).
 - Admin pages retain their existing `noindex` behavior — Slice 2 does not modify admin SEO.
@@ -223,8 +231,10 @@ displays title and format only — no detail links.
 6. **No OG image.** No media URL is available from `EsportsHomeDto`. An OG image should be
    added in a future slice when media assets are available.
 
-7. **`featuredPosts` uses type `article`; `latestNews` uses type `news`.** If no published
-   content of those types exists, the respective section shows an empty state.
+7. **`featuredPosts` requires the `featured` tag; `latestNews` uses type `news`.** If the
+   `featured` tag does not exist or no published post carries it, `featuredPosts` is `[]` and
+   both the hero and featured cards sections are omitted. If no published news exists,
+   `latestNews` is `[]` and the news grid shows an empty state.
 
 ---
 

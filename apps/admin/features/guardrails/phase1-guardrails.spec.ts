@@ -238,12 +238,12 @@ describe('no forbidden admin routes defined', () => {
     expect(hasTournamentPreview).toBe(false);
   });
 
-  // SLICE 1 PRECONDITION: The following two checks are TEMPORARY.
-  // They verify that no admin tournament/games pages exist in Slice 1.
-  // ACTION REQUIRED: When the slice that implements admin tournament or games pages
-  // is merged, remove the corresponding it() block below. Leaving it in place will
-  // permanently block a legal future route. These are NOT permanent guardrails.
-  it('[slice-1-precondition] no admin tournament pages yet (remove when implemented)', () => {
+  // SLICE 3 PRECONDITION: The following check is TEMPORARY.
+  // It verifies that no admin tournament pages exist yet (Task 3.2 only adds games).
+  // ACTION REQUIRED: When the slice that implements admin tournament pages is merged,
+  // remove the it() block below. Leaving it in place will permanently block a legal
+  // future route. This is NOT a permanent guardrail.
+  it('[slice-3-precondition] no admin tournament pages yet (remove when implemented)', () => {
     const hasTournamentPage = ADMIN_PAGES.some((f) => {
       const normalized = f.replace(/\\/g, '/');
       return normalized.includes('/pages/tournaments/');
@@ -251,12 +251,12 @@ describe('no forbidden admin routes defined', () => {
     expect(hasTournamentPage).toBe(false);
   });
 
-  it('[slice-1-precondition] no admin games pages yet (remove when implemented)', () => {
+  it('admin games pages exist (Task 3.2)', () => {
     const hasGamesPage = ADMIN_PAGES.some((f) => {
       const normalized = f.replace(/\\/g, '/');
       return normalized.includes('/pages/games/');
     });
-    expect(hasGamesPage).toBe(false);
+    expect(hasGamesPage).toBe(true);
   });
 });
 
@@ -278,11 +278,11 @@ describe('no forbidden public routes defined', () => {
     expect(hasMatchDetailPage).toBe(false);
   });
 
-  // SLICE 1 PRECONDITION: The following two checks are TEMPORARY.
-  // They verify that no public tournament/games pages exist in Slice 1.
-  // ACTION REQUIRED: When the slice that implements public tournament or games pages
-  // is merged, remove the corresponding it() block below. Leaving it in place will
-  // permanently block a legal future route. These are NOT permanent guardrails.
+  // SLICE 1 PRECONDITION: The following check is TEMPORARY.
+  // It verifies that no public tournament pages exist yet.
+  // ACTION REQUIRED: When the slice that implements public tournament pages is merged,
+  // remove the it() block below. Leaving it in place will permanently block a legal
+  // future route. This is NOT a permanent guardrail.
   it('[slice-1-precondition] no public tournament pages yet (remove when implemented)', () => {
     const hasTournamentPage = WEB_PAGES.some((f) => {
       const normalized = f.replace(/\\/g, '/');
@@ -291,7 +291,9 @@ describe('no forbidden public routes defined', () => {
     expect(hasTournamentPage).toBe(false);
   });
 
-  it('[slice-1-precondition] no public games pages yet (remove when implemented)', () => {
+  // PERMANENTLY forbidden: public /games and /games/:slug pages are never allowed in Phase 1.
+  // The games list/detail flow is admin-only. Do not remove this check in future slices.
+  it('[permanent] no public games pages exist (public games route is forbidden in Phase 1)', () => {
     const hasGamesPage = WEB_PAGES.some((f) => {
       const normalized = f.replace(/\\/g, '/');
       return normalized.includes('/pages/games/');

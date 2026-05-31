@@ -1,8 +1,8 @@
 import { DragonPermissions } from '@dragon/sdk';
 import { ADMIN_NAV_ITEMS, filterNavByPermissions } from './admin-navigation';
 
-// SLICE 1 PRECONDITION: ALLOWED_KEYS is the exact set of nav items present in Slice 1.
-// ACTION REQUIRED: When a new nav item (games, tournaments, etc.) is added in a later
+// ALLOWED_KEYS is the exact set of nav items present through Slice 3.
+// ACTION REQUIRED: When a new nav item (tournaments, etc.) is added in a later
 // slice, add its key to ALLOWED_KEYS AND update or remove the exact-equality tests below
 // that use this constant. These tests are NOT a permanent restriction on future nav.
 const ALLOWED_KEYS = [
@@ -18,11 +18,11 @@ const ALLOWED_KEYS = [
   'jobs',
   'notifications',
   'analytics',
+  'games',
 ];
 
 describe('ADMIN_NAV_ITEMS', () => {
-  // SLICE 1 PRECONDITION: exact nav key list as of Slice 1. Remove/update when new items are added.
-  it('[slice-1-precondition] contains exactly the allowed Slice 0.5–0.10 navigation items (update when new items added)', () => {
+  it('contains exactly the expected navigation items through Slice 3 (update when new items added)', () => {
     expect(ADMIN_NAV_ITEMS.map((i) => i.key)).toEqual(ALLOWED_KEYS);
   });
 
@@ -130,16 +130,22 @@ describe('ADMIN_NAV_ITEMS', () => {
 // ─── Phase 1 navigation guardrails ───────────────────────────────────────────
 
 describe('Phase 1 navigation guardrails', () => {
-  // SLICE 1 PRECONDITION: games and tournaments nav do not exist yet in Slice 1.
-  // ACTION REQUIRED: When the slice implementing games/tournaments nav is merged,
-  // remove or update the two it() blocks below. They are NOT permanently forbidden.
-  it('[slice-1-precondition] does not contain games nav items yet (remove when games nav is implemented)', () => {
+  it('contains games nav item added in Task 3.2', () => {
     const keys = ADMIN_NAV_ITEMS.map((i) => i.key);
-    expect(keys).not.toContain('games');
-    expect(keys).not.toContain('game-management');
+    expect(keys).toContain('games');
   });
 
-  it('[slice-1-precondition] does not contain tournaments nav items yet (remove when tournaments nav is implemented)', () => {
+  it('games nav item points to /games with tournament.game.read permission', () => {
+    const gamesItem = ADMIN_NAV_ITEMS.find((i) => i.key === 'games');
+    expect(gamesItem).toBeDefined();
+    expect(gamesItem!.path).toBe('/games');
+    expect(gamesItem!.permission).toBe(DragonPermissions.TOURNAMENT_GAME_READ);
+  });
+
+  // SLICE 1 PRECONDITION: tournaments nav does not exist yet (Task 3.2 only adds games).
+  // ACTION REQUIRED: When the slice implementing tournaments nav is merged,
+  // remove or update the it() block below. It is NOT permanently forbidden.
+  it('[slice-3-precondition] does not contain tournaments nav items yet (remove when tournaments nav is implemented)', () => {
     const keys = ADMIN_NAV_ITEMS.map((i) => i.key);
     expect(keys).not.toContain('tournaments');
     expect(keys).not.toContain('tournament-management');
@@ -235,11 +241,7 @@ describe('filterNavByPermissions', () => {
     expect(result[0]!.key).toBe('system-health');
   });
 
-  // SLICE 1 PRECONDITION: this exact-count test matches the Slice 1 nav item count.
-  // ACTION REQUIRED: When new nav items (games, tournaments, etc.) are added in later
-  // slices, update ALLOWED_KEYS above and remove the toHaveLength + toEqual assertions
-  // in this test so they reflect the new total. Do NOT leave a stale count here.
-  it('[slice-1-precondition] shows all allowed items when isSuperAdmin is true (update count when nav grows)', () => {
+  it('shows all allowed items when isSuperAdmin is true (update ALLOWED_KEYS when nav grows)', () => {
     const result = filterNavByPermissions(ADMIN_NAV_ITEMS, new Set(), true);
     expect(result).toHaveLength(ALLOWED_KEYS.length);
     expect(result.map((i) => i.key)).toEqual(ALLOWED_KEYS);
@@ -252,9 +254,7 @@ describe('filterNavByPermissions', () => {
     expect(result[0]!.key).toBe('media');
   });
 
-  // SLICE 1 PRECONDITION: exact count matches current nav size.
-  // ACTION REQUIRED: Update toHaveLength when new nav items are added in later slices.
-  it('[slice-1-precondition] shows all allowed items when user has all effective permissions (update count when nav grows)', () => {
+  it('shows all allowed items when user has all effective permissions (update count when nav grows)', () => {
     const allPermissions = new Set(ADMIN_NAV_ITEMS.map((i) => i.permission));
     const result = filterNavByPermissions(ADMIN_NAV_ITEMS, allPermissions, false);
     expect(result).toHaveLength(ALLOWED_KEYS.length);
@@ -311,5 +311,19 @@ describe('filterNavByPermissions', () => {
     const result = filterNavByPermissions(ADMIN_NAV_ITEMS, permissions, false);
     const keys = result.map((i) => i.key);
     expect(keys).not.toContain('analytics');
+  });
+
+  it('shows Games nav only with tournament.game.read permission', () => {
+    const permissions = new Set([DragonPermissions.TOURNAMENT_GAME_READ]);
+    const result = filterNavByPermissions(ADMIN_NAV_ITEMS, permissions, false);
+    expect(result).toHaveLength(1);
+    expect(result[0]!.key).toBe('games');
+  });
+
+  it('does not show Games nav without tournament.game.read permission', () => {
+    const permissions = new Set([DragonPermissions.USER_READ, DragonPermissions.AUDIT_LOG_READ]);
+    const result = filterNavByPermissions(ADMIN_NAV_ITEMS, permissions, false);
+    const keys = result.map((i) => i.key);
+    expect(keys).not.toContain('games');
   });
 });

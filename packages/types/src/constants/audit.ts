@@ -17,6 +17,7 @@ export const AUDIT_RESOURCE_TYPES = {
   CONTENT_TAG: 'content_tag',
   MEDIA_ASSET: 'media_asset',
   SYSTEM: 'system',
+  GAME: 'game',
 } as const;
 export type AuditResourceType = (typeof AUDIT_RESOURCE_TYPES)[keyof typeof AUDIT_RESOURCE_TYPES];
 
@@ -63,6 +64,10 @@ export const AuditAction = {
   CONTENT_TAG_CREATED: 'content.tag_created',
   CONTENT_TAG_UPDATED: 'content.tag_updated',
   CONTENT_TAG_DELETED: 'content.tag_deleted',
+
+  TOURNAMENT_GAME_CREATED: 'tournament.game_created',
+  TOURNAMENT_GAME_UPDATED: 'tournament.game_updated',
+  TOURNAMENT_GAME_DELETED: 'tournament.game_deleted',
 
   MEDIA_ASSET_UPLOADED: 'media.asset_uploaded',
   MEDIA_ASSET_UPDATED: 'media.asset_updated',

@@ -22,6 +22,8 @@ import { MediaModule } from './media/media.module';
 import { ProfileModule } from './profiles/profile.module';
 import { RbacModule } from './rbac/rbac.module';
 import { EsportsModule } from './esports/esports.module';
+import { GamesModule } from './games/games.module';
+import { AdminGamesModule } from './admin/games/admin-games.module';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { SecurityHeadersMiddleware } from './common/middleware/security-headers.middleware';
 
@@ -36,6 +38,7 @@ import { SecurityHeadersMiddleware } from './common/middleware/security-headers.
     ProfileModule,
     ContentModule,
     EsportsModule,
+    GamesModule,
     HealthModule,
     BackupsModule,
     AdminAuthModule,
@@ -43,6 +46,7 @@ import { SecurityHeadersMiddleware } from './common/middleware/security-headers.
     AdminDashboardModule,
     AdminSystemModule,
     AdminContentModule,
+    AdminGamesModule,
     AdminAuditModule,
     AdminJobsModule,
     AdminNotificationsModule,

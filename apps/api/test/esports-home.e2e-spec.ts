@@ -57,14 +57,14 @@ describe('GET /api/v1/esports/home', () => {
     expect(Array.isArray(body['topContent'])).toBe(true);
   });
 
-  it('activeTournaments is always an empty array', async () => {
+  it('returns empty activeTournaments while tournament data is unavailable', async () => {
     app = await createApp();
     const res = await fetch(`${await app.getUrl()}/api/v1/esports/home`);
     const body = (await res.json()) as EsportsHomeDto;
     expect(body.activeTournaments).toEqual([]);
   });
 
-  it('upcomingTournaments is always an empty array', async () => {
+  it('returns empty upcomingTournaments while tournament data is unavailable', async () => {
     app = await createApp();
     const res = await fetch(`${await app.getUrl()}/api/v1/esports/home`);
     const body = (await res.json()) as EsportsHomeDto;

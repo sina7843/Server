@@ -7,7 +7,7 @@
 
     <div v-if="active.length > 0" class="esports-tournaments__group">
       <h3 class="esports-tournaments__sub-heading">
-        <span class="dr-badge dr-badge-live">زنده</span>
+        <span class="dr-badge dr-badge-live">فعال</span>
         در حال برگزاری
       </h3>
       <ul class="esports-tournaments__list" role="list">

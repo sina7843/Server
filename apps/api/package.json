@@ -11,6 +11,7 @@
     "smoke:phase0": "jest --testRegex=\".*\\.e2e-spec\\.ts$\" --testPathPattern=\"auth-login|auth-refresh|auth-register|auth-full-flow|auth-security|rbac-admin|rbac-authorization|profile-account|profile-public|content-admin|content-public\" --runInBand",
     "build": "tsc -p tsconfig.build.json",
     "seed:rbac": "node dist/rbac/seeds/run-rbac-seed.js",
+    "seed:esports": "node dist/esports/seeds/run-esports-seed.js",
     "start": "node dist/main.js",
     "dev": "concurrently -k -n api:build,api:serve -c blue,cyan \"tsc --watch -p tsconfig.build.json\" \"wait-on dist/main.js && node --env-file=.env.example --watch dist/main.js\""
   },

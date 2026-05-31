@@ -60,7 +60,7 @@ describe('EsportsService', () => {
       expect(result).toHaveProperty('topContent');
     });
 
-    it('activeTournaments is always an empty array', async () => {
+    it('returns empty activeTournaments while TournamentModule data is unavailable', async () => {
       postServiceMock.list.mockResolvedValue({ items: [], total: 0 });
       postServiceMock.listTopPublished.mockResolvedValue([]);
 
@@ -69,7 +69,7 @@ describe('EsportsService', () => {
       expect(result.activeTournaments).toEqual([]);
     });
 
-    it('upcomingTournaments is always an empty array', async () => {
+    it('returns empty upcomingTournaments while TournamentModule data is unavailable', async () => {
       postServiceMock.list.mockResolvedValue({ items: [], total: 0 });
       postServiceMock.listTopPublished.mockResolvedValue([]);
 

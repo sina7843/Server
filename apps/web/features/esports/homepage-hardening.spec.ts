@@ -151,23 +151,46 @@ describe('no hardcoded deployment-blocking URLs in homepage pages and components
 // ─── No unsupported tournament routes linked from homepage ────────────────────
 
 describe('homepage does not link to unsupported Slice 2 tournament routes', () => {
-  // These routes are forbidden in Slice 2 — no tournament detail, register, participants, etc.
-  const FORBIDDEN_ROUTE_PATTERNS = [
+  // [slice-2-precondition] — These routes are legal Phase 1 routes that are simply not yet
+  // implemented in Slice 2. When a later tournament slice implements any of them, remove or
+  // update the corresponding check below so it no longer blocks the legal route.
+  const SLICE2_PRECONDITION_PATTERNS = [
     { label: 'tournament register', pattern: /\/tournaments\/[^'"\s]*\/register/ },
     { label: 'tournament my-registration', pattern: /\/tournaments\/[^'"\s]*\/my-registration/ },
     { label: 'tournament participants', pattern: /\/tournaments\/[^'"\s]*\/participants/ },
-    { label: 'tournament match detail', pattern: /\/tournaments\/[^'"\s]*\/matches\/\[/ },
     { label: 'tournament results', pattern: /\/tournaments\/[^'"\s]*\/results/ },
     { label: 'tournament standings', pattern: /\/tournaments\/[^'"\s]*\/standings/ },
     { label: 'tournament bracket', pattern: /\/tournaments\/[^'"\s]*\/bracket/ },
   ];
 
-  for (const { label, pattern } of FORBIDDEN_ROUTE_PATTERNS) {
-    it(`no web page links to forbidden route: ${label}`, () => {
+  // [permanent] — /tournaments/:slug/matches/:matchId is permanently forbidden in Phase 1.
+  // Do not remove this check in future slices.
+  const PERMANENT_FORBIDDEN_PATTERNS = [
+    {
+      label: 'tournament match detail (matchId) — permanently forbidden in Phase 1',
+      pattern: /\/tournaments\/[^'"\s]*\/matches\/\[/,
+    },
+  ];
+
+  for (const { label, pattern } of SLICE2_PRECONDITION_PATTERNS) {
+    it(`[slice-2-precondition] no web page links to not-yet-implemented route: ${label}`, () => {
       for (const src of WEB_PAGE_SRC) {
         if (pattern.test(src)) {
           throw new Error(
-            `Forbidden tournament route pattern (${label}) found in a web page. These routes are not implemented in Slice 2.`,
+            `Tournament route (${label}) found in a web page. Not implemented in Slice 2. ` +
+              `If implementing this route in a later slice, remove the [slice-2-precondition] check.`,
+          );
+        }
+      }
+    });
+  }
+
+  for (const { label, pattern } of PERMANENT_FORBIDDEN_PATTERNS) {
+    it(`[permanent] no web page links to permanently forbidden route: ${label}`, () => {
+      for (const src of WEB_PAGE_SRC) {
+        if (pattern.test(src)) {
+          throw new Error(
+            `Permanently forbidden route (${label}) found in a web page. This route is forbidden in all Phase 1 slices.`,
           );
         }
       }

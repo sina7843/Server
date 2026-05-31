@@ -1,3 +1,24 @@
-APPLY_TYPES_PERMISSION_EXPORT_FIX.ps1
-TYPES_PERMISSION_EXPORT_FIX.patch
-README.txt
+Phase 1 / Slice 2 — Changed Files
+
+apps/api/src/esports/esports.controller.ts
+apps/api/src/esports/esports.module.ts
+apps/api/src/esports/esports.service.ts
+apps/api/src/esports/esports.service.spec.ts
+apps/api/src/esports/seeds/esports-seed.service.ts
+apps/api/src/esports/seeds/esports-seed.service.spec.ts
+apps/api/src/esports/seeds/run-esports-seed.ts
+apps/api/src/content/posts/post.repository.ts
+apps/api/test/esports-home.e2e-spec.ts
+apps/api/package.json
+apps/web/pages/index.vue
+apps/web/nuxt.config.ts
+apps/web/composables/useEsportsHome.ts
+apps/web/components/esports/EsportsHero.vue
+apps/web/components/esports/EsportsFeaturedCards.vue
+apps/web/components/esports/EsportsNewsGrid.vue
+apps/web/components/esports/EsportsTopContent.vue
+apps/web/components/esports/EsportsTournamentSection.vue
+apps/web/features/esports/esports-api.ts
+apps/web/features/esports/homepage-hardening.spec.ts
+apps/web/features/guardrails/phase1-guardrails.spec.ts
+docs/development/phase-1-slice-2-verification.md

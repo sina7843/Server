@@ -46,8 +46,8 @@ export interface EsportsHomeDto {
 | `featuredPosts`       | Content Engine — `tag=featured, status=published` (any type) | `createdAt desc` |
 | `latestNews`          | Content Engine — `type=news, status=published`               | `createdAt desc` |
 | `topContent`          | Content Engine — `status=published` (all types)              | `viewCount desc` |
-| `activeTournaments`   | None (TournamentModule not implemented)                      | Always `[]`      |
-| `upcomingTournaments` | None (TournamentModule not implemented)                      | Always `[]`      |
+| `activeTournaments`   | None — TournamentModule not implemented in Slice 2           | `[]` in Slice 2  |
+| `upcomingTournaments` | None — TournamentModule not implemented in Slice 2           | `[]` in Slice 2  |
 
 > **Note:** `featuredPosts` returns `[]` when the `featured` tag does not exist in the database
 > or when no published posts carry that tag. It does **not** fall back to `type=article`.
@@ -57,8 +57,8 @@ export interface EsportsHomeDto {
 Esports category and tag seeds are idempotent and safe to run multiple times:
 
 ```bash
-cd apps/api
-npx ts-node -r tsconfig-paths/register src/esports/seeds/run-esports-seed.ts
+pnpm --filter @dragon/api build
+pnpm --filter @dragon/api seed:esports
 ```
 
 Seeds create (if not already present):
@@ -172,6 +172,18 @@ Runtime code must not hardcode any domain. All origins are config-driven:
 Docs may mention `qesb.ir` as the planned public domain. Runtime TypeScript and Vue code
 must not hardcode it.
 
+### SSR API base requirement
+
+The homepage fetches data via `useEsportsHome` during SSR. For SSR to succeed:
+
+- `NUXT_PUBLIC_API_BASE_URL` must be set to a reachable API origin (e.g. `http://api:4000`
+  in Docker, or `http://localhost:4000` in local dev via `.env`).
+- Do **not** hardcode `localhost`, `qesb.ir`, or any other origin in runtime code.
+- `API_INTERNAL_BASE_URL` may be introduced in a future slice for server-side API client
+  hardening. Do not redesign the API client in this fix.
+- If `NUXT_PUBLIC_API_BASE_URL` is absent, the SDK falls back to a relative URL which works
+  for client-side navigation but will fail during SSR unless a proxy is configured.
+
 ---
 
 ## Route and Link Restrictions
@@ -219,10 +231,11 @@ displays title and format only — no detail links.
 3. **No participants/matches/results/standings/bracket pages in Slice 2.** These routes are
    not created and are guarded by static tests.
 
-4. **`activeTournaments` and `upcomingTournaments` may be empty.** The TournamentModule
-   backend is not implemented in Slice 2. Both arrays are always `[]` until real tournament
-   data exists in the database. Empty tournament sections are omitted from the homepage — no
-   fake tournament cards are shown.
+4. **`activeTournaments` and `upcomingTournaments` return `[]` in Slice 2.** The
+   TournamentModule backend is not implemented in Slice 2. Both arrays return `[]` while
+   real tournament data is unavailable. Later tournament slices may replace these with real
+   tournament data. Empty tournament sections are omitted from the homepage — no fake
+   tournament cards are shown.
 
 5. **Canonical URL requires environment variable.** If `NUXT_PUBLIC_SITE_URL` is not set,
    the homepage canonical link is omitted rather than hardcoded. Search engines will still
@@ -261,8 +274,8 @@ pnpm format:check
 ### Esports seed (requires running API and MongoDB)
 
 ```bash
-cd apps/api
-npx ts-node -r tsconfig-paths/register src/esports/seeds/run-esports-seed.ts
+pnpm --filter @dragon/api build
+pnpm --filter @dragon/api seed:esports
 ```
 
 ### Manual smoke test (requires running services)

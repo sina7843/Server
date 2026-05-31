@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import type { ContentPostType, ContentStatus } from '@dragon/types';
 import { Post, type PostDocument } from './post.schema';
 import type { CreatePostInput, PostId, UpdatePostInput, UpdatePostSlugInput } from './post.types';
@@ -9,6 +9,7 @@ export interface PostListFilter {
   readonly type?: ContentPostType;
   readonly status?: ContentStatus;
   readonly includeDeleted?: boolean;
+  readonly tagId?: string;
 }
 
 @Injectable()
@@ -53,6 +54,7 @@ export class PostRepository {
     if (filter.type !== undefined) query.type = filter.type;
     if (filter.status !== undefined) query.status = filter.status;
     if (!filter.includeDeleted) query.deletedAt = { $exists: false };
+    if (filter.tagId !== undefined) query.tagIds = new Types.ObjectId(filter.tagId);
 
     const skip = (page - 1) * limit;
     const [items, total] = await Promise.all([

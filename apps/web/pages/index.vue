@@ -4,7 +4,7 @@
     <ContentStateMessage v-else-if="error" state="error" />
 
     <template v-else-if="data">
-      <EsportsHero :post="data.featuredPosts[0]" />
+      <EsportsHero v-if="data.featuredPosts[0]" :post="data.featuredPosts[0]" />
 
       <EsportsFeaturedCards
         v-if="data.featuredPosts.length > 1"
@@ -28,9 +28,10 @@
 const runtimeConfig = useRuntimeConfig();
 const { data, pending, error } = await useEsportsHome();
 
-const SITE_TITLE = 'Dragon — پلتفرم اسپورت';
+const siteName = (runtimeConfig.public?.siteName as string | undefined) ?? 'Dragon';
+const SITE_TITLE = `${siteName} — پلتفرم اسپورت`;
 const SITE_DESCRIPTION =
-  'درگون — پلتفرم رقابت‌های اسپورت ایران. اخبار، مقالات و محتوای ویژه بازی‌های رقابتی.';
+  'پلتفرم رقابت‌های اسپورت ایران. اخبار، مقالات و محتوای ویژه بازی‌های رقابتی.';
 const siteUrl = (runtimeConfig.public?.siteUrl as string | undefined) ?? '';
 
 useHead({

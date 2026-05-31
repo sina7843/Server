@@ -1,31 +1,22 @@
 <template>
   <section class="esports-hero" aria-label="سرخط خبری">
-    <template v-if="post">
-      <div class="esports-hero__inner dr-card dr-card-brand">
-        <div class="esports-hero__meta">
-          <span class="dr-badge">{{ typeLabel }}</span>
-          <time class="esports-hero__date" :datetime="post.publishedAt">
-            {{ formatDate(post.publishedAt) }}
-          </time>
-        </div>
-        <h1 class="esports-hero__title">
-          <NuxtLink :to="postPath" class="esports-hero__link">
-            {{ post.title }}
-          </NuxtLink>
-        </h1>
-        <p v-if="post.excerpt" class="esports-hero__excerpt">{{ post.excerpt }}</p>
-        <NuxtLink :to="postPath" class="dr-btn dr-btn-primary esports-hero__cta">
-          ادامه مطلب
+    <div class="esports-hero__inner dr-card dr-card-brand">
+      <div class="esports-hero__meta">
+        <span class="dr-badge">{{ typeLabel }}</span>
+        <time class="esports-hero__date" :datetime="post.publishedAt">
+          {{ formatDate(post.publishedAt) }}
+        </time>
+      </div>
+      <h1 class="esports-hero__title">
+        <NuxtLink :to="postPath" class="esports-hero__link">
+          {{ post.title }}
         </NuxtLink>
-      </div>
-    </template>
-    <template v-else>
-      <div class="esports-hero__empty">
-        <p class="esports-hero__empty-msg">
-          به درگون خوش آمدید — محتوای ویژه به زودی اضافه می‌شود.
-        </p>
-      </div>
-    </template>
+      </h1>
+      <p v-if="post.excerpt" class="esports-hero__excerpt">{{ post.excerpt }}</p>
+      <NuxtLink :to="postPath" class="dr-btn dr-btn-primary esports-hero__cta">
+        ادامه مطلب
+      </NuxtLink>
+    </div>
   </section>
 </template>
 
@@ -33,7 +24,7 @@
 import type { PublicPostDto } from '@dragon/types';
 
 const props = defineProps<{
-  post?: PublicPostDto;
+  post: PublicPostDto;
 }>();
 
 const TYPE_PATHS: Record<string, string> = {
@@ -53,15 +44,11 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 const postPath = computed(() => {
-  if (!props.post) return '/';
   const base = TYPE_PATHS[props.post.type] ?? '/news';
   return `${base}/${props.post.slug}`;
 });
 
-const typeLabel = computed(() => {
-  if (!props.post) return '';
-  return TYPE_LABELS[props.post.type] ?? props.post.type;
-});
+const typeLabel = computed(() => TYPE_LABELS[props.post.type] ?? props.post.type);
 
 function formatDate(iso: string): string {
   return new Intl.DateTimeFormat('fa-IR', {
@@ -130,17 +117,6 @@ function formatDate(iso: string): string {
 
 .esports-hero__cta {
   align-self: flex-start;
-}
-
-.esports-hero__empty {
-  padding: var(--space-12) var(--space-6);
-  text-align: center;
-}
-
-.esports-hero__empty-msg {
-  color: var(--text-muted);
-  font-size: var(--text-body-size);
-  margin: 0;
 }
 
 @media (min-width: 768px) {

@@ -37,6 +37,8 @@ import { readFileSync, readdirSync } from 'fs';
 import { join, extname } from 'path';
 import { createEsportsApi } from './esports-api';
 
+const NUXT_CONFIG_SRC = readFileSync(join(__dirname, '..', '..', 'nuxt.config.ts'), 'utf8');
+
 // ─── File helpers ─────────────────────────────────────────────────────────────
 
 function collectFiles(dir: string, exts: string[]): string[] {
@@ -256,5 +258,51 @@ describe('EsportsApi SDK surface for homepage', () => {
     const ESPORTS_API_SRC = readSrc(join(WEB_ROOT, 'features', 'esports', 'esports-api.ts'));
     expect(ESPORTS_API_SRC).toContain('createApiClient');
     expect(ESPORTS_API_SRC).not.toMatch(/(?<!\.)fetch\s*\(/);
+  });
+});
+
+// ─── No coming-soon / placeholder copy in components ─────────────────────────
+
+describe('no coming-soon placeholder copy in esports components', () => {
+  const COMING_SOON_PATTERN = /به زودی|coming[- ]soon|COMING_SOON/i;
+
+  it('EsportsHero has no coming-soon placeholder text', () => {
+    const hero = ESPORTS_COMPONENT_SRC.find((_, i) =>
+      ESPORTS_COMPONENT_FILES[i]?.includes('EsportsHero'),
+    );
+    if (hero !== undefined) {
+      expect(COMING_SOON_PATTERN.test(hero)).toBe(false);
+    }
+  });
+
+  it('no esports component contains coming-soon placeholder copy', () => {
+    for (const src of ESPORTS_COMPONENT_SRC) {
+      if (COMING_SOON_PATTERN.test(src)) {
+        throw new Error(
+          'Coming-soon placeholder found in esports component. Remove placeholder text.',
+        );
+      }
+    }
+  });
+
+  it('index.vue has no coming-soon placeholder text', () => {
+    expect(COMING_SOON_PATTERN.test(INDEX_VUE)).toBe(false);
+  });
+});
+
+// ─── nuxt.config.ts — no localhost defaults ───────────────────────────────────
+
+describe('nuxt.config.ts — no hardcoded localhost runtime defaults', () => {
+  it('apiBaseUrl does not default to a localhost URL', () => {
+    expect(NUXT_CONFIG_SRC).not.toMatch(/apiBaseUrl.*localhost/);
+  });
+
+  it('siteUrl does not default to a localhost URL', () => {
+    expect(NUXT_CONFIG_SRC).not.toMatch(/siteUrl.*localhost/);
+  });
+
+  it('EsportsHero is guarded with v-if in index.vue (not unconditionally rendered)', () => {
+    expect(INDEX_VUE).toMatch(/v-if.*featuredPosts/);
+    expect(INDEX_VUE).toContain('EsportsHero');
   });
 });

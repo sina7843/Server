@@ -7,8 +7,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     apiInternalBaseUrl: process.env.API_INTERNAL_BASE_URL,
     public: {
-      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000',
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
+      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL ?? '/',
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? '',
+      siteName: process.env.NUXT_PUBLIC_SITE_NAME ?? 'Dragon',
       appEnv: process.env.NUXT_PUBLIC_APP_ENV ?? process.env.APP_ENV ?? 'development',
     },
   },

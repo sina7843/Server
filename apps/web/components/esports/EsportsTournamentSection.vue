@@ -19,7 +19,7 @@
     </div>
 
     <div v-if="upcoming.length > 0" class="esports-tournaments__group">
-      <h3 class="esports-tournaments__sub-heading">به زودی</h3>
+      <h3 class="esports-tournaments__sub-heading">آینده</h3>
       <ul class="esports-tournaments__list" role="list">
         <li v-for="t in upcoming" :key="t.id" class="dr-card esports-tournaments__item">
           <span class="esports-tournaments__name">{{ t.title }}</span>

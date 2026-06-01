@@ -293,7 +293,7 @@ pnpm format:check
 
 ## Known Limitations
 
-- `participantType` is supported in create and update operations via `AdminTournamentCreateInput` / `AdminTournamentUpdateInput` in `@dragon/types`. It is NOT included in `TournamentDto` or `AdminTournamentDto` (response shapes), so it does not appear in API responses. The schema stores it internally.
+- `participantType` is included in `TournamentDto` / `AdminTournamentDto` (admin response shape) and is returned by `GET /admin/v1/tournaments/:id`. It is absent from `PublicTournamentDto` and `TournamentListItemDto` (public shapes). The edit form reads it from the detail API so the current value is preserved on save.
 - The admin tournament list returns `TournamentListItemDto[]` (public summary shape), not full `AdminTournamentDto[]`. This is by design — the full DTO is available on the detail endpoint.
 - Lifecycle timestamps (`publishedAt`, `cancelledAt`, `archivedAt`) are visible on the detail page (via `TournamentOperationalHub`) but cannot be edited by admins.
 - Delete requires `TOURNAMENT_ARCHIVE` permission (no separate delete permission exists in the current permission set).

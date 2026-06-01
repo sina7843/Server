@@ -67,7 +67,7 @@ export function toPublicTournamentDetail(doc: TournamentDocument): TournamentDet
 // ─── Admin projection ─────────────────────────────────────────────────────────
 
 // Maps to TournamentDto (admin-safe full DTO).
-// Adds cancelledAt vs public. Still excludes deletedAt, slugNormalized, participantType.
+// Adds cancelledAt and participantType vs public. Still excludes deletedAt and slugNormalized.
 // Audit emission for admin actions is deferred to Slice 5 (admin controller layer).
 export function toAdminTournamentDto(doc: TournamentDocument): TournamentDto {
   return {
@@ -78,6 +78,7 @@ export function toAdminTournamentDto(doc: TournamentDocument): TournamentDto {
     format: doc.format,
     status: doc.status,
     capacity: doc.capacity,
+    ...(doc.participantType != null ? { participantType: doc.participantType } : {}),
     ...(doc.description != null ? { description: doc.description } : {}),
     ...(doc.registrationOpenAt != null
       ? { registrationOpenAt: doc.registrationOpenAt.toISOString() }

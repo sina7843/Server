@@ -240,6 +240,26 @@ describe('AdminTournamentsController — getTournament', () => {
     expect(result.cancelledAt).toBe('2026-05-01T00:00:00.000Z');
     expect(result.archivedAt).toBe('2026-06-01T00:00:00.000Z');
   });
+
+  it('returned TournamentDto includes participantType when set', async () => {
+    (tournamentService.findById as jest.Mock).mockResolvedValue(
+      makeTournament({ participantType: 'team' }),
+    );
+
+    const result = await controller.getTournament('507f1f77bcf86cd799439011');
+
+    expect(result.participantType).toBe('team');
+  });
+
+  it('returned TournamentDto omits participantType when not set on document', async () => {
+    (tournamentService.findById as jest.Mock).mockResolvedValue(
+      makeTournament({ participantType: undefined }),
+    );
+
+    const result = await controller.getTournament('507f1f77bcf86cd799439011');
+
+    expect('participantType' in result).toBe(false);
+  });
 });
 
 // ─── createTournament ──────────────────────────────────────────────────────────

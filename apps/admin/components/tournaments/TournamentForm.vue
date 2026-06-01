@@ -192,9 +192,7 @@ import type {
 
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 
-type TournamentFormInitial = Partial<AdminTournamentDto> & {
-  participantType?: TournamentParticipantType;
-};
+type TournamentFormInitial = Partial<AdminTournamentDto>;
 
 const props = withDefaults(
   defineProps<{

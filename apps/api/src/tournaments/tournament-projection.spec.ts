@@ -219,8 +219,13 @@ describe('toAdminTournamentDto', () => {
     expect('slugNormalized' in dto).toBe(false);
   });
 
-  it('excludes participantType', () => {
-    const dto = toAdminTournamentDto(makeDoc());
+  it('includes participantType when set', () => {
+    const dto = toAdminTournamentDto(makeDoc({ participantType: 'team' }));
+    expect(dto.participantType).toBe('team');
+  });
+
+  it('omits participantType when not set on document', () => {
+    const dto = toAdminTournamentDto(makeDoc({ participantType: undefined }));
     expect('participantType' in dto).toBe(false);
   });
 

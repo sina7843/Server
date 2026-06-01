@@ -19,7 +19,7 @@ export interface IndividualRegistrationPayload {
 }
 
 export interface TeamRegistrationMemberDto {
-  readonly userId: string;
+  readonly userId?: string;
   readonly displayName: string;
   readonly role?: string;
 }
@@ -27,7 +27,7 @@ export interface TeamRegistrationMemberDto {
 export interface TeamRegistrationPayload {
   readonly type: 'team';
   readonly teamName: string;
-  readonly members: readonly TeamRegistrationMemberDto[];
+  readonly members?: readonly TeamRegistrationMemberDto[];
 }
 
 // ─── Input DTOs ──────────────────────────────────────────────────────────────

@@ -12,7 +12,7 @@
     />
     <SuccessState v-else-if="state.status === 'success'" :registration="state.registration" />
     <section v-else-if="state.status === 'open'" class="register-section">
-      <p class="tournament-name">{{ state.tournamentTitle }}</p>
+      <p v-if="state.tournamentTitle" class="tournament-name">{{ state.tournamentTitle }}</p>
       <RegistrationForm :submitting="submitting" @submit="handleRegister" />
       <p v-if="submitError" class="submit-error" role="alert">{{ submitError }}</p>
     </section>
@@ -51,29 +51,17 @@ async function load() {
   try {
     const existing = await registrationApi.value.getMyRegistration(slug);
     state.value = { status: 'already_registered', registration: existing };
-    return;
   } catch (err) {
     const msg = err instanceof Error ? err.message : '';
     if (msg.includes('401')) {
       state.value = { status: 'auth_required' };
-      return;
-    }
-    if (!msg.includes('404')) {
+    } else if (msg.includes('404')) {
+      // No existing registration — show the form. Registration open/closed state
+      // is validated by the server on submit (returns 422 if closed).
+      state.value = { status: 'open' };
+    } else {
       state.value = { status: 'error', message: 'Failed to load registration status.' };
-      return;
     }
-  }
-
-  try {
-    const tournament = await registrationApi.value.getBySlug(slug);
-    if (tournament.status !== 'registration_open') {
-      state.value = { status: 'closed' };
-      return;
-    }
-    state.value = { status: 'open', tournamentTitle: tournament.title };
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : '';
-    state.value = { status: 'error', message: msg || 'Failed to load tournament.' };
   }
 }
 
@@ -86,15 +74,17 @@ async function handleRegister(input: TournamentRegistrationInputDto) {
     state.value = { status: 'success', registration };
   } catch (err) {
     const msg = err instanceof Error ? err.message : '';
-    if (msg.includes('409')) {
+    if (msg.includes('422')) {
+      state.value = { status: 'closed' };
+    } else if (msg.toLowerCase().includes('capacity')) {
+      state.value = { status: 'capacity_full' };
+    } else if (msg.includes('409')) {
       try {
         const existing = await registrationApi.value.getMyRegistration(slug);
         state.value = { status: 'already_registered', registration: existing };
       } catch {
         submitError.value = 'You are already registered for this tournament.';
       }
-    } else if (msg.includes('403')) {
-      state.value = { status: 'capacity_full' };
     } else {
       submitError.value = msg || 'Registration failed. Please try again.';
     }

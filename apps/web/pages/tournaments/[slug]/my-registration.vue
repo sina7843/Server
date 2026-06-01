@@ -16,7 +16,19 @@
     </p>
 
     <template v-else-if="state.status === 'ready'">
-      <MyRegistrationPanel :registration="state.registration" @withdraw="openWithdrawDialog" />
+      <EditRegistrationForm
+        v-if="showEditForm"
+        :registration="state.registration"
+        :submitting="editSubmitting"
+        @submit="handleEditSubmit"
+        @cancel="showEditForm = false"
+      />
+      <MyRegistrationPanel
+        v-else
+        :registration="state.registration"
+        @edit="showEditForm = true"
+        @withdraw="openWithdrawDialog"
+      />
     </template>
 
     <WithdrawConfirmDialog
@@ -29,6 +41,7 @@
 </template>
 
 <script setup lang="ts">
+import type { MyTournamentRegistrationDto, TeamRegistrationMemberDto } from '@dragon/types';
 import type { MyRegistrationPageState } from '../../../features/registrations/registration.types';
 
 definePageMeta({});
@@ -46,6 +59,8 @@ const { hasToken } = useAuthToken();
 const state = ref<MyRegistrationPageState>({ status: 'loading' });
 const showWithdrawDialog = ref(false);
 const withdrawing = ref(false);
+const showEditForm = ref(false);
+const editSubmitting = ref(false);
 
 async function load() {
   if (!hasToken.value) {
@@ -85,6 +100,25 @@ async function confirmWithdraw() {
     state.value = { status: 'error', message: msg || 'Failed to withdraw registration.' };
   } finally {
     withdrawing.value = false;
+  }
+}
+
+async function handleEditSubmit(input: {
+  teamName: string;
+  members: readonly TeamRegistrationMemberDto[];
+}) {
+  editSubmitting.value = true;
+
+  try {
+    const updated = await registrationApi.value.updateMyRegistration(slug, input);
+    showEditForm.value = false;
+    state.value = { status: 'ready', registration: updated };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : '';
+    showEditForm.value = false;
+    state.value = { status: 'error', message: msg || 'Failed to update registration.' };
+  } finally {
+    editSubmitting.value = false;
   }
 }
 

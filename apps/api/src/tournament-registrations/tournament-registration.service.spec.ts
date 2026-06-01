@@ -192,6 +192,35 @@ describe('TournamentRegistrationService', () => {
       expect(result).toBe(reg);
     });
 
+    it('creates team registration with members that have no userId (optional userId policy)', async () => {
+      const tournament = makeTournament({ participantType: 'team' });
+      const reg = makeRegistration({
+        type: 'team',
+        teamName: 'Anonymous Team',
+        members: [{ displayName: 'Player One' }],
+      });
+      repoMock.create.mockResolvedValue(reg);
+
+      const result = await service.register(tournament, USER_ID, {
+        type: 'team',
+        teamName: 'Anonymous Team',
+        members: [{ displayName: 'Player One' }],
+      });
+      expect(result).toBe(reg);
+    });
+
+    it('creates team registration without members (members are optional)', async () => {
+      const tournament = makeTournament({ participantType: 'team' });
+      const reg = makeRegistration({ type: 'team', teamName: 'Solo Named Team' });
+      repoMock.create.mockResolvedValue(reg);
+
+      const result = await service.register(tournament, USER_ID, {
+        type: 'team',
+        teamName: 'Solo Named Team',
+      });
+      expect(result).toBe(reg);
+    });
+
     it('silently ignores teamName/members for individual registration', async () => {
       const tournament = makeTournament({ participantType: 'individual' });
       repoMock.create.mockResolvedValue(makeRegistration());
@@ -298,6 +327,23 @@ describe('TournamentRegistrationService', () => {
       await expect(
         service.updateMyRegistration(TOURNAMENT_ID, USER_ID, { teamName: 'x' }),
       ).rejects.toThrow(UnprocessableEntityException);
+    });
+
+    it('updates team registration members without userId (optional userId policy)', async () => {
+      const reg = makeRegistration({ type: 'team', teamName: 'Team', status: 'submitted' });
+      const updated = makeRegistration({
+        type: 'team',
+        teamName: 'Team',
+        members: [{ displayName: 'New Player' }],
+        status: 'submitted',
+      });
+      repoMock.findByTournamentAndUser.mockResolvedValue(reg);
+      repoMock.update.mockResolvedValue(updated);
+
+      const result = await service.updateMyRegistration(TOURNAMENT_ID, USER_ID, {
+        members: [{ displayName: 'New Player' }],
+      });
+      expect(result.members).toEqual([{ displayName: 'New Player' }]);
     });
 
     it('public update cannot change status — no status field in UpdateRegistrationInput', () => {

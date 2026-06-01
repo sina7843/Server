@@ -18,7 +18,7 @@
         <dt>Members</dt>
         <dd>
           <ul class="member-list">
-            <li v-for="member in registration.members" :key="member.userId">
+            <li v-for="(member, idx) in registration.members" :key="member.userId ?? idx">
               {{ member.displayName }}
             </li>
           </ul>
@@ -29,9 +29,12 @@
       <dd>{{ new Date(registration.registeredAt).toLocaleDateString() }}</dd>
     </dl>
 
-    <button v-if="canWithdraw" class="withdraw-btn" @click="$emit('withdraw')">
-      Withdraw registration
-    </button>
+    <div class="panel-actions">
+      <button v-if="canEdit" class="edit-btn" @click="$emit('edit')">Edit</button>
+      <button v-if="canWithdraw" class="withdraw-btn" @click="$emit('withdraw')">
+        Withdraw registration
+      </button>
+    </div>
   </div>
 </template>
 
@@ -44,6 +47,7 @@ const props = defineProps<{
 
 defineEmits<{
   (e: 'withdraw'): void;
+  (e: 'edit'): void;
 }>();
 
 const WITHDRAWABLE_STATUSES = ['submitted', 'approved', 'waitlisted'] as const;
@@ -52,6 +56,8 @@ type WithdrawableStatus = (typeof WITHDRAWABLE_STATUSES)[number];
 const canWithdraw = computed(() =>
   WITHDRAWABLE_STATUSES.includes(props.registration.status as WithdrawableStatus),
 );
+
+const canEdit = computed(() => props.registration.type === 'team' && canWithdraw.value);
 </script>
 
 <style scoped>
@@ -98,6 +104,27 @@ const canWithdraw = computed(() =>
   list-style: none;
   padding: 0;
   margin: 0;
+}
+
+.panel-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.edit-btn {
+  align-self: start;
+  padding: 0.45rem 1rem;
+  background: #fff;
+  color: #2563eb;
+  border: 1px solid #93c5fd;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.edit-btn:hover {
+  background: #eff6ff;
 }
 
 .withdraw-btn {

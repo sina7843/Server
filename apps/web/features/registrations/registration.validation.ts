@@ -15,15 +15,10 @@ export function validateRegistrationForm(data: RegistrationFormData): Registrati
     }
 
     const members = data.members ?? [];
-    if (members.length === 0) {
-      errors.members = 'At least one team member is required.';
-    } else if (members.length > TEAM_MEMBERS_MAX) {
+    if (members.length > TEAM_MEMBERS_MAX) {
       errors.members = `Team may have at most ${TEAM_MEMBERS_MAX} members.`;
-    } else {
-      const hasInvalidMember = members.some((m) => !m.userId?.trim() || !m.displayName?.trim());
-      if (hasInvalidMember) {
-        errors.members = 'Each team member must have a user ID and display name.';
-      }
+    } else if (members.some((m) => !m.displayName?.trim())) {
+      errors.members = 'Each team member must have a display name.';
     }
   }
 

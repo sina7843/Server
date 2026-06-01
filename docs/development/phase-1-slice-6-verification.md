@@ -8,7 +8,7 @@ Slice 6 implements the full registration and participant domain for Phase 1.
 | ---------------------------------------------------------------- | ----------- | --------------------------------------------------------------------------------- |
 | Public registration API (submit, get, update, withdraw)          | Yes         | `/api/v1/tournaments/:slug/register`, `/api/v1/tournaments/:slug/my-registration` |
 | Admin registration API (list, get, approve, reject, cancel)      | Yes         | `/admin/v1/tournaments/:id/registrations`                                         |
-| Admin participant API (list, get, update, remove, disqualify)    | Yes         | `/admin/v1/tournaments/:id/participants`                                          |
+| Admin participant API (list, update, remove, disqualify)         | Yes         | `/admin/v1/tournaments/:id/participants`                                          |
 | Public registration UI (`/tournaments/:slug/register`)           | Yes         | Noindex, SDK-only, all states                                                     |
 | Public my-registration UI (`/tournaments/:slug/my-registration`) | Yes         | Noindex, SDK-only, all states                                                     |
 | Registration SDK methods                                         | Yes         | `register`, `getMyRegistration`, `updateMyRegistration`, `withdrawMyRegistration` |
@@ -67,13 +67,12 @@ Slice 6 implements the full registration and participant domain for Phase 1.
 
 ### Admin Participant Endpoints
 
-| Method  | Path                                                                | Permission                      | Description                |
-| ------- | ------------------------------------------------------------------- | ------------------------------- | -------------------------- |
-| `GET`   | `/admin/v1/tournaments/:id/participants`                            | `TOURNAMENT_PARTICIPANT_READ`   | List derived participants  |
-| `GET`   | `/admin/v1/tournaments/:id/participants/:registrationId`            | `TOURNAMENT_PARTICIPANT_READ`   | Get single participant     |
-| `PATCH` | `/admin/v1/tournaments/:id/participants/:registrationId`            | `TOURNAMENT_PARTICIPANT_MANAGE` | Update seed / display name |
-| `POST`  | `/admin/v1/tournaments/:id/participants/:registrationId/remove`     | `TOURNAMENT_PARTICIPANT_MANAGE` | Remove participant         |
-| `POST`  | `/admin/v1/tournaments/:id/participants/:registrationId/disqualify` | `TOURNAMENT_PARTICIPANT_MANAGE` | Disqualify participant     |
+| Method  | Path                                                               | Permission                      | Description                |
+| ------- | ------------------------------------------------------------------ | ------------------------------- | -------------------------- |
+| `GET`   | `/admin/v1/tournaments/:id/participants`                           | `TOURNAMENT_PARTICIPANT_READ`   | List derived participants  |
+| `PATCH` | `/admin/v1/tournaments/:id/participants/:participantId`            | `TOURNAMENT_PARTICIPANT_MANAGE` | Update seed / display name |
+| `POST`  | `/admin/v1/tournaments/:id/participants/:participantId/remove`     | `TOURNAMENT_PARTICIPANT_MANAGE` | Remove participant         |
+| `POST`  | `/admin/v1/tournaments/:id/participants/:participantId/disqualify` | `TOURNAMENT_PARTICIPANT_MANAGE` | Disqualify participant     |
 
 ---
 

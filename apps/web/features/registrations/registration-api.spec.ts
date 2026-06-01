@@ -11,6 +11,7 @@ interface WebExpectMatchers {
   toBe(expected: unknown): void;
   toContain(expected: string): void;
   toEqual(expected: unknown): void;
+  toBeUndefined(): void;
   toHaveBeenCalledWith(...expected: readonly unknown[]): void;
   toHaveProperty(propertyName: string): void;
 }
@@ -165,6 +166,35 @@ describe('createRegistrationApi — register', () => {
     const body = JSON.parse(init.body);
     expect(body.teamName).toBe('Dragon Squad');
     expect(Array.isArray(body.members)).toBe(true);
+  });
+
+  it('sends team payload with members that have no userId (optional userId policy)', async () => {
+    const fetcher = jest
+      .fn()
+      .mockResolvedValue(jsonResponse({ ...mockRegistrationDto, type: 'team' }));
+    const api = createRegistrationApi({ token: 'tok', fetcher: fetcher as never });
+    const input = {
+      type: 'team' as const,
+      teamName: 'Display-only Team',
+      members: [{ displayName: 'Player One' }],
+    };
+    await api.register('slug-1', input);
+    const [[, init]] = fetcher.mock.calls as [[string, { body: string }]];
+    const body = JSON.parse(init.body);
+    expect(body.teamName).toBe('Display-only Team');
+    expect(body.members[0]).toEqual({ displayName: 'Player One' });
+  });
+
+  it('sends team payload without members (members are optional)', async () => {
+    const fetcher = jest
+      .fn()
+      .mockResolvedValue(jsonResponse({ ...mockRegistrationDto, type: 'team' }));
+    const api = createRegistrationApi({ token: 'tok', fetcher: fetcher as never });
+    await api.register('slug-1', { type: 'team', teamName: 'Name Only Team' });
+    const [[, init]] = fetcher.mock.calls as [[string, { body: string }]];
+    const body = JSON.parse(init.body);
+    expect(body.teamName).toBe('Name Only Team');
+    expect(body.members).toBeUndefined();
   });
 });
 

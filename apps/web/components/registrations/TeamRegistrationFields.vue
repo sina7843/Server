@@ -52,7 +52,7 @@ const emit = defineEmits<{
 const localMembers = ref<TeamRegistrationMemberDto[]>(props.members ? [...props.members] : []);
 
 function addMember() {
-  localMembers.value = [...localMembers.value, { userId: '', displayName: '' }];
+  localMembers.value = [...localMembers.value, { displayName: '' }];
   emit('update:members', localMembers.value);
 }
 

@@ -5,7 +5,7 @@ export type RegistrationId = Types.ObjectId | string;
 export type RegistrationTournamentId = Types.ObjectId | string;
 
 export interface RegistrationMemberInput {
-  readonly userId: string;
+  readonly userId?: string;
   readonly displayName: string;
   readonly role?: string;
 }

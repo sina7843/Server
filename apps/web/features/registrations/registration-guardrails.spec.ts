@@ -137,6 +137,11 @@ describe('registration feature — SDK-only data access', () => {
     expect(src).not.toMatch(/\$fetch\s*\(|axios\s*\.|fetch\s*\(/);
   });
 
+  it('PERMANENT — register.vue does not call getBySlug (no full public tournament detail dependency)', () => {
+    const src = readPage('register.vue');
+    expect(src).not.toContain('getBySlug');
+  });
+
   it('my-registration.vue has no direct $fetch or axios calls', () => {
     const src = readPage('my-registration.vue');
     expect(src).not.toMatch(/\$fetch\s*\(|axios\s*\.|fetch\s*\(/);
@@ -306,6 +311,16 @@ describe('my-registration.vue — all required states covered', () => {
   it('renders WithdrawConfirmDialog', () => {
     const src = readPage('my-registration.vue');
     expect(src).toContain('WithdrawConfirmDialog');
+  });
+
+  it('renders EditRegistrationForm for edit flow', () => {
+    const src = readPage('my-registration.vue');
+    expect(src).toContain('EditRegistrationForm');
+  });
+
+  it('calls updateMyRegistration for edit submit', () => {
+    const src = readPage('my-registration.vue');
+    expect(src).toContain('updateMyRegistration');
   });
 });
 

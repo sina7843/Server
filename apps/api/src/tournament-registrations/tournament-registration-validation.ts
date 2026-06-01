@@ -40,8 +40,10 @@ export function assertTeamMembers(members: unknown): asserts members is Registra
       throw new BadRequestException(`members[${i}] must be an object.`);
     }
     const m = member as Record<string, unknown>;
-    if (typeof m.userId !== 'string' || m.userId.trim().length === 0) {
-      throw new BadRequestException(`members[${i}].userId is required.`);
+    if (m.userId !== undefined && (typeof m.userId !== 'string' || m.userId.trim().length === 0)) {
+      throw new BadRequestException(
+        `members[${i}].userId must be a non-empty string when provided.`,
+      );
     }
     if (typeof m.displayName !== 'string' || m.displayName.trim().length === 0) {
       throw new BadRequestException(`members[${i}].displayName is required.`);

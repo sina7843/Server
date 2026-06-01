@@ -12,7 +12,7 @@ export type RegistrationPageState =
   | { readonly status: 'closed' }
   | { readonly status: 'capacity_full' }
   | { readonly status: 'already_registered'; readonly registration: MyTournamentRegistrationDto }
-  | { readonly status: 'open'; readonly tournamentTitle: string }
+  | { readonly status: 'open'; readonly tournamentTitle?: string }
   | { readonly status: 'success'; readonly registration: MyTournamentRegistrationDto }
   | { readonly status: 'error'; readonly message: string };
 

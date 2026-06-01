@@ -28,13 +28,14 @@ export function toParticipantDto(doc: TournamentRegistrationDocument): Tournamen
 //
 // Privacy-safe: no userId, no email, no phone, no internal fields,
 // no team member contact data, no rejectedReason.
+// displayName falls back to teamName then a generic safe label — never userId.
 
 export function toParticipantPublicDto(
   doc: TournamentRegistrationDocument,
 ): TournamentParticipantPublicDto {
   return {
     id: String(doc._id),
-    displayName: doc.participantDisplayName ?? doc.userId,
+    displayName: doc.participantDisplayName ?? doc.teamName ?? 'Participant',
     ...(doc.seed != null ? { seed: doc.seed } : {}),
     status: deriveParticipantStatus(doc),
     ...(doc.teamName != null ? { teamName: doc.teamName } : {}),

@@ -139,12 +139,20 @@ describe('permanent guardrail — no payment, prize, or shop fields', () => {
 // ─── Public projection privacy ────────────────────────────────────────────────
 
 describe('public projection privacy — no sensitive data leakage', () => {
-  it('toParticipantPublicDto does not include userId', () => {
+  it('toParticipantPublicDto does not include userId in output object', () => {
     const src = read('tournament-participant-projection.ts');
     // The public DTO function body should not set userId.
     const publicFnMatch = src.match(/export function toParticipantPublicDto[\s\S]*?^}/m);
     const publicFnBlock = publicFnMatch?.[0] ?? '';
     expect(publicFnBlock).not.toContain('userId:');
+  });
+
+  it('PERMANENT — toParticipantPublicDto does not use doc.userId as displayName fallback', () => {
+    const src = read('tournament-participant-projection.ts');
+    const publicFnMatch = src.match(/export function toParticipantPublicDto[\s\S]*?^}/m);
+    const publicFnBlock = publicFnMatch?.[0] ?? '';
+    // doc.userId must never appear as the fallback for displayName in the public projection.
+    expect(publicFnBlock).not.toMatch(/displayName\s*:[\s\S]*?doc\.userId/);
   });
 
   it('projection has no phone/email/contact field assignments in output DTOs', () => {

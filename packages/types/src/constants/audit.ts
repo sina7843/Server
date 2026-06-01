@@ -19,6 +19,8 @@ export const AUDIT_RESOURCE_TYPES = {
   SYSTEM: 'system',
   GAME: 'game',
   TOURNAMENT: 'tournament',
+  TOURNAMENT_REGISTRATION: 'tournament_registration',
+  TOURNAMENT_PARTICIPANT: 'tournament_participant',
 } as const;
 export type AuditResourceType = (typeof AUDIT_RESOURCE_TYPES)[keyof typeof AUDIT_RESOURCE_TYPES];
 
@@ -80,6 +82,18 @@ export const AuditAction = {
   TOURNAMENT_CANCELLED: 'tournament.cancelled',
   TOURNAMENT_ARCHIVED: 'tournament.archived',
   TOURNAMENT_DELETED: 'tournament.deleted',
+
+  // ─── Phase 1: Registration audit events ─────────────────────────────────────
+  REGISTRATION_SUBMITTED: 'registration.submitted',
+  REGISTRATION_UPDATED: 'registration.updated',
+  REGISTRATION_WITHDRAWN: 'registration.withdrawn',
+  REGISTRATION_APPROVED: 'registration.approved',
+  REGISTRATION_REJECTED: 'registration.rejected',
+  REGISTRATION_CANCELLED: 'registration.cancelled',
+
+  // ─── Phase 1: Participant audit events ───────────────────────────────────────
+  PARTICIPANT_REMOVED: 'participant.removed',
+  PARTICIPANT_DISQUALIFIED: 'participant.disqualified',
 
   MEDIA_ASSET_UPLOADED: 'media.asset_uploaded',
   MEDIA_ASSET_UPDATED: 'media.asset_updated',

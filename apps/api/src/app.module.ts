@@ -26,6 +26,9 @@ import { GamesModule } from './games/games.module';
 import { AdminGamesModule } from './admin/games/admin-games.module';
 import { TournamentsModule } from './tournaments/tournaments.module';
 import { AdminTournamentsModule } from './admin/tournaments/admin-tournaments.module';
+import { TournamentRegistrationsModule } from './tournament-registrations/tournament-registrations.module';
+import { AdminTournamentRegistrationsModule } from './admin/tournament-registrations/admin-tournament-registrations.module';
+import { AdminTournamentParticipantsModule } from './admin/tournament-participants/admin-tournament-participants.module';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { SecurityHeadersMiddleware } from './common/middleware/security-headers.middleware';
 
@@ -51,6 +54,9 @@ import { SecurityHeadersMiddleware } from './common/middleware/security-headers.
     AdminGamesModule,
     TournamentsModule,
     AdminTournamentsModule,
+    TournamentRegistrationsModule,
+    AdminTournamentRegistrationsModule,
+    AdminTournamentParticipantsModule,
     AdminAuditModule,
     AdminJobsModule,
     AdminNotificationsModule,

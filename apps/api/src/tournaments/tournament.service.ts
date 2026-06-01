@@ -38,6 +38,10 @@ export class TournamentService {
     return this.tournamentRepository.findById(id);
   }
 
+  findBySlug(slug: string): Promise<TournamentDocument | null> {
+    return this.tournamentRepository.findBySlug(slug.toLowerCase().trim());
+  }
+
   list(
     filter: TournamentListFilter,
     page?: number,

@@ -5,6 +5,7 @@ import type {
   TournamentListResponseDto,
   TournamentLifecycleActionDto,
   TournamentRegistrationInputDto,
+  TournamentRegistrationContextDto,
   MyTournamentRegistrationDto,
   UpdateTournamentRegistrationDto,
   TournamentStandingsDto,
@@ -21,6 +22,7 @@ export type TournamentListParams = TournamentListQueryDto;
 export interface TournamentsClient {
   list(params?: TournamentListParams): Promise<TournamentListResponseDto>;
   getBySlug(slug: string): Promise<PublicTournamentDto>;
+  getRegistrationContext(slug: string): Promise<TournamentRegistrationContextDto>;
   register(
     slug: string,
     input: TournamentRegistrationInputDto,

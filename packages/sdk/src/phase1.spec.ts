@@ -201,6 +201,18 @@ describe('createTournamentsClient', () => {
     );
   });
 
+  it('getRegistrationContext calls GET /api/v1/tournaments/:slug/registration-context', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue({ tournamentTitle: 'Test Tournament', registrationOpen: true });
+    await client.getRegistrationContext('dragon-cup-2026');
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'GET',
+        path: '/api/v1/tournaments/dragon-cup-2026/registration-context',
+      }),
+    );
+  });
+
   it('getStandings calls GET /api/v1/tournaments/:slug/standings', async () => {
     const { request, client } = make();
     request.mockResolvedValue({});

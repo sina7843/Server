@@ -71,6 +71,46 @@ describe('createRegistrationApi — no hardcoded URLs', () => {
   });
 });
 
+describe('createRegistrationApi — getRegistrationContext', () => {
+  it('hits GET /api/v1/tournaments/:slug/registration-context', async () => {
+    const ctx = { tournamentTitle: 'Test Tournament', registrationOpen: true };
+    const fetcher = jest.fn().mockResolvedValue(jsonResponse(ctx));
+    const api = createRegistrationApi({ fetcher: fetcher as never });
+    await api.getRegistrationContext('dragon-cup-2026');
+    expect(fetcher).toHaveBeenCalledWith(
+      '/api/v1/tournaments/dragon-cup-2026/registration-context',
+      { method: 'GET', headers: {} },
+    );
+  });
+
+  it('returns TournamentRegistrationContextDto shape', async () => {
+    const ctx = { tournamentTitle: 'Dragon Cup', registrationOpen: true };
+    const fetcher = jest.fn().mockResolvedValue(jsonResponse(ctx));
+    const api = createRegistrationApi({ fetcher: fetcher as never });
+    const result = await api.getRegistrationContext('slug-1');
+    expect(result).toHaveProperty('tournamentTitle');
+    expect(result).toHaveProperty('registrationOpen');
+  });
+
+  it('throws on 404 when tournament is not found or not accessible', async () => {
+    const api = createRegistrationApi({
+      fetcher: jest.fn().mockResolvedValue(jsonResponse({}, 404)) as never,
+    });
+    await expect(api.getRegistrationContext('slug-1')).rejects.toThrow(
+      'Request failed with status 404.',
+    );
+  });
+
+  it('throws on 401 when token is invalid or expired', async () => {
+    const api = createRegistrationApi({
+      fetcher: jest.fn().mockResolvedValue(jsonResponse({}, 401)) as never,
+    });
+    await expect(api.getRegistrationContext('slug-1')).rejects.toThrow(
+      'Request failed with status 401.',
+    );
+  });
+});
+
 describe('createRegistrationApi — getMyRegistration', () => {
   it('hits GET /api/v1/tournaments/:slug/my-registration', async () => {
     const fetcher = jest.fn().mockResolvedValue(jsonResponse(mockRegistrationDto));

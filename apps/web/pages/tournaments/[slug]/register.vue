@@ -51,6 +51,28 @@ async function load() {
     return;
   }
 
+  let context: { tournamentTitle: string; registrationOpen: boolean };
+  try {
+    context = await registrationApi.value.getRegistrationContext(slug);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : '';
+    if (msg.includes('401')) {
+      state.value = { status: 'auth_required' };
+    } else if (msg.includes('404')) {
+      state.value = { status: 'not_found' };
+    } else {
+      state.value = { status: 'error', message: 'Failed to load registration status.' };
+    }
+    return;
+  }
+
+  if (!context.registrationOpen) {
+    state.value = { status: 'closed' };
+    return;
+  }
+
+  // Tournament is confirmed publicly visible and registration is open.
+  // A 404 from getMyRegistration now safely means "user has no registration yet".
   try {
     const existing = await registrationApi.value.getMyRegistration(slug);
     state.value = { status: 'already_registered', registration: existing };
@@ -59,12 +81,7 @@ async function load() {
     if (msg.includes('401')) {
       state.value = { status: 'auth_required' };
     } else if (msg.includes('404')) {
-      // getMyRegistration returns 404 for two reasons: (a) user has no registration,
-      // or (b) the tournament does not exist / is not publicly accessible (draft/deleted/archived).
-      // We cannot distinguish these without an extra round-trip, so we show the form
-      // optimistically. If the tournament is inaccessible the submit attempt will itself
-      // return 404, which is handled in handleRegister as 'not_found'.
-      state.value = { status: 'open' };
+      state.value = { status: 'open', tournamentTitle: context.tournamentTitle };
     } else {
       state.value = { status: 'error', message: 'Failed to load registration status.' };
     }

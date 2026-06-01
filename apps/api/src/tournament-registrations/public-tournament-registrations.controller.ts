@@ -12,7 +12,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import type { MyTournamentRegistrationDto } from '@dragon/types';
+import type { MyTournamentRegistrationDto, TournamentRegistrationContextDto } from '@dragon/types';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import type { AuthenticatedRequest } from '../auth/guards/authenticated-request';
 import { TournamentService } from '../tournaments/tournament.service';
@@ -34,6 +34,21 @@ export class PublicTournamentRegistrationsController {
     private readonly tournamentService: TournamentService,
     private readonly registrationService: TournamentRegistrationService,
   ) {}
+
+  // GET /api/v1/tournaments/:slug/registration-context
+  // Minimal safe signal: confirms the tournament is publicly visible.
+  // Returns 404 for draft/deleted/archived tournaments — safe to show the
+  // registration form only when this returns 200.
+  @Get(':slug/registration-context')
+  async getRegistrationContext(
+    @Param('slug') slug: string,
+  ): Promise<TournamentRegistrationContextDto> {
+    const tournament = await this.requirePubliclyVisibleTournament(slug);
+    return {
+      tournamentTitle: tournament.title,
+      registrationOpen: tournament.status === 'registration_open',
+    };
+  }
 
   // POST /api/v1/tournaments/:slug/register
   @Post(':slug/register')

@@ -233,6 +233,44 @@ describe('permanent guardrail — no independent Team, Club, or Organization', (
   });
 });
 
+// ─── Safe 404 handling (Slice 6 security fix) ────────────────────────────────
+//
+// PERMANENT: getMyRegistration 404 must never directly open the registration form.
+// The 404 from getMyRegistration is ambiguous — it can mean either:
+//   (a) the user has no registration yet (safe to show form), or
+//   (b) the tournament does not exist / is draft/deleted/archived (unsafe to show form).
+// The fix uses getRegistrationContext as a prerequisite: only show the form once
+// getRegistrationContext returns 200 (confirming tournament accessibility).
+
+describe('PERMANENT — register.vue safe 404 handling (never remove)', () => {
+  it('register.vue calls getRegistrationContext as safe signal before showing form', () => {
+    const src = readPage('register.vue');
+    expect(src).toContain('getRegistrationContext');
+  });
+
+  it('register.vue shows form only after getRegistrationContext confirms registrationOpen', () => {
+    const src = readPage('register.vue');
+    expect(src).toContain('context.registrationOpen');
+  });
+
+  it('register.vue treats getRegistrationContext 404 as not_found (not open)', () => {
+    const src = readPage('register.vue');
+    // The not_found branch must appear in the getRegistrationContext error handler
+    // (before getMyRegistration is ever called).
+    expect(src).toContain("'not_found'");
+    // The open state must NOT be reachable from the getRegistrationContext catch block.
+    // After the fix the open state is only set inside the getMyRegistration handler
+    // which runs only after getRegistrationContext succeeded.
+    const contextCatchBlock = src.match(/getRegistrationContext[\s\S]*?return;\s*\}/)?.[0] ?? '';
+    expect(contextCatchBlock).not.toContain("'open'");
+  });
+
+  it('PERMANENT — register.vue does not call getBySlug (no full public tournament detail dependency)', () => {
+    const src = readPage('register.vue');
+    expect(src).not.toContain('getBySlug');
+  });
+});
+
 // ─── Auth state handling ──────────────────────────────────────────────────────
 
 describe('registration pages — auth state handling', () => {

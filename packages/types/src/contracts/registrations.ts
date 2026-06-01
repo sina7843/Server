@@ -69,6 +69,11 @@ export interface MyTournamentRegistrationDto {
   readonly registeredAt: string;
 }
 
+export interface TournamentRegistrationContextDto {
+  readonly tournamentTitle: string;
+  readonly registrationOpen: boolean;
+}
+
 export interface AdminTournamentRegistrationDto {
   readonly id: string;
   readonly tournamentId: string;

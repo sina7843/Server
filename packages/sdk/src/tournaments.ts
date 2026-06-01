@@ -4,6 +4,7 @@ import type {
   PublicTournamentDto,
   TournamentListResponseDto,
   TournamentRegistrationInputDto,
+  TournamentRegistrationContextDto,
   UpdateTournamentRegistrationDto,
   MyTournamentRegistrationDto,
   TournamentStandingsDto,
@@ -35,6 +36,13 @@ export function createTournamentsClient(client: ApiClient): TournamentsClient {
       return client.request<PublicTournamentDto>({
         method: 'GET',
         path: `/api/v1/tournaments/${encodeURIComponent(slug)}`,
+      });
+    },
+
+    getRegistrationContext(slug: string): Promise<TournamentRegistrationContextDto> {
+      return client.request<TournamentRegistrationContextDto>({
+        method: 'GET',
+        path: `/api/v1/tournaments/${encodeURIComponent(slug)}/registration-context`,
       });
     },
 

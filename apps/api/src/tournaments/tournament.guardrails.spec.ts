@@ -20,14 +20,9 @@ import { join } from 'path';
 import { readFileSync } from 'fs';
 
 const DIR = join(__dirname);
-const API_SRC = join(__dirname, '..');
 
 function read(file: string): string {
   return readFileSync(join(DIR, file), 'utf8');
-}
-
-function readApi(rel: string): string {
-  return readFileSync(join(API_SRC, rel), 'utf8');
 }
 
 // ─── Schema field coverage ────────────────────────────────────────────────────
@@ -266,15 +261,6 @@ describe('slice-4-precondition — no external tournament CRUD controller', () =
   it('tournament module has no controllers registered', () => {
     const src = read('tournaments.module.ts');
     expect(src).not.toContain('controllers:');
-  });
-});
-
-// ─── Slice-4-precondition: TournamentsModule not in AppModule ─────────────────
-
-describe('slice-4-precondition — TournamentsModule not in AppModule', () => {
-  it('AppModule source does not import TournamentsModule (deferred to Slice 5)', () => {
-    const src = readApi('app.module.ts');
-    expect(src).not.toContain('TournamentsModule');
   });
 });
 

@@ -1,10 +1,10 @@
 import { DragonPermissions } from '@dragon/sdk';
 import { ADMIN_NAV_ITEMS, filterNavByPermissions } from './admin-navigation';
 
-// ALLOWED_KEYS is the exact set of nav items present through Slice 3.
-// ACTION REQUIRED: When a new nav item (tournaments, etc.) is added in a later
-// slice, add its key to ALLOWED_KEYS AND update or remove the exact-equality tests below
-// that use this constant. These tests are NOT a permanent restriction on future nav.
+// ALLOWED_KEYS is the exact set of nav items present through Task 5.2.
+// ACTION REQUIRED: When a new nav item is added in a later slice, add its key to
+// ALLOWED_KEYS AND update or remove the exact-equality tests below that use this
+// constant. These tests are NOT a permanent restriction on future nav.
 const ALLOWED_KEYS = [
   'dashboard',
   'users',
@@ -19,6 +19,7 @@ const ALLOWED_KEYS = [
   'notifications',
   'analytics',
   'games',
+  'tournaments',
 ];
 
 describe('ADMIN_NAV_ITEMS', () => {
@@ -142,14 +143,16 @@ describe('Phase 1 navigation guardrails', () => {
     expect(gamesItem!.permission).toBe(DragonPermissions.TOURNAMENT_GAME_READ);
   });
 
-  // SLICE 1 PRECONDITION: tournaments nav does not exist yet (Task 3.2 only adds games).
-  // ACTION REQUIRED: When the slice implementing tournaments nav is merged,
-  // remove or update the it() block below. It is NOT permanently forbidden.
-  it('[slice-3-precondition] does not contain tournaments nav items yet (remove when tournaments nav is implemented)', () => {
+  it('contains tournaments nav item added in Task 5.2', () => {
     const keys = ADMIN_NAV_ITEMS.map((i) => i.key);
-    expect(keys).not.toContain('tournaments');
-    expect(keys).not.toContain('tournament-management');
-    expect(keys).not.toContain('tournament-manager');
+    expect(keys).toContain('tournaments');
+  });
+
+  it('tournaments nav item points to /tournaments with tournament.tournament.read permission', () => {
+    const tournamentsItem = ADMIN_NAV_ITEMS.find((i) => i.key === 'tournaments');
+    expect(tournamentsItem).toBeDefined();
+    expect(tournamentsItem!.path).toBe('/tournaments');
+    expect(tournamentsItem!.permission).toBe(DragonPermissions.TOURNAMENT_READ);
   });
 
   it('has no placeholder nav paths', () => {
@@ -325,5 +328,19 @@ describe('filterNavByPermissions', () => {
     const result = filterNavByPermissions(ADMIN_NAV_ITEMS, permissions, false);
     const keys = result.map((i) => i.key);
     expect(keys).not.toContain('games');
+  });
+
+  it('shows Tournaments nav only with tournament.tournament.read permission', () => {
+    const permissions = new Set([DragonPermissions.TOURNAMENT_READ]);
+    const result = filterNavByPermissions(ADMIN_NAV_ITEMS, permissions, false);
+    expect(result).toHaveLength(1);
+    expect(result[0]!.key).toBe('tournaments');
+  });
+
+  it('does not show Tournaments nav without tournament.tournament.read permission', () => {
+    const permissions = new Set([DragonPermissions.USER_READ, DragonPermissions.AUDIT_LOG_READ]);
+    const result = filterNavByPermissions(ADMIN_NAV_ITEMS, permissions, false);
+    const keys = result.map((i) => i.key);
+    expect(keys).not.toContain('tournaments');
   });
 });

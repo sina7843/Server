@@ -11,7 +11,7 @@
  *   - no placeholder/coming-soon pages
  */
 
-import { readFileSync, readdirSync } from 'fs';
+import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join, extname } from 'path';
 
 // ─── File collection helpers ──────────────────────────────────────────────────
@@ -238,17 +238,12 @@ describe('no forbidden admin routes defined', () => {
     expect(hasTournamentPreview).toBe(false);
   });
 
-  // SLICE 3 PRECONDITION: The following check is TEMPORARY.
-  // It verifies that no admin tournament pages exist yet (Task 3.2 only adds games).
-  // ACTION REQUIRED: When the slice that implements admin tournament pages is merged,
-  // remove the it() block below. Leaving it in place will permanently block a legal
-  // future route. This is NOT a permanent guardrail.
-  it('[slice-3-precondition] no admin tournament pages yet (remove when implemented)', () => {
+  it('admin tournament pages exist (Task 5.2)', () => {
     const hasTournamentPage = ADMIN_PAGES.some((f) => {
       const normalized = f.replace(/\\/g, '/');
       return normalized.includes('/pages/tournaments/');
     });
-    expect(hasTournamentPage).toBe(false);
+    expect(hasTournamentPage).toBe(true);
   });
 
   it('admin games pages exist (Task 3.2)', () => {
@@ -351,5 +346,148 @@ describe('no placeholder or coming-soon pages in apps', () => {
         }
       }
     }
+  });
+});
+
+// ─── Slice 5: future operation sub-routes not implemented early ───────────────
+
+// SLICE 5 PRECONDITIONS: The checks below are TEMPORARY.
+// They verify that operation sub-routes not in Slice 5 scope are not implemented yet.
+// ACTION REQUIRED: When the slice implementing each sub-route is merged, remove
+// its it() block. These are NOT permanent guardrails — do not block legal future routes.
+describe('[slice-5-precondition] future operation sub-routes not implemented early', () => {
+  const ADMIN_PAGES = collectFiles(join(ADMIN_ROOT, 'pages', 'tournaments'), ['.vue']);
+
+  it('no /tournaments/:id/registrations page (future slice, remove when implemented)', () => {
+    const has = ADMIN_PAGES.some((f) => f.replace(/\\/g, '/').includes('/registrations'));
+    expect(has).toBe(false);
+  });
+
+  it('no /tournaments/:id/participants page (future slice, remove when implemented)', () => {
+    const has = ADMIN_PAGES.some((f) => f.replace(/\\/g, '/').includes('/participants'));
+    expect(has).toBe(false);
+  });
+
+  it('no /tournaments/:id/matches page (future slice, remove when implemented)', () => {
+    const has = ADMIN_PAGES.some((f) => f.replace(/\\/g, '/').includes('/matches'));
+    expect(has).toBe(false);
+  });
+
+  it('no /tournaments/:id/results page (future slice, remove when implemented)', () => {
+    const has = ADMIN_PAGES.some((f) => f.replace(/\\/g, '/').includes('/results'));
+    expect(has).toBe(false);
+  });
+
+  it('no /tournaments/:id/standings page (future slice, remove when implemented)', () => {
+    const has = ADMIN_PAGES.some((f) => f.replace(/\\/g, '/').includes('/standings'));
+    expect(has).toBe(false);
+  });
+
+  it('no /tournaments/:id/bracket page (future slice, remove when implemented)', () => {
+    const has = ADMIN_PAGES.some((f) => f.replace(/\\/g, '/').includes('/bracket'));
+    expect(has).toBe(false);
+  });
+});
+
+// ─── Slice 5: admin tournament UI — lifecycle uses explicit SDK methods ───────
+
+describe('Slice 5 — admin tournament lifecycle uses explicit SDK methods', () => {
+  it('TournamentLifecycleActionButtons does not call generic update for any action', () => {
+    const src = readSrc(
+      join(ADMIN_ROOT, 'components', 'tournaments', 'TournamentLifecycleActionButtons.vue'),
+    );
+    expect(src).not.toMatch(/updateTournament|\.update\s*\(/);
+  });
+
+  it('TournamentOperationalHub emits lifecycleAction events (not generic update)', () => {
+    const src = readSrc(
+      join(ADMIN_ROOT, 'components', 'tournaments', 'TournamentOperationalHub.vue'),
+    );
+    expect(src).toContain("emit('lifecycleAction'");
+    expect(src).not.toMatch(/updateTournament|\.update\s*\(/);
+  });
+
+  it('TournamentForm does not expose status field', () => {
+    const src = readSrc(join(ADMIN_ROOT, 'components', 'tournaments', 'TournamentForm.vue'));
+    expect(src).not.toMatch(/v-model="form\.status"/);
+    expect(src).not.toMatch(/name="status"/);
+  });
+
+  it('TournamentForm does not expose publishedAt/cancelledAt/archivedAt/deletedAt fields', () => {
+    const src = readSrc(join(ADMIN_ROOT, 'components', 'tournaments', 'TournamentForm.vue'));
+    expect(src).not.toContain('publishedAt');
+    expect(src).not.toContain('cancelledAt');
+    expect(src).not.toContain('archivedAt');
+    expect(src).not.toContain('deletedAt');
+  });
+
+  it('edit page uses updateTournament (not lifecycle transitions) for non-lifecycle fields', () => {
+    const src = readSrc(join(ADMIN_ROOT, 'pages', 'tournaments', '[id]', 'edit.vue'));
+    expect(src).toContain('updateTournament');
+    expect(src).not.toMatch(/publishTournament|cancelTournament|archiveTournament/);
+  });
+
+  it('detail page dispatches lifecycle actions via TournamentOperationalHub (not direct updates)', () => {
+    const src = readSrc(join(ADMIN_ROOT, 'pages', 'tournaments', '[id]', 'index.vue'));
+    expect(src).toContain('TournamentOperationalHub');
+    expect(src).toContain('@lifecycle-action');
+  });
+});
+
+// ─── Slice 5: admin tournament UI — no fake data in components/pages ──────────
+
+describe('Slice 5 — no fake tournament data in admin tournament components and pages', () => {
+  const TOURNAMENT_UI_FILES = [
+    ...collectFiles(join(ADMIN_ROOT, 'pages', 'tournaments'), ['.vue']),
+    ...collectFiles(join(ADMIN_ROOT, 'components', 'tournaments'), ['.vue']),
+  ];
+
+  const FAKE_PATTERNS = [
+    { label: 'Dragon Cup', pattern: /Dragon Cup/i },
+    { label: 'fake tournament', pattern: /fake\s+tournament/i },
+    { label: 'mockTournament literal', pattern: /\bmockTournament\s*=\s*\{/ },
+    { label: 'hardcoded tournament id', pattern: /507f1f77bcf86cd799439/ },
+  ];
+
+  it('no fake or mock tournament data in tournament UI source files', () => {
+    for (const file of TOURNAMENT_UI_FILES) {
+      const src = readSrc(file);
+      for (const { label, pattern } of FAKE_PATTERNS) {
+        if (pattern.test(src)) {
+          throw new Error(
+            `Fake tournament data pattern '${label}' found in ${file}. Use real SDK data only.`,
+          );
+        }
+      }
+    }
+  });
+});
+
+// ─── Slice 5: docs verification ──────────────────────────────────────────────
+
+describe('Slice 5 — docs exist', () => {
+  const docsPath = join(
+    ADMIN_ROOT,
+    '..',
+    '..',
+    'docs',
+    'development',
+    'phase-1-slice-5-verification.md',
+  );
+
+  it('phase-1-slice-5-verification.md exists in docs/development', () => {
+    expect(existsSync(docsPath)).toBe(true);
+  });
+
+  it('phase-1-slice-5-verification.md mentions lifecycle bypass prevention', () => {
+    if (!existsSync(docsPath)) return;
+    const src = readSrc(docsPath);
+    expect(src).toMatch(/lifecycle.*bypass|bypass.*lifecycle/i);
+  });
+
+  it('phase-1-slice-5-verification.md mentions PATCH restrictions', () => {
+    if (!existsSync(docsPath)) return;
+    const src = readSrc(docsPath);
+    expect(src).toMatch(/PATCH/);
   });
 });

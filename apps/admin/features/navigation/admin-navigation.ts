@@ -100,6 +100,13 @@ export const ADMIN_NAV_ITEMS: readonly AdminNavItem[] = [
     path: '/games',
     permission: DragonPermissions.TOURNAMENT_GAME_READ,
   },
+  {
+    key: 'tournaments',
+    label: 'تورنمنت‌ها',
+    labelEn: 'Tournaments',
+    path: '/tournaments',
+    permission: DragonPermissions.TOURNAMENT_READ,
+  },
 ] as const;
 
 export function filterNavByPermissions(

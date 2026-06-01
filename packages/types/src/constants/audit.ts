@@ -18,6 +18,7 @@ export const AUDIT_RESOURCE_TYPES = {
   MEDIA_ASSET: 'media_asset',
   SYSTEM: 'system',
   GAME: 'game',
+  TOURNAMENT: 'tournament',
 } as const;
 export type AuditResourceType = (typeof AUDIT_RESOURCE_TYPES)[keyof typeof AUDIT_RESOURCE_TYPES];
 
@@ -68,6 +69,17 @@ export const AuditAction = {
   TOURNAMENT_GAME_CREATED: 'tournament.game_created',
   TOURNAMENT_GAME_UPDATED: 'tournament.game_updated',
   TOURNAMENT_GAME_DELETED: 'tournament.game_deleted',
+
+  TOURNAMENT_CREATED: 'tournament.created',
+  TOURNAMENT_UPDATED: 'tournament.updated',
+  TOURNAMENT_PUBLISHED: 'tournament.published',
+  TOURNAMENT_REGISTRATION_OPENED: 'tournament.registration_opened',
+  TOURNAMENT_REGISTRATION_CLOSED: 'tournament.registration_closed',
+  TOURNAMENT_STARTED: 'tournament.started',
+  TOURNAMENT_COMPLETED: 'tournament.completed',
+  TOURNAMENT_CANCELLED: 'tournament.cancelled',
+  TOURNAMENT_ARCHIVED: 'tournament.archived',
+  TOURNAMENT_DELETED: 'tournament.deleted',
 
   MEDIA_ASSET_UPLOADED: 'media.asset_uploaded',
   MEDIA_ASSET_UPDATED: 'media.asset_updated',

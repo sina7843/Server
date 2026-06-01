@@ -106,7 +106,7 @@ Tournament lifecycle follows a strict state machine enforced by `tournament-poli
 ```
 draft → published → registration_open → registration_closed → in_progress → completed
                                                                           → cancelled (from most states)
-completed/cancelled → archived (terminal)
+draft/completed/cancelled → archived (terminal)
 archived (terminal — no further transitions)
 ```
 
@@ -120,7 +120,7 @@ archived (terminal — no further transitions)
 | start             | registration_closed                                                   | in_progress         | `POST /:id/start`              |
 | complete          | in_progress                                                           | completed           | `POST /:id/complete`           |
 | cancel            | draft, published, registration_open, registration_closed, in_progress | cancelled           | `POST /:id/cancel`             |
-| archive           | completed, cancelled                                                  | archived            | `POST /:id/archive`            |
+| archive           | draft, completed, cancelled                                           | archived            | `POST /:id/archive`            |
 
 ---
 
@@ -293,7 +293,7 @@ pnpm format:check
 
 ## Known Limitations
 
-- `participantType` is stored in the MongoDB document but is not included in `TournamentDto` (the shared contract type). The field is present in the schema as an internal field. Feature API input types define it explicitly with `as any` cast at the SDK boundary.
+- `participantType` is supported in create and update operations via `AdminTournamentCreateInput` / `AdminTournamentUpdateInput` in `@dragon/types`. It is NOT included in `TournamentDto` or `AdminTournamentDto` (response shapes), so it does not appear in API responses. The schema stores it internally.
 - The admin tournament list returns `TournamentListItemDto[]` (public summary shape), not full `AdminTournamentDto[]`. This is by design — the full DTO is available on the detail endpoint.
 - Lifecycle timestamps (`publishedAt`, `cancelledAt`, `archivedAt`) are visible on the detail page (via `TournamentOperationalHub`) but cannot be edited by admins.
 - Delete requires `TOURNAMENT_ARCHIVE` permission (no separate delete permission exists in the current permission set).

@@ -137,6 +137,79 @@ describe('parseAdminUpdateTournamentBody — lifecycle bypass prevention', () =>
   });
 });
 
+// ─── Create body — participantType validation ─────────────────────────────────
+
+describe('parseAdminCreateTournamentBody — participantType validation', () => {
+  const validBase = {
+    gameId: '507f1f77bcf86cd799439012',
+    title: 'Cup',
+    slug: 'cup',
+    format: 'single_elimination',
+    capacity: 64,
+  };
+
+  it('accepts participantType: individual', () => {
+    expect(() =>
+      parseAdminCreateTournamentBody({ ...validBase, participantType: 'individual' }),
+    ).not.toThrow();
+  });
+
+  it('accepts participantType: team', () => {
+    expect(() =>
+      parseAdminCreateTournamentBody({ ...validBase, participantType: 'team' }),
+    ).not.toThrow();
+  });
+
+  it('accepts participantType: both', () => {
+    expect(() =>
+      parseAdminCreateTournamentBody({ ...validBase, participantType: 'both' }),
+    ).not.toThrow();
+  });
+
+  it('rejects invalid participantType', () => {
+    expect(() =>
+      parseAdminCreateTournamentBody({ ...validBase, participantType: 'invalid' }),
+    ).toThrow(BadRequestException);
+  });
+
+  it('accepts body without participantType (field is optional)', () => {
+    const result = parseAdminCreateTournamentBody(validBase);
+    expect(result.participantType).toBeUndefined();
+  });
+
+  it('includes participantType in returned object when provided', () => {
+    const result = parseAdminCreateTournamentBody({ ...validBase, participantType: 'team' });
+    expect(result.participantType).toBe('team');
+  });
+});
+
+// ─── Update body — participantType validation ─────────────────────────────────
+
+describe('parseAdminUpdateTournamentBody — participantType validation', () => {
+  it('accepts participantType: individual', () => {
+    expect(() => parseAdminUpdateTournamentBody({ participantType: 'individual' })).not.toThrow();
+  });
+
+  it('accepts participantType: team', () => {
+    expect(() => parseAdminUpdateTournamentBody({ participantType: 'team' })).not.toThrow();
+  });
+
+  it('accepts participantType: both', () => {
+    expect(() => parseAdminUpdateTournamentBody({ participantType: 'both' })).not.toThrow();
+  });
+
+  it('rejects invalid participantType', () => {
+    expect(() => parseAdminUpdateTournamentBody({ participantType: 'solo' })).toThrow(
+      BadRequestException,
+    );
+  });
+
+  it('includes participantType in returned object when provided', () => {
+    const result = parseAdminUpdateTournamentBody({ participantType: 'both' });
+    expect(result.participantType).toBe('both');
+  });
+});
+
 // ─── Create body — required field validation ─────────────────────────────────
 
 describe('parseAdminCreateTournamentBody — required field validation', () => {

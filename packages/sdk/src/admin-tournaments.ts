@@ -1,7 +1,8 @@
 import type { ApiClient } from './client';
 import type { AdminTournamentsClient, TournamentListParams } from './tournament-types';
 import type {
-  TournamentDto,
+  AdminTournamentCreateInput,
+  AdminTournamentUpdateInput,
   AdminTournamentDto,
   TournamentListResponseDto,
   TournamentLifecycleActionDto,
@@ -32,9 +33,7 @@ export function createAdminTournamentsClient(client: ApiClient): AdminTournament
       });
     },
 
-    create(
-      input: Omit<TournamentDto, 'id' | 'createdAt' | 'updatedAt' | 'publishedAt' | 'cancelledAt'>,
-    ): Promise<AdminTournamentDto> {
+    create(input: AdminTournamentCreateInput): Promise<AdminTournamentDto> {
       return client.request<AdminTournamentDto>({
         method: 'POST',
         path: '/admin/v1/tournaments',
@@ -43,10 +42,7 @@ export function createAdminTournamentsClient(client: ApiClient): AdminTournament
       });
     },
 
-    update(
-      id: string,
-      input: Partial<Omit<TournamentDto, 'id' | 'createdAt' | 'updatedAt'>>,
-    ): Promise<AdminTournamentDto> {
+    update(id: string, input: AdminTournamentUpdateInput): Promise<AdminTournamentDto> {
       return client.request<AdminTournamentDto>({
         method: 'PATCH',
         path: `/admin/v1/tournaments/${encodeURIComponent(id)}`,

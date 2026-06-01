@@ -121,13 +121,25 @@ describe('createAdminTournamentsClient — SDK delegation', () => {
         slug: 'dragon-cup-1405',
         format: 'single_elimination',
         capacity: 64,
-        status: 'draft',
-        rules: '',
       });
       expect(mockFetch).toHaveBeenCalledWith(
         'http://localhost:3001/admin/v1/tournaments',
         expect.objectContaining({ method: 'POST' }),
       );
+    });
+
+    it('forwards participantType in request body', async () => {
+      mockJson(mockTournament);
+      await createAdminTournamentsClient(client).create({
+        gameId: '507f1f77bcf86cd799439012',
+        title: 'جام اژدها ۱۴۰۵',
+        slug: 'dragon-cup-1405',
+        format: 'single_elimination',
+        capacity: 64,
+        participantType: 'team',
+      });
+      const body = JSON.parse((mockFetch.mock.calls[0]?.[1] as { body: string })?.body ?? '{}');
+      expect(body.participantType).toBe('team');
     });
   });
 

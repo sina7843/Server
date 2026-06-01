@@ -105,3 +105,38 @@ export interface TournamentListResponseDto {
 export interface TournamentLifecycleActionDto {
   readonly reason?: string;
 }
+
+// ─── Admin input types ────────────────────────────────────────────────────────
+// These types deliberately omit status, publishedAt, cancelledAt, archivedAt,
+// deletedAt, id, createdAt, and updatedAt — lifecycle fields are managed
+// exclusively through the dedicated lifecycle endpoints.
+
+export type AdminTournamentCreateInput = {
+  readonly gameId: string;
+  readonly title: string;
+  readonly slug: string;
+  readonly description?: string;
+  readonly format: TournamentFormat;
+  readonly participantType?: TournamentParticipantType;
+  readonly capacity: number;
+  readonly registrationOpenAt?: string;
+  readonly registrationCloseAt?: string;
+  readonly startsAt?: string;
+  readonly endsAt?: string;
+  readonly rules?: string;
+};
+
+export type AdminTournamentUpdateInput = {
+  readonly gameId?: string;
+  readonly title?: string;
+  readonly slug?: string;
+  readonly description?: string;
+  readonly format?: TournamentFormat;
+  readonly participantType?: TournamentParticipantType;
+  readonly capacity?: number;
+  readonly registrationOpenAt?: string;
+  readonly registrationCloseAt?: string;
+  readonly startsAt?: string;
+  readonly endsAt?: string;
+  readonly rules?: string;
+};

@@ -1,9 +1,15 @@
 import { BadRequestException } from '@nestjs/common';
-import type { TournamentFormat } from '@dragon/types';
+import type { TournamentFormat, TournamentParticipantType } from '@dragon/types';
 import type {
   CreateTournamentInput,
   UpdateTournamentInput,
 } from '../../../tournaments/tournament.types';
+
+const VALID_PARTICIPANT_TYPES: readonly TournamentParticipantType[] = [
+  'individual',
+  'team',
+  'both',
+] as const;
 
 const MAX_TITLE_LENGTH = 200;
 const MAX_SLUG_LENGTH = 200;
@@ -16,6 +22,7 @@ const KNOWN_CREATE_FIELDS = new Set([
   'slug',
   'description',
   'format',
+  'participantType',
   'capacity',
   'registrationOpenAt',
   'registrationCloseAt',
@@ -32,6 +39,7 @@ const KNOWN_UPDATE_FIELDS = new Set([
   'slug',
   'description',
   'format',
+  'participantType',
   'capacity',
   'registrationOpenAt',
   'registrationCloseAt',
@@ -130,6 +138,19 @@ export function parseAdminCreateTournamentBody(raw: unknown): CreateTournamentIn
     if (trimmed.length > 0) rules = trimmed;
   }
 
+  let participantType: TournamentParticipantType | undefined;
+  if (body.participantType !== undefined) {
+    if (
+      typeof body.participantType !== 'string' ||
+      !(VALID_PARTICIPANT_TYPES as readonly string[]).includes(body.participantType)
+    ) {
+      throw new BadRequestException(
+        `participantType must be one of: ${VALID_PARTICIPANT_TYPES.join(', ')}.`,
+      );
+    }
+    participantType = body.participantType as TournamentParticipantType;
+  }
+
   const registrationOpenAt = parseOptionalDate(body.registrationOpenAt, 'registrationOpenAt');
   const registrationCloseAt = parseOptionalDate(body.registrationCloseAt, 'registrationCloseAt');
   const startsAt = parseOptionalDate(body.startsAt, 'startsAt');
@@ -141,6 +162,7 @@ export function parseAdminCreateTournamentBody(raw: unknown): CreateTournamentIn
     slug: body.slug.trim(),
     format: body.format as TournamentFormat,
     capacity: body.capacity as number,
+    ...(participantType !== undefined ? { participantType } : {}),
     ...(description !== undefined ? { description } : {}),
     ...(rules !== undefined ? { rules } : {}),
     ...(registrationOpenAt !== undefined ? { registrationOpenAt } : {}),
@@ -202,6 +224,18 @@ export function parseAdminUpdateTournamentBody(raw: unknown): UpdateTournamentIn
       throw new BadRequestException('format must be a string.');
     }
     result.format = body.format;
+  }
+
+  if (body.participantType !== undefined) {
+    if (
+      typeof body.participantType !== 'string' ||
+      !(VALID_PARTICIPANT_TYPES as readonly string[]).includes(body.participantType)
+    ) {
+      throw new BadRequestException(
+        `participantType must be one of: ${VALID_PARTICIPANT_TYPES.join(', ')}.`,
+      );
+    }
+    result.participantType = body.participantType;
   }
 
   if (body.capacity !== undefined) {

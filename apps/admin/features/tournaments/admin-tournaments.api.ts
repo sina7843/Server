@@ -3,38 +3,13 @@ import type { ApiClient, TournamentListParams } from '@dragon/sdk';
 import type {
   AdminTournamentDto,
   TournamentListResponseDto,
-  TournamentFormat,
-  TournamentParticipantType,
+  AdminTournamentCreateInput,
+  AdminTournamentUpdateInput,
   GameListResponseDto,
 } from '@dragon/types';
 
-export type CreateTournamentInput = {
-  gameId: string;
-  title: string;
-  slug: string;
-  format: TournamentFormat;
-  participantType?: TournamentParticipantType;
-  capacity: number;
-  description?: string;
-  rules?: string;
-  registrationOpenAt?: string;
-  registrationCloseAt?: string;
-  startsAt?: string;
-  endsAt?: string;
-};
-
-export type UpdateTournamentInput = {
-  title?: string;
-  format?: TournamentFormat;
-  participantType?: TournamentParticipantType;
-  capacity?: number;
-  description?: string;
-  rules?: string;
-  registrationOpenAt?: string;
-  registrationCloseAt?: string;
-  startsAt?: string;
-  endsAt?: string;
-};
+export type CreateTournamentInput = AdminTournamentCreateInput;
+export type UpdateTournamentInput = AdminTournamentUpdateInput;
 
 export async function listTournaments(
   client: ApiClient,
@@ -51,8 +26,7 @@ export async function createTournament(
   client: ApiClient,
   input: CreateTournamentInput,
 ): Promise<AdminTournamentDto> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return createAdminTournamentsClient(client).create(input as any);
+  return createAdminTournamentsClient(client).create(input);
 }
 
 export async function updateTournament(
@@ -60,8 +34,7 @@ export async function updateTournament(
   id: string,
   input: UpdateTournamentInput,
 ): Promise<AdminTournamentDto> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return createAdminTournamentsClient(client).update(id, input as any);
+  return createAdminTournamentsClient(client).update(id, input);
 }
 
 export async function publishTournament(

@@ -45,7 +45,7 @@ const {
 async function onSubmit(data: CreateTournamentInput) {
   const created = await createTournament(data);
   if (created) {
-    await router.push('/tournaments');
+    await router.push(`/tournaments/${created.id}`);
   }
 }
 

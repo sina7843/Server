@@ -1,6 +1,5 @@
 import type {
   PublicTournamentDto,
-  TournamentDto,
   AdminTournamentDto,
   TournamentListQueryDto,
   TournamentListResponseDto,
@@ -13,6 +12,8 @@ import type {
   TournamentMatchResultDto,
   TournamentParticipantListResponseDto,
   TournamentMatchListResponseDto,
+  AdminTournamentCreateInput,
+  AdminTournamentUpdateInput,
 } from '@dragon/types';
 
 export type TournamentListParams = TournamentListQueryDto;
@@ -40,13 +41,8 @@ export interface TournamentsClient {
 export interface AdminTournamentsClient {
   list(params?: TournamentListParams): Promise<TournamentListResponseDto>;
   get(id: string): Promise<AdminTournamentDto>;
-  create(
-    input: Omit<TournamentDto, 'id' | 'createdAt' | 'updatedAt' | 'publishedAt' | 'cancelledAt'>,
-  ): Promise<AdminTournamentDto>;
-  update(
-    id: string,
-    input: Partial<Omit<TournamentDto, 'id' | 'createdAt' | 'updatedAt'>>,
-  ): Promise<AdminTournamentDto>;
+  create(input: AdminTournamentCreateInput): Promise<AdminTournamentDto>;
+  update(id: string, input: AdminTournamentUpdateInput): Promise<AdminTournamentDto>;
   publish(id: string, input?: TournamentLifecycleActionDto): Promise<AdminTournamentDto>;
   cancel(id: string, input?: TournamentLifecycleActionDto): Promise<AdminTournamentDto>;
   archive(id: string, input?: TournamentLifecycleActionDto): Promise<AdminTournamentDto>;

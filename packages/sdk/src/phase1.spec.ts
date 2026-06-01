@@ -361,6 +361,53 @@ describe('createAdminTournamentsClient', () => {
     );
   });
 
+  it('create calls POST /admin/v1/tournaments with JSON body', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue({});
+    await client.create({
+      gameId: 'g1',
+      title: 'T',
+      slug: 'slug',
+      format: 'manual',
+      capacity: 8,
+    });
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({ method: 'POST', path: '/admin/v1/tournaments' }),
+    );
+  });
+
+  it('create forwards participantType in request body', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue({});
+    await client.create({
+      gameId: 'g1',
+      title: 'T',
+      slug: 'slug',
+      format: 'manual',
+      capacity: 8,
+      participantType: 'team',
+    });
+    const callArg = request.mock.calls[0]?.[0] as { body: string };
+    expect(JSON.parse(callArg.body).participantType).toBe('team');
+  });
+
+  it('update calls PATCH /admin/v1/tournaments/:id', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue({});
+    await client.update('t1', { title: 'Updated' });
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({ method: 'PATCH', path: '/admin/v1/tournaments/t1' }),
+    );
+  });
+
+  it('update forwards participantType in request body', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue({});
+    await client.update('t1', { participantType: 'both' });
+    const callArg = request.mock.calls[0]?.[0] as { body: string };
+    expect(JSON.parse(callArg.body).participantType).toBe('both');
+  });
+
   it('delete calls DELETE /admin/v1/tournaments/:id', async () => {
     const { request, client } = make();
     request.mockResolvedValue(undefined);

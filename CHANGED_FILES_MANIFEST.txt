@@ -1,31 +1,16 @@
-Phase 1 / Slice 3 — Changed Files
+Phase 1 / Slice 4 — Changed Files
 
-apps/api/src/games/game.repository.ts
-apps/api/src/games/game.schema.ts
-apps/api/src/games/game.service.ts
-apps/api/src/games/game.service.spec.ts
-apps/api/src/games/game.types.ts
-apps/api/src/games/games.module.ts
-apps/api/src/games/public/dto/public-game-response.ts
-apps/api/src/games/public/public-games.controller.ts
-apps/api/src/admin/games/admin-games.controller.ts
-apps/api/src/admin/games/admin-games.controller.spec.ts
-apps/api/src/admin/games/admin-games.module.ts
-apps/api/src/admin/games/dto/admin-game-body.ts
-apps/api/src/admin/games/dto/admin-game-response.ts
-apps/admin/pages/games/index.vue
-apps/admin/pages/games/new.vue
-apps/admin/pages/games/[id]/edit.vue
-apps/admin/components/games/GameForm.vue
-apps/admin/components/games/GameListTable.vue
-apps/admin/components/games/GameStatusBadge.vue
-apps/admin/composables/useAdminGames.ts
-apps/admin/features/games/admin-games.api.ts
-apps/admin/features/games/admin-games.api.spec.ts
-apps/admin/features/navigation/admin-navigation.ts
-apps/admin/features/navigation/admin-navigation.spec.ts
-packages/types/src/contracts/games.ts
-packages/sdk/src/games.ts
-packages/sdk/src/admin-games.ts
-packages/sdk/src/games-types.ts
-docs/development/phase-1-slice-3-verification.md
+apps/api/src/tournaments/tournament.schema.ts
+apps/api/src/tournaments/tournament.repository.ts
+apps/api/src/tournaments/tournament.service.ts
+apps/api/src/tournaments/tournament.service.spec.ts
+apps/api/src/tournaments/tournament.types.ts
+apps/api/src/tournaments/tournament-policy.ts
+apps/api/src/tournaments/tournament-policy.spec.ts
+apps/api/src/tournaments/tournament-validation.ts
+apps/api/src/tournaments/tournament-projection.ts
+apps/api/src/tournaments/tournament-projection.spec.ts
+apps/api/src/tournaments/tournament.guardrails.spec.ts
+apps/api/src/tournaments/tournaments.module.ts
+packages/types/src/contracts/tournaments.ts
+docs/development/phase-1-slice-4-verification.md

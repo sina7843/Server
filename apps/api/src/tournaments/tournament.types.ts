@@ -20,14 +20,14 @@ export interface CreateTournamentInput {
   readonly rules?: string;
 }
 
+// Public service interface — no lifecycle-managed fields.
+// Status must be changed via TournamentService.transition(), never via update().
 export interface UpdateTournamentInput {
   readonly gameId?: string;
   readonly title?: string;
   readonly slug?: string;
-  readonly slugNormalized?: string;
   readonly description?: string;
   readonly format?: TournamentFormat;
-  readonly status?: TournamentStatus;
   readonly participantType?: TournamentParticipantType;
   readonly capacity?: number;
   readonly registrationOpenAt?: Date;
@@ -35,8 +35,18 @@ export interface UpdateTournamentInput {
   readonly startsAt?: Date;
   readonly endsAt?: Date;
   readonly rules?: string;
+}
+
+// Internal repository patch — extends the public input with fields that only
+// the service layer may set (slug normalisation, lifecycle status, timestamps).
+// External callers must use TournamentService.update() which accepts the narrower
+// UpdateTournamentInput and blocks direct status writes.
+export interface TournamentRepositoryPatch extends UpdateTournamentInput {
+  readonly slugNormalized?: string;
+  readonly status?: TournamentStatus;
   readonly publishedAt?: Date;
   readonly cancelledAt?: Date;
+  readonly archivedAt?: Date;
 }
 
 export interface TournamentListFilter {

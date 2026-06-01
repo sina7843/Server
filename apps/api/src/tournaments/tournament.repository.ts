@@ -5,7 +5,7 @@ import { Tournament, type TournamentDocument } from './tournament.schema';
 import type {
   TournamentId,
   CreateTournamentInput,
-  UpdateTournamentInput,
+  TournamentRepositoryPatch,
   TournamentListFilter,
 } from './tournament.types';
 
@@ -96,26 +96,27 @@ export class TournamentRepository {
     return created as TournamentDocument;
   }
 
-  update(id: TournamentId, input: UpdateTournamentInput): Promise<TournamentDocument | null> {
+  update(id: TournamentId, patch: TournamentRepositoryPatch): Promise<TournamentDocument | null> {
     const set: Record<string, unknown> = {};
 
-    if (input.gameId !== undefined) set.gameId = input.gameId;
-    if (input.title !== undefined) set.title = input.title;
-    if (input.slug !== undefined) set.slug = input.slug;
-    if (input.slugNormalized !== undefined) set.slugNormalized = input.slugNormalized;
-    if (input.description !== undefined) set.description = input.description;
-    if (input.format !== undefined) set.format = input.format;
-    if (input.status !== undefined) set.status = input.status;
-    if (input.participantType !== undefined) set.participantType = input.participantType;
-    if (input.capacity !== undefined) set.capacity = input.capacity;
-    if (input.registrationOpenAt !== undefined) set.registrationOpenAt = input.registrationOpenAt;
-    if (input.registrationCloseAt !== undefined)
-      set.registrationCloseAt = input.registrationCloseAt;
-    if (input.startsAt !== undefined) set.startsAt = input.startsAt;
-    if (input.endsAt !== undefined) set.endsAt = input.endsAt;
-    if (input.rules !== undefined) set.rules = input.rules;
-    if (input.publishedAt !== undefined) set.publishedAt = input.publishedAt;
-    if (input.cancelledAt !== undefined) set.cancelledAt = input.cancelledAt;
+    if (patch.gameId !== undefined) set.gameId = patch.gameId;
+    if (patch.title !== undefined) set.title = patch.title;
+    if (patch.slug !== undefined) set.slug = patch.slug;
+    if (patch.slugNormalized !== undefined) set.slugNormalized = patch.slugNormalized;
+    if (patch.description !== undefined) set.description = patch.description;
+    if (patch.format !== undefined) set.format = patch.format;
+    if (patch.status !== undefined) set.status = patch.status;
+    if (patch.participantType !== undefined) set.participantType = patch.participantType;
+    if (patch.capacity !== undefined) set.capacity = patch.capacity;
+    if (patch.registrationOpenAt !== undefined) set.registrationOpenAt = patch.registrationOpenAt;
+    if (patch.registrationCloseAt !== undefined)
+      set.registrationCloseAt = patch.registrationCloseAt;
+    if (patch.startsAt !== undefined) set.startsAt = patch.startsAt;
+    if (patch.endsAt !== undefined) set.endsAt = patch.endsAt;
+    if (patch.rules !== undefined) set.rules = patch.rules;
+    if (patch.publishedAt !== undefined) set.publishedAt = patch.publishedAt;
+    if (patch.cancelledAt !== undefined) set.cancelledAt = patch.cancelledAt;
+    if (patch.archivedAt !== undefined) set.archivedAt = patch.archivedAt;
 
     return this.tournamentModel
       .findOneAndUpdate({ _id: id, deletedAt: { $exists: false } }, { $set: set }, { new: true })

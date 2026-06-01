@@ -8,13 +8,22 @@ import type { TournamentStatus } from '@dragon/types';
 import { normalizeSlug, SlugPolicyError } from '../content/slug/slug-policy';
 import { GameService } from '../games/game.service';
 import { assertTransition } from './tournament-policy';
-import { assertRegistrationWindow, assertTournamentSchedule } from './tournament-validation';
+import {
+  assertTournamentTitle,
+  assertTournamentGameId,
+  assertTournamentFormat,
+  assertTournamentStatus,
+  assertTournamentCapacity,
+  assertRegistrationWindow,
+  assertTournamentSchedule,
+} from './tournament-validation';
 import { TournamentRepository } from './tournament.repository';
 import type { TournamentDocument } from './tournament.schema';
 import type {
   TournamentId,
   CreateTournamentInput,
   UpdateTournamentInput,
+  TournamentRepositoryPatch,
   TournamentListFilter,
 } from './tournament.types';
 
@@ -38,10 +47,15 @@ export class TournamentService {
   }
 
   async create(input: CreateTournamentInput): Promise<TournamentDocument> {
-    await this.assertGameAvailable(input.gameId);
-
+    assertTournamentTitle(input.title);
+    assertTournamentGameId(input.gameId);
+    assertTournamentFormat(input.format);
+    assertTournamentCapacity(input.capacity);
+    if (input.status !== undefined) assertTournamentStatus(input.status);
     assertRegistrationWindow(input.registrationOpenAt, input.registrationCloseAt);
     assertTournamentSchedule(input.startsAt, input.endsAt);
+
+    await this.assertGameAvailable(input.gameId);
 
     const slugNormalized = this.normalizeSlugOrThrow(input.slug);
     const taken = await this.tournamentRepository.existsBySlug(slugNormalized);
@@ -53,10 +67,15 @@ export class TournamentService {
   }
 
   async update(id: TournamentId, input: UpdateTournamentInput): Promise<TournamentDocument> {
+    // UpdateTournamentInput intentionally has no status field — use transition() for
+    // status changes. This type-level boundary is enforced at the service signature.
+    if (input.title !== undefined) assertTournamentTitle(input.title);
     if (input.gameId !== undefined) {
+      assertTournamentGameId(input.gameId);
       await this.assertGameAvailable(input.gameId);
     }
-
+    if (input.format !== undefined) assertTournamentFormat(input.format);
+    if (input.capacity !== undefined) assertTournamentCapacity(input.capacity);
     assertRegistrationWindow(input.registrationOpenAt, input.registrationCloseAt);
     assertTournamentSchedule(input.startsAt, input.endsAt);
 
@@ -70,10 +89,12 @@ export class TournamentService {
       }
     }
 
-    const updated = await this.tournamentRepository.update(id, {
+    const patch: TournamentRepositoryPatch = {
       ...input,
       ...(slugNormalized !== undefined ? { slugNormalized } : {}),
-    });
+    };
+
+    const updated = await this.tournamentRepository.update(id, patch);
 
     if (!updated) throw new NotFoundException('Tournament not found.');
     return updated;
@@ -88,12 +109,13 @@ export class TournamentService {
 
     assertTransition(tournament.status, toStatus);
 
-    const patch: UpdateTournamentInput = {
+    const patch: TournamentRepositoryPatch = {
       status: toStatus,
       ...(toStatus === 'published' && tournament.publishedAt == null
         ? { publishedAt: new Date() }
         : {}),
       ...(toStatus === 'cancelled' ? { cancelledAt: new Date() } : {}),
+      ...(toStatus === 'archived' ? { archivedAt: new Date() } : {}),
     };
 
     const updated = await this.tournamentRepository.update(id, patch);

@@ -44,10 +44,11 @@ describe('tournament schema — required field coverage', () => {
     expect(src).toContain('declare capacity');
   });
 
-  it('schema declares lifecycle timestamps: publishedAt, cancelledAt, deletedAt', () => {
+  it('schema declares lifecycle timestamps: publishedAt, cancelledAt, archivedAt, deletedAt', () => {
     const src = read('tournament.schema.ts');
     expect(src).toContain('declare publishedAt');
     expect(src).toContain('declare cancelledAt');
+    expect(src).toContain('declare archivedAt');
     expect(src).toContain('declare deletedAt');
   });
 

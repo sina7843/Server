@@ -118,6 +118,11 @@ describe('toPublicTournamentSummary', () => {
     const dto = toPublicTournamentSummary(makeDoc({ description: 'A big cup' }));
     expect('description' in dto).toBe(false);
   });
+
+  it('excludes archivedAt (lifecycle-internal field)', () => {
+    const dto = toPublicTournamentSummary(makeDoc({ archivedAt: new Date() }));
+    expect('archivedAt' in dto).toBe(false);
+  });
 });
 
 // ─── toPublicTournamentDetail ─────────────────────────────────────────────────
@@ -170,6 +175,11 @@ describe('toPublicTournamentDetail', () => {
     const dto = toPublicTournamentDetail(makeDoc());
     expect('participantType' in dto).toBe(false);
   });
+
+  it('excludes archivedAt (lifecycle-internal field)', () => {
+    const dto = toPublicTournamentDetail(makeDoc({ archivedAt: new Date() }));
+    expect('archivedAt' in dto).toBe(false);
+  });
 });
 
 // ─── toAdminTournamentDto ─────────────────────────────────────────────────────
@@ -212,6 +222,17 @@ describe('toAdminTournamentDto', () => {
   it('excludes participantType', () => {
     const dto = toAdminTournamentDto(makeDoc());
     expect('participantType' in dto).toBe(false);
+  });
+
+  it('includes archivedAt when set', () => {
+    const archivedAt = new Date('2026-06-01T00:00:00Z');
+    const dto = toAdminTournamentDto(makeDoc({ archivedAt }));
+    expect(dto.archivedAt).toBe('2026-06-01T00:00:00.000Z');
+  });
+
+  it('omits archivedAt when not set', () => {
+    const dto = toAdminTournamentDto(makeDoc());
+    expect('archivedAt' in dto).toBe(false);
   });
 });
 

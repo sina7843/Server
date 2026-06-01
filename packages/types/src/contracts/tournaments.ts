@@ -64,6 +64,7 @@ export interface TournamentDto {
   readonly rules?: string;
   readonly publishedAt?: string;
   readonly cancelledAt?: string;
+  readonly archivedAt?: string;
   readonly createdAt: string;
   readonly updatedAt: string;
 }

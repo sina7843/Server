@@ -90,6 +90,7 @@ export function toAdminTournamentDto(doc: TournamentDocument): TournamentDto {
     ...(doc.rules != null ? { rules: doc.rules } : {}),
     ...(doc.publishedAt != null ? { publishedAt: doc.publishedAt.toISOString() } : {}),
     ...(doc.cancelledAt != null ? { cancelledAt: doc.cancelledAt.toISOString() } : {}),
+    ...(doc.archivedAt != null ? { archivedAt: doc.archivedAt.toISOString() } : {}),
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),
   };

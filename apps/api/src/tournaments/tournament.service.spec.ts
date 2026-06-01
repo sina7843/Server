@@ -1,7 +1,12 @@
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { readFileSync } from 'fs';
-import { ConflictException, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { TournamentService } from './tournament.service';
 import type { TournamentDocument } from './tournament.schema';
 
@@ -415,6 +420,162 @@ describe('TournamentService', () => {
           endsAt: new Date('2026-03-01'),
         }),
       ).rejects.toThrow(UnprocessableEntityException);
+    });
+  });
+
+  // ─── create — format/capacity/title validation ────────────────────────────
+
+  describe('create — field validation', () => {
+    const baseInput = {
+      gameId: GAME_ID,
+      title: 'Dragon Cup 2026',
+      slug: 'dragon-cup-2026',
+      format: 'single_elimination' as const,
+      capacity: 64,
+    };
+
+    it('rejects swiss format', async () => {
+      await expect(service.create({ ...baseInput, format: 'swiss' as never })).rejects.toThrow(
+        UnprocessableEntityException,
+      );
+    });
+
+    it('rejects double_elimination format', async () => {
+      await expect(
+        service.create({ ...baseInput, format: 'double_elimination' as never }),
+      ).rejects.toThrow(UnprocessableEntityException);
+    });
+
+    it('rejects advanced_bracket_editor format', async () => {
+      await expect(
+        service.create({ ...baseInput, format: 'advanced_bracket_editor' as never }),
+      ).rejects.toThrow(UnprocessableEntityException);
+    });
+
+    it('rejects capacity 0', async () => {
+      await expect(service.create({ ...baseInput, capacity: 0 })).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('rejects capacity negative', async () => {
+      await expect(service.create({ ...baseInput, capacity: -1 })).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('rejects empty title', async () => {
+      await expect(service.create({ ...baseInput, title: '' })).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('rejects whitespace-only title', async () => {
+      await expect(service.create({ ...baseInput, title: '   ' })).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('rejects unsupported status on create', async () => {
+      await expect(service.create({ ...baseInput, status: 'open' as never })).rejects.toThrow(
+        UnprocessableEntityException,
+      );
+    });
+  });
+
+  // ─── update — field validation ────────────────────────────────────────────
+
+  describe('update — field validation', () => {
+    it('rejects swiss format in update', async () => {
+      await expect(service.update(TOURNAMENT_ID, { format: 'swiss' as never })).rejects.toThrow(
+        UnprocessableEntityException,
+      );
+    });
+
+    it('rejects double_elimination format in update', async () => {
+      await expect(
+        service.update(TOURNAMENT_ID, { format: 'double_elimination' as never }),
+      ).rejects.toThrow(UnprocessableEntityException);
+    });
+
+    it('rejects advanced_bracket_editor format in update', async () => {
+      await expect(
+        service.update(TOURNAMENT_ID, { format: 'advanced_bracket_editor' as never }),
+      ).rejects.toThrow(UnprocessableEntityException);
+    });
+
+    it('rejects capacity 0 in update', async () => {
+      await expect(service.update(TOURNAMENT_ID, { capacity: 0 })).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('rejects empty title in update', async () => {
+      await expect(service.update(TOURNAMENT_ID, { title: '' })).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+  });
+
+  // ─── update — status bypass prevention ───────────────────────────────────
+
+  describe('update — status bypass prevention', () => {
+    it('UpdateTournamentInput type has no status field (type-level boundary)', () => {
+      // Verify at the source level that UpdateTournamentInput intentionally
+      // excludes status — transition() is the only valid lifecycle path.
+      const src = readFileSync(join(__dirname, 'tournament.types.ts'), 'utf8');
+      // UpdateTournamentInput interface block must not have a status property.
+      // The TournamentRepositoryPatch (internal) may have it, but not the public input.
+      const updateInputBlock =
+        src.match(/export interface UpdateTournamentInput \{[\s\S]*?\n\}/)?.[0] ?? '';
+      expect(updateInputBlock).not.toContain('status');
+    });
+
+    it('service source uses UpdateTournamentInput (no status) as the update() parameter', () => {
+      const src = readFileSync(join(__dirname, 'tournament.service.ts'), 'utf8');
+      expect(src).toContain('update(id: TournamentId, input: UpdateTournamentInput)');
+    });
+
+    it('repository update uses TournamentRepositoryPatch (not UpdateTournamentInput)', () => {
+      const src = readFileSync(join(__dirname, 'tournament.repository.ts'), 'utf8');
+      expect(src).toContain('TournamentRepositoryPatch');
+      expect(src).not.toContain('update(id: TournamentId, input: UpdateTournamentInput)');
+    });
+
+    it('transition() sets status via TournamentRepositoryPatch (not UpdateTournamentInput)', () => {
+      const src = readFileSync(join(__dirname, 'tournament.service.ts'), 'utf8');
+      expect(src).toContain('TournamentRepositoryPatch');
+    });
+  });
+
+  // ─── transition — archivedAt timestamp ───────────────────────────────────
+
+  describe('transition — archivedAt timestamp', () => {
+    it('sets archivedAt when transitioning to archived from completed', async () => {
+      const completed = makeTournament({ status: 'completed' });
+      const archived = makeTournament({ status: 'archived', archivedAt: new Date() });
+      repoMock.findById.mockResolvedValue(completed);
+      repoMock.update.mockResolvedValue(archived);
+
+      await service.transition(TOURNAMENT_ID, 'archived');
+
+      expect(repoMock.update).toHaveBeenCalledWith(
+        TOURNAMENT_ID,
+        expect.objectContaining({ status: 'archived', archivedAt: expect.any(Date) }),
+      );
+    });
+
+    it('sets archivedAt when transitioning to archived from cancelled', async () => {
+      const cancelled = makeTournament({ status: 'cancelled' });
+      repoMock.findById.mockResolvedValue(cancelled);
+      repoMock.update.mockResolvedValue(makeTournament({ status: 'archived' }));
+
+      await service.transition(TOURNAMENT_ID, 'archived');
+
+      expect(repoMock.update).toHaveBeenCalledWith(
+        TOURNAMENT_ID,
+        expect.objectContaining({ status: 'archived', archivedAt: expect.any(Date) }),
+      );
     });
   });
 });

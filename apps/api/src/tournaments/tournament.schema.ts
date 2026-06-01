@@ -43,7 +43,7 @@ export class Tournament {
   @Prop({ required: true, enum: PARTICIPANT_TYPES, default: 'individual' })
   declare participantType: TournamentParticipantType;
 
-  @Prop({ required: true, min: 0 })
+  @Prop({ required: true, min: 1 })
   declare capacity: number;
 
   @Prop()
@@ -66,6 +66,9 @@ export class Tournament {
 
   @Prop()
   declare cancelledAt?: Date;
+
+  @Prop()
+  declare archivedAt?: Date;
 
   declare createdAt: Date;
   declare updatedAt: Date;

@@ -43,7 +43,7 @@ deliberately **not** registered in `AppModule` — the admin CRUD controller arr
 | `format`              | `TournamentFormat`          | Yes      | —              | enum: 3 Phase 1 formats        |
 | `status`              | `TournamentStatus`          | Yes      | `'draft'`      | enum: 8 Phase 1 statuses       |
 | `participantType`     | `TournamentParticipantType` | Yes      | `'individual'` | internal; not in public DTOs   |
-| `capacity`            | `number`                    | Yes      | —              | min: 0                         |
+| `capacity`            | `number`                    | Yes      | —              | min: 1                         |
 | `registrationOpenAt`  | `Date`                      | No       | —              |                                |
 | `registrationCloseAt` | `Date`                      | No       | —              |                                |
 | `startsAt`            | `Date`                      | No       | —              |                                |
@@ -51,6 +51,7 @@ deliberately **not** registered in `AppModule` — the admin CRUD controller arr
 | `rules`               | `string`                    | No       | —              | trimmed                        |
 | `publishedAt`         | `Date`                      | No       | —              | set on first → `published`     |
 | `cancelledAt`         | `Date`                      | No       | —              | set on → `cancelled`           |
+| `archivedAt`          | `Date`                      | No       | —              | set on → `archived`            |
 | `deletedAt`           | `Date`                      | No       | —              | set by soft-delete             |
 | `createdAt`           | `Date`                      | Auto     | —              | mongoose timestamps            |
 | `updatedAt`           | `Date`                      | Auto     | —              | mongoose timestamps            |
@@ -86,14 +87,14 @@ deliberately **not** registered in `AppModule` — the admin CRUD controller arr
 
 ### Service methods
 
-| Method       | Description                                                            |
-| ------------ | ---------------------------------------------------------------------- |
-| `findById`   | Delegates to repository                                                |
-| `list`       | Delegates to repository                                                |
-| `create`     | Validates gameId active, dates, slug uniqueness; delegates to repo     |
-| `update`     | Conditionally validates gameId, dates, slug; delegates to repo         |
-| `transition` | Validates from→to edge, sets lifecycle timestamps, persists new status |
-| `softDelete` | Delegates to repo; throws `NotFoundException` if not found             |
+| Method       | Description                                                                        |
+| ------------ | ---------------------------------------------------------------------------------- |
+| `findById`   | Delegates to repository                                                            |
+| `list`       | Delegates to repository                                                            |
+| `create`     | Validates title, gameId, format, capacity, status?, dates, slug; delegates to repo |
+| `update`     | Validates present fields (title, gameId, format, capacity, dates, slug); no status |
+| `transition` | Validates from→to edge, sets lifecycle timestamps, persists new status             |
+| `softDelete` | Delegates to repo; throws `NotFoundException` if not found                         |
 
 ### `transition` lifecycle-managed timestamps
 
@@ -101,7 +102,12 @@ deliberately **not** registered in `AppModule` — the admin CRUD controller arr
 | ------------- | ---------------------------------- |
 | `published`   | `publishedAt` (first publish only) |
 | `cancelled`   | `cancelledAt`                      |
+| `archived`    | `archivedAt`                       |
 | Any other     | No extra timestamp                 |
+
+`archivedAt` is set on every transition to `archived` (from `completed`, `cancelled`, or
+`draft`). It is included in the admin DTO (`TournamentDto.archivedAt`) and excluded from
+all public projections.
 
 Audit emission for lifecycle transitions is deferred to **Slice 5** when the admin
 controller owns the external action.
@@ -202,8 +208,8 @@ here by default.
 Includes: `id`, `gameId`, `title`, `slug`, `format`, `status`, `capacity`, `startsAt?`,
 `publishedAt?`
 
-Excludes: `cancelledAt`, `deletedAt`, `slugNormalized`, `participantType`, `description`,
-`rules`, `createdAt`, `updatedAt`, dates other than `startsAt`/`publishedAt`
+Excludes: `cancelledAt`, `archivedAt`, `deletedAt`, `slugNormalized`, `participantType`,
+`description`, `rules`, `createdAt`, `updatedAt`, dates other than `startsAt`/`publishedAt`
 
 ### `toPublicTournamentDetail` → `TournamentDetailDto`
 
@@ -211,13 +217,33 @@ Includes: `id`, `gameId`, `title`, `slug`, `format`, `status`, `capacity`, `desc
 `registrationOpenAt?`, `registrationCloseAt?`, `startsAt?`, `endsAt?`, `rules?`,
 `publishedAt?`, `createdAt`, `updatedAt`
 
-Excludes: `cancelledAt`, `deletedAt`, `slugNormalized`, `participantType`
+Excludes: `cancelledAt`, `archivedAt`, `deletedAt`, `slugNormalized`, `participantType`
 
 ### `toAdminTournamentDto` → `TournamentDto`
 
-Same as detail + adds `cancelledAt?`
+Same as detail + adds `cancelledAt?`, `archivedAt?`
 
 Excludes: `deletedAt`, `slugNormalized`, `participantType`
+
+---
+
+## Service Validation Layer
+
+`TournamentService.create()` enforces the following before any repository write:
+
+| Field       | Helper                     | Exception on failure           |
+| ----------- | -------------------------- | ------------------------------ |
+| `title`     | `assertTournamentTitle`    | `BadRequestException`          |
+| `gameId`    | `assertTournamentGameId`   | `BadRequestException`          |
+| `format`    | `assertTournamentFormat`   | `UnprocessableEntityException` |
+| `capacity`  | `assertTournamentCapacity` | `BadRequestException`          |
+| `status?`   | `assertTournamentStatus`   | `UnprocessableEntityException` |
+| date window | `assertRegistrationWindow` | `UnprocessableEntityException` |
+| schedule    | `assertTournamentSchedule` | `UnprocessableEntityException` |
+
+`TournamentService.update()` validates the same fields **only when present** in the patch.
+`status` is **not a field on `UpdateTournamentInput`** — callers cannot bypass the lifecycle
+via `update()`. The type boundary is enforced at compile time via the interface definition.
 
 ---
 
@@ -296,12 +322,12 @@ The following are **not implemented** and must not be added without a correspond
 
 ## Spec Coverage
 
-| File                            | Tests | Covers                                                              |
-| ------------------------------- | ----- | ------------------------------------------------------------------- |
-| `tournament-policy.spec.ts`     | 68    | Status allowlist, format allowlist, transitions, validation helpers |
-| `tournament-projection.spec.ts` | 30    | isPubliclyVisible, public/admin projections, scope guardrails       |
-| `tournament.service.spec.ts`    | 43    | create, update, transition, softDelete, gameId validation           |
-| `tournament.guardrails.spec.ts` | 40    | Schema fields, indexes, permanent guardrails, slice-4-preconditions |
+| File                            | Tests | Covers                                                                                                       |
+| ------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------ |
+| `tournament-policy.spec.ts`     | 68    | Status allowlist, format allowlist, transitions, validation helpers                                          |
+| `tournament-projection.spec.ts` | 35    | isPubliclyVisible, public/admin projections, archivedAt exclusion/inclusion, scope guardrails                |
+| `tournament.service.spec.ts`    | 60+   | Format rejection (swiss/double/abr), capacity/title guards, status-bypass prevention, archivedAt, transition |
+| `tournament.guardrails.spec.ts` | 40    | Schema fields (incl. archivedAt), indexes, permanent guardrails, slice-4-preconditions                       |
 
 ---
 

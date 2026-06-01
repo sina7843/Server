@@ -63,13 +63,21 @@ describe('createGamesClient', () => {
     );
   });
 
-  it('list passes status filter', async () => {
+  it('list does not forward status (public endpoint returns active games only)', async () => {
     const { request, client } = make();
     request.mockResolvedValue(emptyList);
-    await client.list({ status: 'active' });
-    expect(request).toHaveBeenCalledWith(
-      expect.objectContaining({ path: '/api/v1/games?status=active' }),
-    );
+    await client.list({ page: 1, limit: 10 });
+    const callArg = request.mock.calls[0]?.[0] as { path: string };
+    expect(callArg.path).not.toContain('status=');
+  });
+
+  it('list passes page and limit', async () => {
+    const { request, client } = make();
+    request.mockResolvedValue(emptyList);
+    await client.list({ page: 2, limit: 5 });
+    const callArg = request.mock.calls[0]?.[0] as { path: string };
+    expect(callArg.path).toContain('page=2');
+    expect(callArg.path).toContain('limit=5');
   });
 
   it('has no getBySlug method (not locked by Backend Spec)', () => {

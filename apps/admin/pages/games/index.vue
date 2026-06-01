@@ -60,7 +60,7 @@
     <ConfirmDialog
       :open="deleteDialogOpen"
       title="حذف بازی"
-      :description="`آیا مطمئن هستید که می‌خواهید بازی «${pendingDeleteGame?.name ?? ''}» را حذف کنید؟ این عمل قابل بازگشت نیست.`"
+      :description="`آیا مطمئن هستید که می‌خواهید بازی «${pendingDeleteGame?.name ?? ''}» را حذف کنید؟ این بازی از فهرست‌های عمومی و مدیریتی حذف می‌شود.`"
       confirm-label="حذف"
       :destructive="true"
       :loading="actionLoading"

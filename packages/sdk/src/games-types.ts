@@ -7,8 +7,13 @@ import type {
 
 export type GamesListParams = GameListQueryDto;
 
+export interface PublicGamesListParams {
+  readonly page?: number;
+  readonly limit?: number;
+}
+
 export interface GamesClient {
-  list(params?: GamesListParams): Promise<GamePublicListResponseDto>;
+  list(params?: PublicGamesListParams): Promise<GamePublicListResponseDto>;
 }
 
 export interface AdminGamesClient {

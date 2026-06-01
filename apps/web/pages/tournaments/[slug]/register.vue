@@ -4,6 +4,9 @@
 
     <AuthRequiredState v-if="state.status === 'auth_required'" />
     <div v-else-if="state.status === 'loading'" class="page-loading" role="status">Loading…</div>
+    <p v-else-if="state.status === 'not_found'" class="page-error" role="alert">
+      This tournament is not available.
+    </p>
     <RegistrationClosedState v-else-if="state.status === 'closed'" />
     <CapacityFullState v-else-if="state.status === 'capacity_full'" />
     <AlreadyRegisteredState
@@ -56,8 +59,11 @@ async function load() {
     if (msg.includes('401')) {
       state.value = { status: 'auth_required' };
     } else if (msg.includes('404')) {
-      // No existing registration — show the form. Registration open/closed state
-      // is validated by the server on submit (returns 422 if closed).
+      // getMyRegistration returns 404 for two reasons: (a) user has no registration,
+      // or (b) the tournament does not exist / is not publicly accessible (draft/deleted/archived).
+      // We cannot distinguish these without an extra round-trip, so we show the form
+      // optimistically. If the tournament is inaccessible the submit attempt will itself
+      // return 404, which is handled in handleRegister as 'not_found'.
       state.value = { status: 'open' };
     } else {
       state.value = { status: 'error', message: 'Failed to load registration status.' };
@@ -74,7 +80,9 @@ async function handleRegister(input: TournamentRegistrationInputDto) {
     state.value = { status: 'success', registration };
   } catch (err) {
     const msg = err instanceof Error ? err.message : '';
-    if (msg.includes('422')) {
+    if (msg.includes('404')) {
+      state.value = { status: 'not_found' };
+    } else if (msg.includes('422')) {
       state.value = { status: 'closed' };
     } else if (msg.toLowerCase().includes('capacity')) {
       state.value = { status: 'capacity_full' };

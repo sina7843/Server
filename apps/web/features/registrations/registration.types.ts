@@ -9,6 +9,7 @@ export type { MyTournamentRegistrationDto, TournamentRegistrationType, TeamRegis
 export type RegistrationPageState =
   | { readonly status: 'loading' }
   | { readonly status: 'auth_required' }
+  | { readonly status: 'not_found' }
   | { readonly status: 'closed' }
   | { readonly status: 'capacity_full' }
   | { readonly status: 'already_registered'; readonly registration: MyTournamentRegistrationDto }

@@ -69,8 +69,8 @@ export function createTournamentsClient(client: ApiClient): TournamentsClient {
       });
     },
 
-    withdrawMyRegistration(slug: string): Promise<void> {
-      return client.request<void>({
+    withdrawMyRegistration(slug: string): Promise<MyTournamentRegistrationDto> {
+      return client.request<MyTournamentRegistrationDto>({
         method: 'POST',
         path: `/api/v1/tournaments/${encodeURIComponent(slug)}/my-registration/withdraw`,
         body: JSON.stringify({}),

@@ -16,9 +16,9 @@ Slice 6 implements the full registration and participant domain for Phase 1.
 | Participant derived projection                                   | Yes         | Derived from approved registrations                                               |
 | Public tournament detail page (`/tournaments/:slug`)             | No          | Deferred to Slice 8                                                               |
 | Public participant listing page                                  | No          | Deferred to future slice                                                          |
-| Public match/result/standing/bracket pages                       | No          | Out of scope Phase 1                                                              |
-| Match generation/management                                      | No          | Permanently out of scope                                                          |
-| Result entry / standing calculation                              | No          | Permanently out of scope                                                          |
+| Public match/result/standing/bracket pages                       | No          | Deferred to later Phase 1 slices                                                  |
+| Match generation/management                                      | No          | Deferred — scope defined in later Phase 1 slices                                  |
+| Result entry / standing calculation                              | No          | Deferred — scope defined in later Phase 1 slices                                  |
 | Bracket collection/model/editor                                  | No          | Permanently forbidden                                                             |
 | Swiss / Double Elimination formats                               | No          | Permanently unsupported                                                           |
 | Advanced Bracket Editor                                          | No          | Permanently out of scope                                                          |
@@ -35,7 +35,7 @@ Slice 6 implements the full registration and participant domain for Phase 1.
 
 ## Registration API Summary
 
-**Public controller:** `apps/api/src/tournaments/public-tournament-registrations.controller.ts`  
+**Public controller:** `apps/api/src/tournament-registrations/public-tournament-registrations.controller.ts`  
 **Route prefix:** `api/v1/tournaments/:slug`  
 **Auth:** Bearer token required for all registration endpoints
 
@@ -298,26 +298,36 @@ These routes are permanently forbidden and must never be created.
 | `GET /admin/v1/tournaments/:id/operations` | Hub is on detail page; standalone is forbidden          |
 | `GET /admin/v1/tournaments/:id/preview`    | Permanently forbidden                                   |
 
+> **Note:** `/tournaments/:slug/matches` (the flat match listing page) is **not** permanently forbidden. It is a planned future Phase 1 route, guarded by a TEMPORARY check in Slice 6 guardrail specs. Only the nested match detail route (`/matches/:matchId`) is permanently forbidden.
+
 ---
 
 ## Out-of-Scope List (Slice 6)
 
-- Independent Team / Club / Organization model or UI
-- Team / Club profile pages or social pages
-- Match generation or match management
-- Result entry or result history
-- Standing calculation or standing display
-- Bracket projection, collection, model, or editor
-- Swiss format
-- Double Elimination format
-- Advanced Bracket Editor
-- Prize, payment, or shop features
-- Streaming or live scoring
+The following are deferred to later Phase 1 slices or permanently out of scope:
+
+- Public tournament detail page (`/tournaments/:slug`) — Slice 8
+- Public participant listing page (`/tournaments/:slug/participants`) — future slice
+- Public match listing page (`/tournaments/:slug/matches`) — future slice
+- Public match detail route (`/tournaments/:slug/matches/:matchId`) — **permanently forbidden**
+- Public results page (`/tournaments/:slug/results`) — future slice
+- Public standings page (`/tournaments/:slug/standings`) — future slice
+- Public bracket page (`/tournaments/:slug/bracket`) — future slice
+- Match generation or match management — future slice
+- Result entry or result history — future slice
+- Standing calculation or standing display — future slice
+- Bracket projection, collection, model, or editor — future slice; bracket collection is **permanently forbidden**
+- Swiss format — **permanently unsupported**
+- Double Elimination format — **permanently unsupported**
+- Advanced Bracket Editor — future slice
+- Independent Team / Club / Organization model or UI — **permanently forbidden**
+- Team / Club profile pages or social pages — **permanently forbidden**
+- Prize, payment, or shop features — permanently out of scope
+- Streaming or live scoring — permanently out of scope
 - Registration notifications (deferred to Slice 11)
-- Marketing/campaign/push/in-app notifications
-- Admin registration/participant UI pages
-- Public tournament detail page (`/tournaments/:slug`)
-- Fake or seed registration/participant data
+- Marketing/campaign/push/in-app notifications — permanently out of scope
+- Admin registration/participant UI pages — future slice
+- Fake or seed registration/participant data — **permanently forbidden**
 - Production deployment
 
 ---

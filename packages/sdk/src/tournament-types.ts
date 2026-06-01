@@ -30,7 +30,7 @@ export interface TournamentsClient {
     slug: string,
     input: UpdateTournamentRegistrationDto,
   ): Promise<MyTournamentRegistrationDto>;
-  withdrawMyRegistration(slug: string): Promise<void>;
+  withdrawMyRegistration(slug: string): Promise<MyTournamentRegistrationDto>;
   getParticipants(slug: string): Promise<TournamentParticipantListResponseDto>;
   getMatches(slug: string): Promise<TournamentMatchListResponseDto>;
   getResults(slug: string): Promise<readonly TournamentMatchResultDto[]>;

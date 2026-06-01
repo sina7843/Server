@@ -84,11 +84,18 @@ describe('PERMANENT — forbidden admin standalone tournament routes do not exis
 
 describe('PERMANENT — public match detail route is forbidden', () => {
   // PERMANENT: /tournaments/:slug/matches/:matchId is permanently forbidden in Phase 1.
+  // The matches/ directory would create nested routes including [matchId].vue.
   it('PERMANENT — no /tournaments/[slug]/matches directory (match detail route)', () => {
     expect(existsSync(join(SLUG_DIR, 'matches'))).toBe(false);
   });
+});
 
-  it('PERMANENT — no /tournaments/[slug]/matches.vue (public match listing)', () => {
+// ─── TEMPORARY: public matches listing page not yet implemented ───────────────
+
+describe('TEMPORARY — public match listing page is not yet implemented (Slice 6)', () => {
+  // TEMPORARY: remove when the public matches listing page lands in a later Phase 1 slice.
+  // /tournaments/:slug/matches is a legal future Phase 1 route — do NOT permanently forbid it.
+  it('TEMPORARY — no /tournaments/[slug]/matches.vue (remove when matches page lands)', () => {
     expect(existsSync(join(SLUG_DIR, 'matches.vue'))).toBe(false);
   });
 });

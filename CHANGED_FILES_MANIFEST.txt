@@ -1,16 +1,34 @@
-Phase 1 / Slice 4 — Changed Files
+Phase 1 / Slice 5 — Changed Files
 
-apps/api/src/tournaments/tournament.schema.ts
-apps/api/src/tournaments/tournament.repository.ts
-apps/api/src/tournaments/tournament.service.ts
-apps/api/src/tournaments/tournament.service.spec.ts
-apps/api/src/tournaments/tournament.types.ts
-apps/api/src/tournaments/tournament-policy.ts
-apps/api/src/tournaments/tournament-policy.spec.ts
-apps/api/src/tournaments/tournament-validation.ts
+apps/api/src/admin/tournaments/admin-tournaments.controller.ts
+apps/api/src/admin/tournaments/admin-tournaments.module.ts
+apps/api/src/admin/tournaments/admin-tournaments.controller.spec.ts
+apps/api/src/admin/tournaments/dto/admin-tournament-body.ts
+apps/api/src/admin/tournaments/dto/admin-tournament-body.spec.ts
+apps/api/src/admin/tournaments/dto/admin-tournament-response.ts
+apps/api/src/admin/tournaments/slice5-guardrails.spec.ts
 apps/api/src/tournaments/tournament-projection.ts
 apps/api/src/tournaments/tournament-projection.spec.ts
-apps/api/src/tournaments/tournament.guardrails.spec.ts
-apps/api/src/tournaments/tournaments.module.ts
+apps/api/src/app.module.ts
+apps/admin/pages/tournaments/index.vue
+apps/admin/pages/tournaments/new.vue
+apps/admin/pages/tournaments/[id]/index.vue
+apps/admin/pages/tournaments/[id]/edit.vue
+apps/admin/components/tournaments/TournamentListTable.vue
+apps/admin/components/tournaments/TournamentForm.vue
+apps/admin/components/tournaments/TournamentStatusBadge.vue
+apps/admin/components/tournaments/TournamentFormatBadge.vue
+apps/admin/components/tournaments/TournamentLifecycleActionButtons.vue
+apps/admin/components/tournaments/TournamentOperationalHub.vue
+apps/admin/composables/useAdminTournaments.ts
+apps/admin/features/tournaments/admin-tournaments.api.ts
+apps/admin/features/tournaments/admin-tournaments.api.spec.ts
+apps/admin/features/navigation/admin-navigation.ts
+apps/admin/features/navigation/admin-navigation.spec.ts
+apps/admin/features/guardrails/phase1-guardrails.spec.ts
+apps/admin/nuxt.config.ts
+packages/sdk/src/admin-tournaments.ts
+packages/sdk/src/tournament-types.ts
+packages/sdk/src/phase1.spec.ts
 packages/types/src/contracts/tournaments.ts
-docs/development/phase-1-slice-4-verification.md
+docs/development/phase-1-slice-5-verification.md

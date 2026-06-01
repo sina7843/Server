@@ -180,6 +180,36 @@ describe('AdminTournamentsController — listTournaments', () => {
       20,
     );
   });
+
+  it('passes registrationOpen: true when rawRegistrationOpen is "true"', async () => {
+    await controller.listTournaments('1', '20', undefined, undefined, undefined, 'true');
+
+    expect(tournamentService.list).toHaveBeenCalledWith(
+      expect.objectContaining({ registrationOpen: true }),
+      1,
+      20,
+    );
+  });
+
+  it('omits registrationOpen when rawRegistrationOpen is not "true"', async () => {
+    await controller.listTournaments('1', '20', undefined, undefined, undefined, 'false');
+
+    const callFilter = (tournamentService.list as jest.Mock).mock.calls[0][0] as Record<
+      string,
+      unknown
+    >;
+    expect(callFilter).not.toHaveProperty('registrationOpen');
+  });
+
+  it('omits registrationOpen when not provided', async () => {
+    await controller.listTournaments('1', '20');
+
+    const callFilter = (tournamentService.list as jest.Mock).mock.calls[0][0] as Record<
+      string,
+      unknown
+    >;
+    expect(callFilter).not.toHaveProperty('registrationOpen');
+  });
 });
 
 // ─── getTournament ─────────────────────────────────────────────────────────────

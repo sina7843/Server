@@ -47,16 +47,16 @@
 </template>
 
 <script setup lang="ts">
-import type { AdminTournamentDto } from '@dragon/types';
+import type { TournamentListItemDto } from '@dragon/types';
 
 defineProps<{
-  tournaments: readonly AdminTournamentDto[];
+  tournaments: readonly TournamentListItemDto[];
   canUpdate: boolean;
   canDelete: boolean;
 }>();
 
 const emit = defineEmits<{
-  delete: [tournament: AdminTournamentDto];
+  delete: [tournament: TournamentListItemDto];
 }>();
 </script>
 

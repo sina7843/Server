@@ -1,6 +1,11 @@
 import { ref } from 'vue';
 import type { TournamentListParams } from '@dragon/sdk';
-import type { AdminTournamentDto, TournamentListResponseDto, GameDto } from '@dragon/types';
+import type {
+  AdminTournamentDto,
+  TournamentListItemDto,
+  TournamentListResponseDto,
+  GameDto,
+} from '@dragon/types';
 import type {
   CreateTournamentInput,
   UpdateTournamentInput,
@@ -9,7 +14,7 @@ import * as tournamentsApi from '~/features/tournaments/admin-tournaments.api';
 
 // ─── Tournaments list ─────────────────────────────────────────────────────────
 
-const _tournaments = ref<readonly AdminTournamentDto[]>([]);
+const _tournaments = ref<readonly TournamentListItemDto[]>([]);
 const _tournamentsTotal = ref(0);
 const _tournamentsPage = ref(1);
 const _tournamentsLimit = ref(20);
@@ -43,7 +48,7 @@ export function useAdminTournaments() {
         useAdminApiClient(),
         params,
       );
-      _tournaments.value = res.items as AdminTournamentDto[];
+      _tournaments.value = res.items;
       _tournamentsTotal.value = res.total;
       _tournamentsPage.value = res.page;
       _tournamentsLimit.value = res.limit;
@@ -98,9 +103,6 @@ export function useAdminTournaments() {
     try {
       const updated = await tournamentsApi.updateTournament(useAdminApiClient(), id, input);
       _tournament.value = updated;
-      _tournaments.value = _tournaments.value.map((t) =>
-        t.id === id ? (updated as AdminTournamentDto) : t,
-      );
       _actionSuccess.value = 'تغییرات ذخیره شد.';
       return updated;
     } catch (err) {

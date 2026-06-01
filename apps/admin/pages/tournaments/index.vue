@@ -82,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import type { AdminTournamentDto, TournamentStatus, TournamentFormat } from '@dragon/types';
+import type { TournamentListItemDto, TournamentStatus, TournamentFormat } from '@dragon/types';
 import { DragonPermissions as Permissions } from '@dragon/sdk';
 
 definePageMeta({
@@ -108,7 +108,7 @@ const {
 const statusFilter = ref('');
 const formatFilter = ref('');
 const deleteDialogOpen = ref(false);
-const pendingDeleteTournament = ref<AdminTournamentDto | null>(null);
+const pendingDeleteTournament = ref<TournamentListItemDto | null>(null);
 
 function buildParams(page = 1) {
   return {
@@ -131,7 +131,7 @@ function goToPage(page: number) {
   void load(page);
 }
 
-function onDeleteRequest(tournament: AdminTournamentDto) {
+function onDeleteRequest(tournament: TournamentListItemDto) {
   pendingDeleteTournament.value = tournament;
   deleteDialogOpen.value = true;
 }

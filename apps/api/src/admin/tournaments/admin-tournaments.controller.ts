@@ -70,6 +70,7 @@ export class AdminTournamentsController {
     @Query('gameId') gameId?: string,
     @Query('status') rawStatus?: string,
     @Query('format') rawFormat?: string,
+    @Query('registrationOpen') rawRegistrationOpen?: string,
   ): Promise<TournamentListResponseDto> {
     const page =
       rawPage !== undefined ? Math.max(1, parseInt(rawPage, 10) || DEFAULT_PAGE) : DEFAULT_PAGE;
@@ -93,6 +94,7 @@ export class AdminTournamentsController {
         ...(gameId !== undefined ? { gameId } : {}),
         ...(statusFilter !== undefined ? { status: statusFilter } : {}),
         ...(formatFilter !== undefined ? { format: formatFilter } : {}),
+        ...(rawRegistrationOpen === 'true' ? { registrationOpen: true } : {}),
       },
       page,
       limit,

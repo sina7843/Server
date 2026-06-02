@@ -17,6 +17,8 @@ const PUBLIC_VISIBLE_STATUSES = new Set([
 
 export function isPubliclyVisible(doc: TournamentDocument): boolean {
   if (doc.deletedAt != null) return false;
+  // archivedAt is a soft-archive marker independent of status; never expose publicly.
+  if (doc.archivedAt != null) return false;
   return PUBLIC_VISIBLE_STATUSES.has(doc.status);
 }
 

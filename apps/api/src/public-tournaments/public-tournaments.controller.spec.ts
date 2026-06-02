@@ -405,6 +405,24 @@ describe('PublicTournamentsController — getBySlug', () => {
 
     await expect(ctrl.getBySlug('dragon-cup-2026')).rejects.toBeInstanceOf(NotFoundException);
   });
+
+  // archivedAt hardening (Task 8.4 closeout):
+  // archivedAt is a soft-archive marker; a tournament with any status + archivedAt set is hidden.
+  it('PERMANENT — throws NotFoundException for soft-archived tournament (published+archivedAt)', async () => {
+    const doc = makeDoc({ status: 'published', archivedAt: new Date() });
+    const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+
+    await expect(ctrl.getBySlug('dragon-cup-2026')).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('PERMANENT — throws NotFoundException for soft-archived tournament (registration_open+archivedAt)', async () => {
+    const doc = makeDoc({ status: 'registration_open', archivedAt: new Date() });
+    const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+
+    await expect(ctrl.getBySlug('dragon-cup-2026')).rejects.toBeInstanceOf(NotFoundException);
+  });
 });
 
 // ─── Detail does not include operational dashboard fields ─────────────────────

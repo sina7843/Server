@@ -23,6 +23,7 @@
             statusLabel
           }}</span>
           <span class="tournament-detail-page__format">{{ formatLabel }}</span>
+          <span v-if="gameName" class="tournament-detail-page__game">{{ gameName }}</span>
           <span
             v-if="tournament.participantType"
             class="tournament-detail-page__participant-type"
@@ -124,6 +125,7 @@ import type {
   TournamentFormat,
   TournamentParticipantType,
 } from '@dragon/types';
+import { createGamesDiscoveryApi } from '~/features/tournaments/tournaments-api';
 
 const route = useRoute();
 const slug = route.params.slug as string;
@@ -145,6 +147,10 @@ const { data, pending, error } = await useAsyncData(`tournament-${slug}`, async 
 });
 
 const tournament = computed<PublicTournamentDto | null>(() => data.value ?? null);
+
+// ─── Game name (client-side — loaded on mount via public games list) ──────────
+
+const gameName = ref<string | null>(null);
 
 // ─── CTA state (client-side — auth is not available during SSR) ───────────────
 
@@ -180,6 +186,19 @@ async function resolveCtaState() {
     return;
   }
   if (t.status === 'registration_open') {
+    // Respect the registration window if present — status alone is not sufficient.
+    const now = Date.now();
+    if (t.registrationOpenAt && now < new Date(t.registrationOpenAt).getTime()) {
+      // Window has not opened yet.
+      ctaState.value = 'registration_closed';
+      return;
+    }
+    if (t.registrationCloseAt && now >= new Date(t.registrationCloseAt).getTime()) {
+      // Window has expired.
+      ctaState.value = 'registration_closed';
+      return;
+    }
+    // Window is active (or absent → status-only fallback per documented policy).
     if (!hasToken.value) {
       ctaState.value = 'register';
       return;
@@ -197,8 +216,23 @@ async function resolveCtaState() {
   ctaState.value = 'none';
 }
 
-onMounted(() => {
+onMounted(async () => {
   void resolveCtaState();
+
+  // Load game name from public games list (no direct fetch, no operational SDK).
+  const t = tournament.value;
+  if (t?.gameId) {
+    try {
+      const gamesApi = createGamesDiscoveryApi({
+        baseUrl: runtimeConfig.public?.apiBaseUrl as string | undefined,
+      });
+      const res = await gamesApi.list({ limit: 100 });
+      const match = res.items.find((g) => g.id === t.gameId);
+      if (match) gameName.value = match.name;
+    } catch {
+      // game name is supplementary; silently skip on error
+    }
+  }
 });
 
 // ─── Labels / formatting ──────────────────────────────────────────────────────
@@ -336,6 +370,7 @@ useHead(
 }
 
 .tournament-detail-page__format,
+.tournament-detail-page__game,
 .tournament-detail-page__participant-type {
   font-size: var(--text-caption-size);
   color: var(--text-muted);

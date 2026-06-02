@@ -4,31 +4,34 @@
 
 Slice 8 implements the public-facing tournament discovery and detail experience for Phase 1.
 
-| Area                                                            | Implemented   | Notes                                                            |
-| --------------------------------------------------------------- | ------------- | ---------------------------------------------------------------- |
-| Public tournament list API (`GET /api/v1/tournaments`)          | Yes           | Structured filter only — no text search                          |
-| Public tournament detail API (`GET /api/v1/tournaments/:slug`)  | Yes           | Public-safe fields; 404 for draft/deleted/archived               |
-| Public tournament search API (`GET /api/v1/search/tournaments`) | Yes (Slice 1) | Text search endpoint; used by discovery page when `q` is present |
-| SDK `tournaments.list()`                                        | Yes           | Structured list — no `q` param                                   |
-| SDK `tournaments.getBySlug()`                                   | Yes           | Returns `PublicTournamentDto`                                    |
-| SDK `search.tournaments()`                                      | Yes (Slice 1) | Text search — used when `q` present in discovery page            |
-| SDK `games.list()`                                              | Yes (Slice 3) | Used for game filter dropdown in discovery page                  |
-| Discovery page `/tournaments`                                   | Yes           | Filters, search, pagination, all states                          |
-| Detail page `/tournaments/:slug`                                | Yes           | Public-safe fields, status-aware CTA, SEO metadata               |
-| `TournamentCard.vue` component                                  | Yes           | Status badge, format, CTA link, cancelled marking                |
-| `usePublicTournaments` composable                               | Yes           | Routes between `list()` and `search.tournaments()` by `q`        |
-| `useTournamentDetail` composable                                | Yes           | Wraps `createTournamentsDiscoveryApi`                            |
-| `participantType` in `PublicTournamentDto`                      | Yes           | Added in Task 8.3 for public detail rendering                    |
-| Public frontend match/result/standing/bracket pages             | No            | Deferred to Slice 9                                              |
-| Admin frontend operational pages                                | No            | Deferred to Slice 10                                             |
-| Public match detail route `/tournaments/:slug/matches/:matchId` | No            | Permanently forbidden                                            |
-| Admin `/tournaments/:id/operations` standalone route            | No            | Permanently forbidden                                            |
-| Admin `/tournaments/:id/preview` standalone route               | No            | Permanently forbidden                                            |
-| Swiss / Double Elimination formats                              | No            | Permanently unsupported in Phase 1                               |
-| Prize / payment / shop                                          | No            | Permanently out of scope                                         |
-| Live scoring / WebSocket scoreboard                             | No            | Permanently out of scope                                         |
-| Fake/seed tournament data                                       | No            | Permanently forbidden                                            |
-| Streaming or live result feed                                   | No            | Permanently out of scope                                         |
+| Area                                                            | Implemented   | Notes                                                                      |
+| --------------------------------------------------------------- | ------------- | -------------------------------------------------------------------------- |
+| Public tournament list API (`GET /api/v1/tournaments`)          | Yes           | Structured filter only — no text search                                    |
+| Public tournament detail API (`GET /api/v1/tournaments/:slug`)  | Yes           | Public-safe fields; 404 for draft/deleted/archived                         |
+| Public tournament search API (`GET /api/v1/search/tournaments`) | Yes (Slice 1) | Text search endpoint; used by discovery page when `q` is present           |
+| SDK `tournaments.list()`                                        | Yes           | Structured list — no `q` param                                             |
+| SDK `tournaments.getBySlug()`                                   | Yes           | Returns `PublicTournamentDto`                                              |
+| SDK `search.tournaments()`                                      | Yes (Slice 1) | Text search — used when `q` present in discovery page                      |
+| SDK `games.list()`                                              | Yes (Slice 3) | Used for game filter dropdown in discovery page                            |
+| Discovery page `/tournaments`                                   | Yes           | Filters, search, pagination, all states                                    |
+| Detail page `/tournaments/:slug`                                | Yes           | Public-safe fields, status-aware CTA, SEO metadata                         |
+| `TournamentCard.vue` component                                  | Yes           | Status badge, format, CTA link, cancelled marking                          |
+| `usePublicTournaments` composable                               | Yes           | Routes between `list()` and `search.tournaments()` by `q`                  |
+| `useTournamentDetail` composable                                | Yes           | Wraps `createTournamentsDiscoveryApi`                                      |
+| `participantType` in `PublicTournamentDto`                      | Yes           | Added in Task 8.3 for public detail rendering                              |
+| Game name display on detail page                                | Yes           | Loaded on mount via `createGamesDiscoveryApi`; silently skipped on error   |
+| `archivedAt` visibility hardening in `isPubliclyVisible()`      | Yes           | `archivedAt != null` now always returns false regardless of status         |
+| CTA registration window awareness                               | Yes           | `registrationOpenAt`/`registrationCloseAt` checked before showing Register |
+| Public frontend match/result/standing/bracket pages             | No            | Deferred to Slice 9                                                        |
+| Admin frontend operational pages                                | No            | Deferred to Slice 10                                                       |
+| Public match detail route `/tournaments/:slug/matches/:matchId` | No            | Permanently forbidden                                                      |
+| Admin `/tournaments/:id/operations` standalone route            | No            | Permanently forbidden                                                      |
+| Admin `/tournaments/:id/preview` standalone route               | No            | Permanently forbidden                                                      |
+| Swiss / Double Elimination formats                              | No            | Permanently unsupported in Phase 1                                         |
+| Prize / payment / shop                                          | No            | Permanently out of scope                                                   |
+| Live scoring / WebSocket scoreboard                             | No            | Permanently out of scope                                                   |
+| Fake/seed tournament data                                       | No            | Permanently forbidden                                                      |
+| Streaming or live result feed                                   | No            | Permanently out of scope                                                   |
 
 ---
 
@@ -113,6 +116,8 @@ Cancelled tournaments **are visible publicly** for transparency. This means:
 - The `TournamentCard` for a cancelled tournament shows a strikethrough title, a "لغو شده" (cancelled) text label instead of a navigation link, and reduced opacity styling.
 
 Draft, archived, and deleted tournaments are **never visible publicly** — they return 404 regardless of slug.
+
+**`archivedAt` hardening (Task 8.4 closeout):** `isPubliclyVisible()` now checks `archivedAt != null` as an independent blocker, before the status check. A tournament with any public-safe status (e.g. `published`, `registration_open`) that also has `archivedAt` set is treated as non-public. This prevents a soft-archive bypass where the status was not transitioned to `archived` but `archivedAt` was set as a soft marker.
 
 ---
 
@@ -201,6 +206,12 @@ Data is fetched server-side via `useAsyncData` using `detail.getBySlug(slug)`. A
 
 `title`, `status`, `format`, `participantType` (when set), `description` (when set), `rules` (when set), `registrationOpenAt`, `registrationCloseAt`, `startsAt`, `endsAt`, `capacity`.
 
+### Game display policy (Task 8.4 closeout Fix 1)
+
+The detail page shows the game name when available. It is loaded **client-side on mount** using `createGamesDiscoveryApi` (`GET /api/v1/games?limit=100`) — the same SDK factory used by the discovery page. The matching game is found by comparing `tournament.gameId` with items in the games list response. If the fetch fails or no match is found, the game name is silently omitted — it is supplementary display data.
+
+No game name is hardcoded. No direct `fetch`, `$fetch`, or `axios` is used.
+
 ### Operational fields never rendered
 
 `participants`, `matches`, `results`, `standings`, `bracket`, `registrations`, `cancelledAt`, `deletedAt`, `archivedAt`, `slugNormalized`.
@@ -215,16 +226,29 @@ When `data.value === null` (404 or non-public-safe tournament), the page shows a
 
 CTA state is computed client-side in `onMounted` after hydration. Server-side render shows no CTA (auth is not available during SSR).
 
-| Tournament status     | Auth state                               | CTA shown                              |
-| --------------------- | ---------------------------------------- | -------------------------------------- |
-| `registration_open`   | Not authenticated                        | Register link → `/register`            |
-| `registration_open`   | Authenticated, no existing registration  | Register link → `/register`            |
-| `registration_open`   | Authenticated, has existing registration | View registration → `/my-registration` |
-| `registration_closed` | Any                                      | Static text "ثبت‌نام بسته است"         |
-| `in_progress`         | Any                                      | Static badge "در حال برگزاری"          |
-| `completed`           | Any                                      | Static text "رقابت پایان یافته"        |
-| `cancelled`           | Any                                      | Static text "لغو شده" (non-actionable) |
-| `published`           | Any                                      | No CTA (`none`)                        |
+### Registration window policy (Task 8.4 closeout Fix 2)
+
+When `status === 'registration_open'`, the CTA **additionally checks the registration window** before showing Register:
+
+1. If `registrationOpenAt` is set and `now < registrationOpenAt` → window not yet open → show `registration_closed` (non-actionable).
+2. If `registrationCloseAt` is set and `now >= registrationCloseAt` → window expired → show `registration_closed` (non-actionable).
+3. If neither window field is set → **status-only fallback**: treat as open (documented policy because the public API does not surface capacity/count data).
+4. If window is active → proceed to auth check → `register` or `view_registration`.
+
+This means a tournament can have `status === 'registration_open'` but a CTA of `registration_closed` if the client-side time comparison shows the window has not started or has expired.
+
+| Tournament status     | Window state            | Auth state                               | CTA shown                              |
+| --------------------- | ----------------------- | ---------------------------------------- | -------------------------------------- |
+| `registration_open`   | Window not yet open     | Any                                      | `registration_closed` (non-actionable) |
+| `registration_open`   | Window expired          | Any                                      | `registration_closed` (non-actionable) |
+| `registration_open`   | Window active or absent | Not authenticated                        | Register link → `/register`            |
+| `registration_open`   | Window active or absent | Authenticated, no existing registration  | Register link → `/register`            |
+| `registration_open`   | Window active or absent | Authenticated, has existing registration | View registration → `/my-registration` |
+| `registration_closed` | N/A                     | Any                                      | Static text "ثبت‌نام بسته است"         |
+| `in_progress`         | N/A                     | Any                                      | Static badge "در حال برگزاری"          |
+| `completed`           | N/A                     | Any                                      | Static text "رقابت پایان یافته"        |
+| `cancelled`           | N/A                     | Any                                      | Static text "لغو شده" (non-actionable) |
+| `published`           | N/A                     | Any                                      | No CTA (`none`)                        |
 
 The `view_registration` CTA is only shown after a successful `getMyRegistration` response (200). A 404 or error from that call falls back to the `register` CTA.
 
@@ -422,11 +446,16 @@ pnpm format:check
 - [ ] `GET /api/v1/tournaments?format=swiss` returns same result as no format filter (swiss dropped)
 - [ ] `GET /api/v1/tournaments/:slug` returns 404 for a draft tournament slug
 - [ ] `GET /api/v1/tournaments/:slug` returns 404 for a deleted tournament slug
+- [ ] `GET /api/v1/tournaments/:slug` returns 404 for a tournament with `archivedAt` set (Task 8.4 Fix 3)
 - [ ] `GET /api/v1/tournaments/:slug` returns 200 for a cancelled tournament (transparency)
 - [ ] Cancelled tournament detail has no `cancelledAt` field in JSON response
 - [ ] Discovery page shows loading, error, empty, and results states correctly
 - [ ] Discovery page text search calls `/api/v1/search/tournaments`, not `/api/v1/tournaments`
-- [ ] Detail page CTA shows "Register" for unauthenticated user on open tournament
+- [ ] Detail page shows game name when game is found (Task 8.4 Fix 1)
+- [ ] Detail page renders gracefully when game name is unavailable (no error shown)
+- [ ] Detail page CTA shows "Register" for unauthenticated user on open tournament with active window (Task 8.4 Fix 2)
+- [ ] Detail page CTA shows non-actionable state when `registrationCloseAt` has passed (Fix 2)
+- [ ] Detail page CTA shows non-actionable state when `registrationOpenAt` is in the future (Fix 2)
 - [ ] Detail page CTA shows "View my registration" for authenticated user with existing registration
 - [ ] Detail page cancelled CTA shows plain text, no registration link
 - [ ] `/tournaments/index.vue` has no noindex in page source

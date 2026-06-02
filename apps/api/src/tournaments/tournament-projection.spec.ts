@@ -76,7 +76,24 @@ describe('isPubliclyVisible', () => {
     expect(isPubliclyVisible(makeDoc({ status: 'archived' }))).toBe(false);
   });
 
-  it('does not use a visibility field — only status and deletedAt', () => {
+  // archivedAt hardening (Task 8.4 closeout):
+  // archivedAt is a soft-archive marker independent of status.
+  // A tournament with status 'published' but archivedAt set must not be publicly visible.
+  it('PERMANENT — returns false when archivedAt is set (soft-archived, status ignored)', () => {
+    expect(isPubliclyVisible(makeDoc({ status: 'published', archivedAt: new Date() }))).toBe(false);
+  });
+
+  it('PERMANENT — returns false for cancelled when archivedAt is set', () => {
+    expect(isPubliclyVisible(makeDoc({ status: 'cancelled', archivedAt: new Date() }))).toBe(false);
+  });
+
+  it('PERMANENT — returns false for registration_open when archivedAt is set', () => {
+    expect(
+      isPubliclyVisible(makeDoc({ status: 'registration_open', archivedAt: new Date() })),
+    ).toBe(false);
+  });
+
+  it('does not use a visibility field — uses status, deletedAt, and archivedAt', () => {
     const src = readFileSync(join(__dirname, 'tournament-projection.ts'), 'utf8');
     expect(src).not.toMatch(/\.visibility\b/);
     expect(src).not.toMatch(/isVisible\b/);

@@ -58,4 +58,7 @@ export interface TournamentListFilter {
   readonly format?: TournamentFormat;
   readonly registrationOpen?: boolean;
   readonly includeDeleted?: boolean;
+  // archivedAt is a soft-archive marker independent of status.
+  // Default (false) excludes tournaments where archivedAt is set; admin queries may set true.
+  readonly includeArchived?: boolean;
 }

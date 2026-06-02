@@ -686,3 +686,33 @@ describe('PERMANENT — cancelled visibility policy (never remove)', () => {
     expect(safeSetMatch).not.toContain("'archived'");
   });
 });
+
+// ─── archivedAt list exclusion (Task 8.4 closeout) ───────────────────────────
+
+describe('PERMANENT — archivedAt exclusion in list query (never remove)', () => {
+  it('repository source excludes archivedAt by default in list query', () => {
+    const src = readFileSync(join(__dirname, '../tournaments/tournament.repository.ts'), 'utf8');
+    expect(src).toMatch(/archivedAt.*\$exists.*false/);
+  });
+
+  it('repository source gates archivedAt exclusion on includeArchived flag (mirrors includeDeleted)', () => {
+    const src = readFileSync(join(__dirname, '../tournaments/tournament.repository.ts'), 'utf8');
+    expect(src).toMatch(/includeArchived/);
+  });
+
+  it('types source declares includeArchived on TournamentListFilter', () => {
+    const src = readFileSync(join(__dirname, '../tournaments/tournament.types.ts'), 'utf8');
+    expect(src).toMatch(/includeArchived/);
+  });
+
+  it('public controller does not pass includeArchived (default exclusion applies)', () => {
+    const src = readFileSync(join(__dirname, 'public-tournaments.controller.ts'), 'utf8');
+    expect(src).not.toMatch(/includeArchived/);
+  });
+
+  it('archivedAt exclusion is alongside deletedAt exclusion (both present in list method)', () => {
+    const src = readFileSync(join(__dirname, '../tournaments/tournament.repository.ts'), 'utf8');
+    expect(src).toMatch(/includeDeleted/);
+    expect(src).toMatch(/includeArchived/);
+  });
+});

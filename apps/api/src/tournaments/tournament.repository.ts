@@ -73,6 +73,7 @@ export class TournamentRepository {
     }
 
     if (!filter.includeDeleted) query.deletedAt = { $exists: false };
+    if (!filter.includeArchived) query.archivedAt = { $exists: false };
 
     const clampedLimit = Math.min(Math.max(1, limit), MAX_LIMIT);
     const skip = (Math.max(1, page) - 1) * clampedLimit;

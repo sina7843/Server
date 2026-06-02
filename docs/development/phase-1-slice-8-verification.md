@@ -20,7 +20,8 @@ Slice 8 implements the public-facing tournament discovery and detail experience 
 | `useTournamentDetail` composable                                | Yes           | Wraps `createTournamentsDiscoveryApi`                                      |
 | `participantType` in `PublicTournamentDto`                      | Yes           | Added in Task 8.3 for public detail rendering                              |
 | Game name display on detail page                                | Yes           | Loaded on mount via `createGamesDiscoveryApi`; silently skipped on error   |
-| `archivedAt` visibility hardening in `isPubliclyVisible()`      | Yes           | `archivedAt != null` now always returns false regardless of status         |
+| `archivedAt` visibility hardening in `isPubliclyVisible()`      | Yes           | `archivedAt != null` always returns false regardless of status (detail)    |
+| `archivedAt` exclusion in public list query                     | Yes           | Repository `list()` adds `archivedAt: { $exists: false }` by default       |
 | CTA registration window awareness                               | Yes           | `registrationOpenAt`/`registrationCloseAt` checked before showing Register |
 | Public frontend match/result/standing/bracket pages             | No            | Deferred to Slice 9                                                        |
 | Admin frontend operational pages                                | No            | Deferred to Slice 10                                                       |
@@ -117,7 +118,11 @@ Cancelled tournaments **are visible publicly** for transparency. This means:
 
 Draft, archived, and deleted tournaments are **never visible publicly** — they return 404 regardless of slug.
 
-**`archivedAt` hardening (Task 8.4 closeout):** `isPubliclyVisible()` now checks `archivedAt != null` as an independent blocker, before the status check. A tournament with any public-safe status (e.g. `published`, `registration_open`) that also has `archivedAt` set is treated as non-public. This prevents a soft-archive bypass where the status was not transitioned to `archived` but `archivedAt` was set as a soft marker.
+**`archivedAt` hardening (Task 8.4 closeout):** `archivedAt` is enforced at two layers:
+
+1. **Detail endpoint:** `isPubliclyVisible()` checks `archivedAt != null` as an independent blocker before the status check. A tournament with any public-safe status (e.g. `published`, `registration_open`) that also has `archivedAt` set returns 404.
+
+2. **List endpoint (Tiny Fix):** `TournamentRepository.list()` adds `archivedAt: { $exists: false }` to the MongoDB query by default (controlled by `TournamentListFilter.includeArchived`). This means the `total` count from `countDocuments` also excludes soft-archived tournaments — not just the `items` array. The public controller never passes `includeArchived`, so soft-archived tournaments are excluded from all public list results and totals. Admin queries may explicitly set `includeArchived: true`.
 
 ---
 
@@ -446,6 +451,8 @@ pnpm format:check
 - [ ] `GET /api/v1/tournaments?format=swiss` returns same result as no format filter (swiss dropped)
 - [ ] `GET /api/v1/tournaments/:slug` returns 404 for a draft tournament slug
 - [ ] `GET /api/v1/tournaments/:slug` returns 404 for a deleted tournament slug
+- [ ] `GET /api/v1/tournaments` does not include a tournament with `archivedAt` set (Tiny Fix — list exclusion)
+- [ ] `GET /api/v1/tournaments` total count does not count tournaments with `archivedAt` set (Tiny Fix — countDocuments)
 - [ ] `GET /api/v1/tournaments/:slug` returns 404 for a tournament with `archivedAt` set (Task 8.4 Fix 3)
 - [ ] `GET /api/v1/tournaments/:slug` returns 200 for a cancelled tournament (transparency)
 - [ ] Cancelled tournament detail has no `cancelledAt` field in JSON response

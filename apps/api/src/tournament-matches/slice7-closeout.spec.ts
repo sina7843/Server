@@ -148,44 +148,40 @@ describe('SDK alignment — admin tournament standings', () => {
   });
 });
 
-// ─── SDK alignment: admin bracket — no duplication ───────────────────────────
+// ─── SDK alignment: admin bracket — sole method on admin.tournaments ─────────
 //
-// Admin bracket SDK decision: createAdminTournamentBracketClient.get() is used.
-// This was established in Slice 1 (Approved / Completed) and is the sole admin
-// bracket method. admin-tournaments.ts does NOT add a competing getBracket method.
-// Bracket is a projection — not an independent resource.
+// Admin bracket SDK decision (Slice 7 closeout):
+//   admin.tournaments.getBracket(tournamentId) is the sole admin bracket method.
+//   No competing createAdminTournamentBracketClient.get() exists.
+//   Bracket is a projection — not an independent resource.
 
-describe('SDK alignment — admin bracket (no duplication)', () => {
-  it('admin-tournament-bracket.ts defines exactly one get method', () => {
-    const src = read(join(SDK_SRC, 'admin-tournament-bracket.ts'));
-    expect(src).toContain('get(');
-    expect(src).not.toMatch(/edit|override|dragDrop|manualOverride/);
-  });
-
-  it('admin-tournament-bracket.ts does not define POST/PATCH/DELETE bracket methods', () => {
-    const src = read(join(SDK_SRC, 'admin-tournament-bracket.ts'));
-    const methodLines = src.match(/method:\s*'(POST|PATCH|DELETE)'/g) ?? [];
-    expect(methodLines).toHaveLength(0);
-  });
-
-  it('admin-tournaments.ts does NOT also define a getBracket method (no duplication)', () => {
+describe('SDK alignment — admin bracket (sole method on admin.tournaments)', () => {
+  it('admin-tournaments.ts defines getBracket (sole admin bracket SDK method)', () => {
     const src = read(join(SDK_SRC, 'admin-tournaments.ts'));
-    expect(src).not.toMatch(/getBracket/);
+    expect(src).toContain('getBracket');
+    expect(src).toContain('/bracket');
   });
 
-  it('tournament-types.ts AdminTournamentsClient does not define getBracket (no duplication)', () => {
+  it('admin-tournaments.ts getBracket uses GET method only', () => {
+    const src = read(join(SDK_SRC, 'admin-tournaments.ts'));
+    expect(src).toContain('getBracket');
+    // Bracket is GET-only — no POST/PATCH/DELETE bracket methods.
+    const bracketSection = src.slice(src.indexOf('getBracket'));
+    expect(bracketSection.slice(0, 200)).not.toMatch(/method:\s*'(POST|PATCH|DELETE)'/);
+  });
+
+  it('AdminTournamentsClient interface includes getBracket', () => {
     const src = read(join(SDK_SRC, 'tournament-types.ts'));
-    // The admin bracket method lives in AdminTournamentBracketClient, not AdminTournamentsClient.
-    // Verify no duplication.
     const adminTournamentsBlock = src.match(/AdminTournamentsClient\s*\{[^}]+\}/s)?.[0] ?? '';
-    expect(adminTournamentsBlock).not.toContain('getBracket');
+    expect(adminTournamentsBlock).toContain('getBracket');
   });
 
-  it('admin-tournament-bracket-types.ts defines AdminTournamentBracketClient with only get()', () => {
-    const src = read(join(SDK_SRC, 'admin-tournament-bracket-types.ts'));
-    expect(src).toContain('AdminTournamentBracketClient');
-    expect(src).toContain('get(');
-    expect(src).not.toMatch(/edit|override|post|create|update/i);
+  it('no competing admin-tournament-bracket.ts file exists', () => {
+    expect(existsSync(join(SDK_SRC, 'admin-tournament-bracket.ts'))).toBe(false);
+  });
+
+  it('no separate AdminTournamentBracketClient type file exists', () => {
+    expect(existsSync(join(SDK_SRC, 'admin-tournament-bracket-types.ts'))).toBe(false);
   });
 });
 

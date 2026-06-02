@@ -106,7 +106,7 @@ function makeParticipantSeed(
 ): BracketParticipantSeedDto {
   return {
     participantId,
-    displayName: displayNameMap.get(participantId) ?? participantId,
+    displayName: displayNameMap.get(participantId) ?? 'Participant',
     seed: seedMap.get(participantId) ?? 0,
   };
 }
@@ -132,7 +132,9 @@ function singleEliminationLabel(round: number, maxRound: number): string {
 function buildDisplayNameMap(participants: TournamentRegistrationDocument[]): Map<string, string> {
   const map = new Map<string, string>();
   for (const p of participants) {
-    map.set(String(p._id), p.participantDisplayName ?? p.userId);
+    const displayName =
+      p.participantDisplayName ?? (p.type === 'team' ? (p.teamName ?? 'Team') : 'Participant');
+    map.set(String(p._id), displayName);
   }
   return map;
 }

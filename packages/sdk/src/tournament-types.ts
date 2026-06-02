@@ -10,6 +10,7 @@ import type {
   UpdateTournamentRegistrationDto,
   TournamentStandingsDto,
   TournamentBracketDto,
+  BracketProjectionDto,
   TournamentMatchResultDto,
   TournamentParticipantListResponseDto,
   TournamentMatchListResponseDto,
@@ -53,4 +54,5 @@ export interface AdminTournamentsClient {
   closeRegistration(id: string): Promise<AdminTournamentDto>;
   start(id: string): Promise<AdminTournamentDto>;
   complete(id: string): Promise<AdminTournamentDto>;
+  getBracket(id: string): Promise<BracketProjectionDto>;
 }

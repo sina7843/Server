@@ -14,7 +14,6 @@ import { createAdminTournamentParticipantsClient } from './admin-tournament-part
 import { createAdminTournamentMatchesClient } from './admin-tournament-matches';
 import { createAdminTournamentResultsClient } from './admin-tournament-results';
 import { createAdminTournamentStandingsClient } from './admin-tournament-standings';
-import { createAdminTournamentBracketClient } from './admin-tournament-bracket';
 import { createEsportsClient } from './esports';
 import { createSearchClient } from './search';
 import { createAdminSearchClient } from './admin-search';
@@ -758,36 +757,27 @@ describe('createAdminTournamentStandingsClient', () => {
   });
 });
 
-// ─── AdminTournamentBracketClient (display-only, read-only) ──────────────────
+// ─── AdminTournamentsClient — getBracket (sole admin bracket method) ─────────
 
-describe('createAdminTournamentBracketClient', () => {
+describe('createAdminTournamentsClient — getBracket', () => {
   function make() {
     const request = jest.fn();
-    const client = createAdminTournamentBracketClient({ request } as never);
+    const client = createAdminTournamentsClient({ request } as never);
     return { request, client };
   }
 
-  it('exposes only get() method', () => {
-    const { client } = make();
-    expect(typeof client.get).toBe('function');
-    expect(Object.keys(client)).toEqual(['get']);
-  });
-
-  it('get calls GET /admin/v1/tournaments/:id/bracket', async () => {
+  it('getBracket calls GET /admin/v1/tournaments/:id/bracket', async () => {
     const { request, client } = make();
     request.mockResolvedValue({});
-    await client.get('t1');
+    await client.getBracket('t1');
     expect(request).toHaveBeenCalledWith(
       expect.objectContaining({ method: 'GET', path: '/admin/v1/tournaments/t1/bracket' }),
     );
   });
 
-  it('has no edit, override, or dragDrop methods', () => {
+  it('getBracket is the sole admin bracket SDK method (no competing createAdminTournamentBracketClient)', () => {
     const { client } = make();
-    expect('edit' in client).toBe(false);
-    expect('override' in client).toBe(false);
-    expect('dragDrop' in client).toBe(false);
-    expect('manualOverride' in client).toBe(false);
+    expect(typeof client.getBracket).toBe('function');
   });
 });
 
@@ -891,10 +881,6 @@ describe('Phase 1 SDK paths have no hardcoded domains', () => {
     {
       name: 'admin-standings',
       client: createAdminTournamentStandingsClient({ request: jest.fn() } as never),
-    },
-    {
-      name: 'admin-bracket',
-      client: createAdminTournamentBracketClient({ request: jest.fn() } as never),
     },
   ];
 

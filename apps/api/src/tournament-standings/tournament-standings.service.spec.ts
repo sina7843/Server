@@ -157,12 +157,36 @@ describe('TournamentStandingsService — round_robin', () => {
     expect(p1.displayName).toBe('Player One');
   });
 
-  it('falls back to userId when participantDisplayName is not set', async () => {
+  it('falls back to Participant when no participantDisplayName is set', async () => {
     const { service } = makeService([]);
     const result = await service.getStandings(TOURNAMENT_OID, 'round_robin', PARTICIPANTS);
 
     const p3 = result.standings.find((s) => s.participantId === String(P3_OID))!;
-    expect(p3.displayName).toBe('user3');
+    expect(p3.displayName).toBe('Participant');
+  });
+
+  it('uses teamName as fallback for team participants without participantDisplayName', async () => {
+    const teamParticipant = makeParticipant(P3_OID, 'user3', {
+      type: 'team',
+      teamName: 'The Dragons',
+    });
+    const { service } = makeService([]);
+    const result = await service.getStandings(TOURNAMENT_OID, 'round_robin', [teamParticipant]);
+
+    const p3 = result.standings.find((s) => s.participantId === String(P3_OID))!;
+    expect(p3.displayName).toBe('The Dragons');
+  });
+
+  it('does not expose userId in displayName for any participant', async () => {
+    const { service } = makeService([]);
+    const result = await service.getStandings(TOURNAMENT_OID, 'round_robin', PARTICIPANTS);
+
+    for (const standing of result.standings) {
+      expect(standing.displayName).not.toBe('user1');
+      expect(standing.displayName).not.toBe('user2');
+      expect(standing.displayName).not.toBe('user3');
+      expect(standing.displayName).not.toBe('user4');
+    }
   });
 
   it('skips match without winnerId', async () => {

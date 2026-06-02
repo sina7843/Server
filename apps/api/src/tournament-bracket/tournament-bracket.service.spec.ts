@@ -176,13 +176,23 @@ describe('TournamentBracketService — participant data in match nodes', () => {
     expect(node.participant1?.seed).toBe(1);
   });
 
-  it('falls back to userId when participantDisplayName is not set', async () => {
+  it('falls back to Participant when no participantDisplayName is set', async () => {
     const matches = [makeMatch(1, 1, { participant1Id: P3_OID })];
     const { service } = makeService(matches);
     const result = await service.getBracket(TOURNAMENT_OID, 'single_elimination', PARTICIPANTS);
 
     const node = getNode(result.rounds, 0, 0);
-    expect(node.participant1?.displayName).toBe('user3');
+    expect(node.participant1?.displayName).toBe('Participant');
+  });
+
+  it('does not expose userId in displayName for any participant', async () => {
+    const matches = [makeMatch(1, 1, { participant1Id: P1_OID, participant2Id: P3_OID })];
+    const { service } = makeService(matches);
+    const result = await service.getBracket(TOURNAMENT_OID, 'single_elimination', PARTICIPANTS);
+
+    const node = getNode(result.rounds, 0, 0);
+    expect(node.participant1?.displayName).not.toBe('user1');
+    expect(node.participant2?.displayName).not.toBe('user3');
   });
 
   it('uses seed 0 for unseeded participants', async () => {

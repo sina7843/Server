@@ -143,7 +143,7 @@ export class TournamentStandingsService {
 
     const entries = Array.from(tally.entries()).map(([participantId, t]) => ({
       participantId,
-      displayName: displayNameMap.get(participantId) ?? participantId,
+      displayName: displayNameMap.get(participantId) ?? 'Participant',
       wins: t.wins,
       losses: t.losses,
       points: t.wins * pointMultiplier,
@@ -164,7 +164,9 @@ export class TournamentStandingsService {
 function buildDisplayNameMap(participants: TournamentRegistrationDocument[]): Map<string, string> {
   const map = new Map<string, string>();
   for (const p of participants) {
-    map.set(String(p._id), p.participantDisplayName ?? p.userId);
+    const displayName =
+      p.participantDisplayName ?? (p.type === 'team' ? (p.teamName ?? 'Team') : 'Participant');
+    map.set(String(p._id), displayName);
   }
   return map;
 }

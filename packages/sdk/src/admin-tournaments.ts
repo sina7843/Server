@@ -6,6 +6,7 @@ import type {
   AdminTournamentDto,
   TournamentListResponseDto,
   TournamentLifecycleActionDto,
+  BracketProjectionDto,
 } from '@dragon/types';
 
 export function createAdminTournamentsClient(client: ApiClient): AdminTournamentsClient {
@@ -118,6 +119,13 @@ export function createAdminTournamentsClient(client: ApiClient): AdminTournament
         path: `/admin/v1/tournaments/${encodeURIComponent(id)}/complete`,
         body: JSON.stringify({}),
         headers: { 'Content-Type': 'application/json' },
+      });
+    },
+
+    getBracket(id: string): Promise<BracketProjectionDto> {
+      return client.request<BracketProjectionDto>({
+        method: 'GET',
+        path: `/admin/v1/tournaments/${encodeURIComponent(id)}/bracket`,
       });
     },
   };

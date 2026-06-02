@@ -13,6 +13,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import { Types } from 'mongoose';
 import type { AdminTournamentMatchDto } from '@dragon/types';
 import { AccessTokenGuard } from '../../auth/guards/access-token.guard';
 import type { AuthenticatedRequest } from '../../auth/guards/authenticated-request';
@@ -31,6 +32,11 @@ import {
   parseCreateMatchBody,
   parseUpdateMatchBody,
 } from '../../tournament-matches/dto/match-body';
+import {
+  assertTournamentAllowsMatchCreate,
+  assertTournamentAllowsMatchManagement,
+  assertParticipantsAreActiveInTournament,
+} from '../../tournament-matches/tournament-match-policy';
 
 interface AdminTournamentMatchListResponseDto {
   readonly items: readonly AdminTournamentMatchDto[];
@@ -100,7 +106,18 @@ export class AdminTournamentMatchesController {
     const id = validateObjectId(rawId, 'id');
     const adminUserId = this.requireUserId(req);
     const tournament = await this.requireTournament(id);
+    assertTournamentAllowsMatchCreate(tournament.status);
     const input = parseCreateMatchBody(body);
+
+    if (input.participant1Id !== undefined || input.participant2Id !== undefined) {
+      const activeIds = await this.participantService.findActiveForGeneration(tournament._id);
+      const activeIdSet = new Set(activeIds.map(String));
+      assertParticipantsAreActiveInTournament(
+        activeIdSet,
+        input.participant1Id,
+        input.participant2Id,
+      );
+    }
 
     const match = await this.matchService.createMatch(tournament._id, input, adminUserId);
     return toAdminMatchDto(match);
@@ -160,7 +177,20 @@ export class AdminTournamentMatchesController {
     validateObjectId(rawMatchId, 'matchId');
     const adminUserId = this.requireUserId(req);
     const tournament = await this.requireTournament(id);
+    assertTournamentAllowsMatchManagement(tournament.status);
     const input = parseUpdateMatchBody(body);
+
+    if (input.participant1Id !== undefined || input.participant2Id !== undefined) {
+      const participantIds: (Types.ObjectId | string | null | undefined)[] = [];
+      if (input.participant1Id !== undefined) participantIds.push(input.participant1Id);
+      if (input.participant2Id !== undefined) participantIds.push(input.participant2Id);
+      const nonNullIds = participantIds.filter((p) => p != null);
+      if (nonNullIds.length > 0) {
+        const activeIds = await this.participantService.findActiveForGeneration(tournament._id);
+        const activeIdSet = new Set(activeIds.map(String));
+        assertParticipantsAreActiveInTournament(activeIdSet, ...participantIds);
+      }
+    }
 
     const match = await this.matchService.updateMatch(
       rawMatchId,
@@ -184,6 +214,7 @@ export class AdminTournamentMatchesController {
     validateObjectId(rawMatchId, 'matchId');
     const adminUserId = this.requireUserId(req);
     const tournament = await this.requireTournament(id);
+    assertTournamentAllowsMatchManagement(tournament.status);
 
     const match = await this.matchService.cancelMatch(rawMatchId, tournament._id, adminUserId);
     return toAdminMatchDto(match);

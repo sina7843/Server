@@ -1,4 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
+import { Types } from 'mongoose';
 import type { TournamentMatchDocument } from './tournament-match.schema';
 import type { TournamentFormat, TournamentStatus } from '@dragon/types';
 
@@ -10,6 +11,12 @@ const GENERATION_ALLOWED_STATUSES: TournamentStatus[] = ['registration_closed', 
 
 // Tournament formats that support auto-generation.
 const GENERATABLE_FORMATS: TournamentFormat[] = ['single_elimination', 'round_robin'];
+
+// Tournament statuses that allow manual match create/update/cancel.
+const MATCH_MANAGEMENT_ALLOWED_STATUSES: TournamentStatus[] = [
+  'registration_closed',
+  'in_progress',
+];
 
 export function assertMatchIsCancellable(match: TournamentMatchDocument): void {
   if (!CANCELLABLE_STATUSES.has(match.status)) {
@@ -39,5 +46,36 @@ export function assertTournamentAllowsGeneration(
     throw new BadRequestException(
       `Match generation is not supported for format '${format}'. Supported formats: ${GENERATABLE_FORMATS.join(', ')}.`,
     );
+  }
+}
+
+export function assertTournamentAllowsMatchCreate(status: TournamentStatus): void {
+  if (!MATCH_MANAGEMENT_ALLOWED_STATUSES.includes(status)) {
+    throw new BadRequestException(
+      `Manual match creation requires tournament status 'registration_closed' or 'in_progress'. Current status: '${status}'.`,
+    );
+  }
+}
+
+export function assertTournamentAllowsMatchManagement(status: TournamentStatus): void {
+  if (!MATCH_MANAGEMENT_ALLOWED_STATUSES.includes(status)) {
+    throw new BadRequestException(
+      `Match management requires tournament status 'registration_closed' or 'in_progress'. Current status: '${status}'.`,
+    );
+  }
+}
+
+export function assertParticipantsAreActiveInTournament(
+  activeIdSet: ReadonlySet<string>,
+  ...participantIds: (Types.ObjectId | string | null | undefined)[]
+): void {
+  for (const id of participantIds) {
+    if (id == null) continue;
+    const idStr = String(id);
+    if (!activeIdSet.has(idStr)) {
+      throw new BadRequestException(
+        `Participant '${idStr}' is not an active participant in this tournament.`,
+      );
+    }
   }
 }

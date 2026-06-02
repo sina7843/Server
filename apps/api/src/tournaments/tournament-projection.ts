@@ -5,13 +5,14 @@ import type { TournamentDocument } from './tournament.schema';
 
 // Statuses that are safe to surface on public endpoints.
 // draft and archived are always hidden from public consumers.
-// cancelled public behavior is deferred to Slice 8 — excluded here by default.
+// cancelled is visible for transparency — CTAs must be non-actionable (enforced in frontend).
 const PUBLIC_VISIBLE_STATUSES = new Set([
   'published',
   'registration_open',
   'registration_closed',
   'in_progress',
   'completed',
+  'cancelled',
 ]);
 
 export function isPubliclyVisible(doc: TournamentDocument): boolean {
@@ -38,7 +39,8 @@ export function toPublicTournamentSummary(doc: TournamentDocument): TournamentSu
 }
 
 // Maps to TournamentDetailDto (= PublicTournamentDto).
-// Excludes: cancelledAt, deletedAt, slugNormalized, participantType.
+// Excludes: cancelledAt, deletedAt, slugNormalized.
+// Includes participantType for public consumption (task 8.3 — detail page renders participant type).
 export function toPublicTournamentDetail(doc: TournamentDocument): TournamentDetailDto {
   return {
     id: String(doc._id),
@@ -48,6 +50,7 @@ export function toPublicTournamentDetail(doc: TournamentDocument): TournamentDet
     format: doc.format,
     status: doc.status,
     capacity: doc.capacity,
+    ...(doc.participantType != null ? { participantType: doc.participantType } : {}),
     ...(doc.description != null ? { description: doc.description } : {}),
     ...(doc.registrationOpenAt != null
       ? { registrationOpenAt: doc.registrationOpenAt.toISOString() }

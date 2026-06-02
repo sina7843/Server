@@ -36,6 +36,7 @@ import { TournamentStandingsModule } from './tournament-standings/tournament-sta
 import { TournamentBracketModule } from './tournament-bracket/tournament-bracket.module';
 import { AdminTournamentStandingsModule } from './admin/tournament-standings/admin-tournament-standings.module';
 import { AdminTournamentBracketModule } from './admin/tournament-bracket/admin-tournament-bracket.module';
+import { PublicTournamentsModule } from './public-tournaments/public-tournaments.module';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { SecurityHeadersMiddleware } from './common/middleware/security-headers.middleware';
 
@@ -71,6 +72,7 @@ import { SecurityHeadersMiddleware } from './common/middleware/security-headers.
     TournamentBracketModule,
     AdminTournamentStandingsModule,
     AdminTournamentBracketModule,
+    PublicTournamentsModule,
     AdminAuditModule,
     AdminJobsModule,
     AdminNotificationsModule,

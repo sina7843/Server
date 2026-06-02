@@ -22,6 +22,7 @@ export interface PublicTournamentDto {
   readonly slug: string;
   readonly description?: string;
   readonly format: TournamentFormat;
+  readonly participantType?: TournamentParticipantType;
   readonly status: TournamentStatus;
   readonly capacity: number;
   readonly registrationOpenAt?: string;

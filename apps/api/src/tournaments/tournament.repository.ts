@@ -47,13 +47,31 @@ export class TournamentRepository {
     const query: Record<string, unknown> = {};
 
     if (filter.gameId !== undefined) query.gameId = filter.gameId;
-    if (filter.status !== undefined) query.status = filter.status;
     if (filter.format !== undefined) query.format = filter.format;
+
+    // Status precedence: registrationOpen=true > explicit status > statuses array
     if (filter.registrationOpen === true) {
+      // Primary: status must be registration_open (status-primary policy).
+      // Window check: if fields exist they must be active; absent fields = status-only fallback.
       const now = new Date();
-      query.registrationOpenAt = { $lte: now };
-      query.registrationCloseAt = { $gte: now };
+      query.status = 'registration_open';
+      query.$and = [
+        {
+          $or: [{ registrationOpenAt: { $exists: false } }, { registrationOpenAt: { $lte: now } }],
+        },
+        {
+          $or: [
+            { registrationCloseAt: { $exists: false } },
+            { registrationCloseAt: { $gte: now } },
+          ],
+        },
+      ];
+    } else if (filter.status !== undefined) {
+      query.status = filter.status;
+    } else if (filter.statuses !== undefined && filter.statuses.length > 0) {
+      query.status = { $in: filter.statuses };
     }
+
     if (!filter.includeDeleted) query.deletedAt = { $exists: false };
 
     const clampedLimit = Math.min(Math.max(1, limit), MAX_LIMIT);

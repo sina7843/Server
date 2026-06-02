@@ -53,11 +53,6 @@ describe('required registration routes exist', () => {
 // corresponding slice adds the route.
 
 describe('TEMPORARY — Slice-6 route preconditions (remove when feature slice lands)', () => {
-  // TEMPORARY: remove when Slice 8 adds the public tournament detail page.
-  it('TEMPORARY — no full tournament detail page /tournaments/[slug]/index.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'index.vue'))).toBe(false);
-  });
-
   // TEMPORARY: remove when public participant listing page is added.
   it('TEMPORARY — no /tournaments/[slug]/participants.vue', () => {
     expect(existsSync(join(SLUG_DIR, 'participants.vue'))).toBe(false);

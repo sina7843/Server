@@ -52,6 +52,9 @@ export interface TournamentRepositoryPatch extends UpdateTournamentInput {
 export interface TournamentListFilter {
   readonly gameId?: string;
   readonly status?: TournamentStatus;
+  // Multi-value status filter (e.g. public endpoints restricting to safe statuses).
+  // Ignored when registrationOpen=true or status is set.
+  readonly statuses?: readonly TournamentStatus[];
   readonly format?: TournamentFormat;
   readonly registrationOpen?: boolean;
   readonly includeDeleted?: boolean;

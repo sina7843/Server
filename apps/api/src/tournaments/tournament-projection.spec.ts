@@ -61,6 +61,21 @@ describe('isPubliclyVisible', () => {
     expect(isPubliclyVisible(makeDoc({ status: 'completed' }))).toBe(true);
   });
 
+  // Slice 8 cancelled visibility policy:
+  // cancelled tournaments may be visible publicly for transparency.
+  // draft/deleted/archived are still never visible.
+  it('returns true for cancelled (transparency policy — Slice 8)', () => {
+    expect(isPubliclyVisible(makeDoc({ status: 'cancelled' }))).toBe(true);
+  });
+
+  it('returns false for cancelled when deletedAt is set', () => {
+    expect(isPubliclyVisible(makeDoc({ status: 'cancelled', deletedAt: new Date() }))).toBe(false);
+  });
+
+  it('returns false for archived even after Slice 8', () => {
+    expect(isPubliclyVisible(makeDoc({ status: 'archived' }))).toBe(false);
+  });
+
   it('does not use a visibility field — only status and deletedAt', () => {
     const src = readFileSync(join(__dirname, 'tournament-projection.ts'), 'utf8');
     expect(src).not.toMatch(/\.visibility\b/);
@@ -171,8 +186,13 @@ describe('toPublicTournamentDetail', () => {
     expect('slugNormalized' in dto).toBe(false);
   });
 
-  it('excludes participantType', () => {
-    const dto = toPublicTournamentDetail(makeDoc());
+  it('includes participantType when set (public detail exposes it — task 8.3)', () => {
+    const dto = toPublicTournamentDetail(makeDoc({ participantType: 'team' }));
+    expect(dto.participantType).toBe('team');
+  });
+
+  it('omits participantType when not set on document', () => {
+    const dto = toPublicTournamentDetail(makeDoc({ participantType: undefined }));
     expect('participantType' in dto).toBe(false);
   });
 

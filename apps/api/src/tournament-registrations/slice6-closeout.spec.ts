@@ -14,7 +14,6 @@
  *
  * Temporary Slice-6 checks (clearly labeled — remove when feature slice lands):
  *   - No public controller for /api/v1/tournaments/:slug/participants   → remove when participant public API lands
- *   - No public controller for /api/v1/tournaments/:slug/matches        → remove when match public API lands
  */
 
 import { existsSync } from 'fs';
@@ -334,18 +333,8 @@ describe('TEMPORARY — Slice-6 public operational route preconditions', () => {
     expect(existsSync(join(PARTICIPANT_DIR, 'tournament-participants.controller.ts'))).toBe(false);
   });
 
-  // TEMPORARY: remove when public match listing API lands.
-  it('TEMPORARY — no tournament-matches directory exists', () => {
-    expect(existsSync(join(API_SRC, 'tournament-matches'))).toBe(false);
-  });
-
   // TEMPORARY: remove when results API lands.
   it('TEMPORARY — no tournament-results directory exists', () => {
     expect(existsSync(join(API_SRC, 'tournament-results'))).toBe(false);
-  });
-
-  // TEMPORARY: remove when standings API lands.
-  it('TEMPORARY — no tournament-standings directory exists', () => {
-    expect(existsSync(join(API_SRC, 'tournament-standings'))).toBe(false);
   });
 });

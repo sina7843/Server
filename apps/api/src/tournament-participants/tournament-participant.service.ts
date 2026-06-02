@@ -166,6 +166,32 @@ export class TournamentParticipantService {
     return updated as TournamentRegistrationDocument;
   }
 
+  // ─── Active participants for schedule generation ──────────────────────────
+  //
+  // Returns active participant ObjectIds (= registration _id) for use in
+  // schedule generation. Bypasses pagination — maxCount is a safety cap.
+
+  async findActiveForGeneration(
+    tournamentId: string | Types.ObjectId,
+    maxCount = 256,
+  ): Promise<Types.ObjectId[]> {
+    const query = {
+      tournamentId,
+      status: 'approved',
+      participantRemovedAt: { $exists: false },
+      participantDisqualifiedAt: { $exists: false },
+    };
+
+    const docs = await this.registrationModel
+      .find(query)
+      .select('_id')
+      .limit(maxCount)
+      .sort({ seed: 1, createdAt: 1 })
+      .exec();
+
+    return docs.map((d) => d._id as Types.ObjectId);
+  }
+
   // ─── Private helpers ──────────────────────────────────────────────────────
 
   private async requireActiveParticipant(

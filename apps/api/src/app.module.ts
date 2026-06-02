@@ -29,6 +29,13 @@ import { AdminTournamentsModule } from './admin/tournaments/admin-tournaments.mo
 import { TournamentRegistrationsModule } from './tournament-registrations/tournament-registrations.module';
 import { AdminTournamentRegistrationsModule } from './admin/tournament-registrations/admin-tournament-registrations.module';
 import { AdminTournamentParticipantsModule } from './admin/tournament-participants/admin-tournament-participants.module';
+import { TournamentMatchesModule } from './tournament-matches/tournament-matches.module';
+import { AdminTournamentMatchesModule } from './admin/tournament-matches/admin-tournament-matches.module';
+import { AdminTournamentResultsModule } from './admin/tournament-results/admin-tournament-results.module';
+import { TournamentStandingsModule } from './tournament-standings/tournament-standings.module';
+import { TournamentBracketModule } from './tournament-bracket/tournament-bracket.module';
+import { AdminTournamentStandingsModule } from './admin/tournament-standings/admin-tournament-standings.module';
+import { AdminTournamentBracketModule } from './admin/tournament-bracket/admin-tournament-bracket.module';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { SecurityHeadersMiddleware } from './common/middleware/security-headers.middleware';
 
@@ -57,6 +64,13 @@ import { SecurityHeadersMiddleware } from './common/middleware/security-headers.
     TournamentRegistrationsModule,
     AdminTournamentRegistrationsModule,
     AdminTournamentParticipantsModule,
+    TournamentMatchesModule,
+    AdminTournamentMatchesModule,
+    AdminTournamentResultsModule,
+    TournamentStandingsModule,
+    TournamentBracketModule,
+    AdminTournamentStandingsModule,
+    AdminTournamentBracketModule,
     AdminAuditModule,
     AdminJobsModule,
     AdminNotificationsModule,

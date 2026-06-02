@@ -21,6 +21,8 @@ export const AUDIT_RESOURCE_TYPES = {
   TOURNAMENT: 'tournament',
   TOURNAMENT_REGISTRATION: 'tournament_registration',
   TOURNAMENT_PARTICIPANT: 'tournament_participant',
+  TOURNAMENT_MATCH: 'tournament_match',
+  TOURNAMENT_RESULT: 'tournament_result',
 } as const;
 export type AuditResourceType = (typeof AUDIT_RESOURCE_TYPES)[keyof typeof AUDIT_RESOURCE_TYPES];
 
@@ -94,6 +96,20 @@ export const AuditAction = {
   // ─── Phase 1: Participant audit events ───────────────────────────────────────
   PARTICIPANT_REMOVED: 'participant.removed',
   PARTICIPANT_DISQUALIFIED: 'participant.disqualified',
+
+  // ─── Phase 1: Match audit events ─────────────────────────────────────────────
+  MATCH_CREATED: 'match.created',
+  MATCH_UPDATED: 'match.updated',
+  MATCH_CANCELLED: 'match.cancelled',
+  MATCH_GENERATED: 'match.generated',
+
+  // ─── Phase 1: Result audit events ────────────────────────────────────────────
+  RESULT_RECORDED: 'result.recorded',
+  RESULT_UPDATED: 'result.updated',
+  RESULT_VOIDED: 'result.voided',
+
+  // ─── Phase 1: Standings audit events ─────────────────────────────────────────
+  STANDINGS_RECALCULATED: 'standings.recalculated',
 
   MEDIA_ASSET_UPLOADED: 'media.asset_uploaded',
   MEDIA_ASSET_UPDATED: 'media.asset_updated',

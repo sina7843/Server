@@ -4,34 +4,34 @@
 
 Slice 7 implements the full match, result, standings, and bracket backend for Phase 1.
 
-| Area                                                                   | Implemented | Notes                                               |
-| ---------------------------------------------------------------------- | ----------- | --------------------------------------------------- |
-| Admin match API (create, list, get, update, cancel, generate)          | Yes         | `/admin/v1/tournaments/:id/matches`                 |
-| Admin result API (record, update, void)                                | Yes         | `/admin/v1/tournaments/:id/matches/:matchId/result` |
-| Admin standings API (get, recalculate)                                 | Yes         | `/admin/v1/tournaments/:id/standings`               |
-| Admin bracket API (get)                                                | Yes         | `/admin/v1/tournaments/:id/bracket`                 |
-| Public match list API                                                  | Yes         | `/api/v1/tournaments/:slug/matches`                 |
-| Public results list API                                                | Yes         | `/api/v1/tournaments/:slug/results`                 |
-| Public standings API                                                   | Yes         | `/api/v1/tournaments/:slug/standings`               |
-| Public bracket API                                                     | Yes         | `/api/v1/tournaments/:slug/bracket`                 |
-| SDK methods (public: getMatches, getResults, getStandings, getBracket) | Yes         | Added to `packages/sdk/src/tournaments.ts`          |
-| SDK methods (admin: matches, results, standings, bracket)              | Yes         | Separate client files                               |
-| Match generation (round_robin, single_elimination)                     | Yes         | `tournament-match-generation.ts`                    |
-| Standings projection (round_robin, single_elimination, manual)         | Yes         | Projection-based, no collection                     |
-| Bracket projection                                                     | Yes         | Projection-based from match records, no collection  |
-| Public frontend match/result/standing/bracket pages                    | No          | Deferred to Slice 9                                 |
-| Admin frontend match/result/standing/bracket pages                     | No          | Deferred to Slice 10                                |
-| Bracket collection/model/schema                                        | No          | Permanently forbidden                               |
-| Permanent standings collection                                         | No          | Permanently forbidden — projection-based only       |
-| Swiss / Double Elimination formats                                     | No          | Permanently unsupported                             |
-| Live scoring / WebSocket scoreboard                                    | No          | Permanently out of scope                            |
-| Public match detail route                                              | No          | Permanently forbidden                               |
-| Public result detail or mutation route                                 | No          | Permanently forbidden                               |
-| Bracket editor / editable bracket state                                | No          | Permanently forbidden                               |
-| Prize / payment / shop                                                 | No          | Permanently out of scope                            |
-| Fake/seed operational data (matches, results, standings)               | No          | Permanently forbidden                               |
-| Referee or dispute workflow                                            | No          | Permanently out of scope                            |
-| Streaming or live result feed                                          | No          | Permanently out of scope                            |
+| Area                                                                   | Implemented | Notes                                                               |
+| ---------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------- |
+| Admin match API (create, list, get, update, cancel, generate)          | Yes         | `/admin/v1/tournaments/:id/matches`                                 |
+| Admin result API (record, update, void)                                | Yes         | `/admin/v1/tournaments/:id/matches/:matchId/result`                 |
+| Admin standings API (get, recalculate)                                 | Yes         | `/admin/v1/tournaments/:id/standings`                               |
+| Admin bracket API (get)                                                | Yes         | `/admin/v1/tournaments/:id/bracket`                                 |
+| Public match list API                                                  | Yes         | `/api/v1/tournaments/:slug/matches`                                 |
+| Public results list API                                                | Yes         | `/api/v1/tournaments/:slug/results`                                 |
+| Public standings API                                                   | Yes         | `/api/v1/tournaments/:slug/standings`                               |
+| Public bracket API                                                     | Yes         | `/api/v1/tournaments/:slug/bracket`                                 |
+| SDK methods (public: getMatches, getResults, getStandings, getBracket) | Yes         | Added to `packages/sdk/src/tournaments.ts`                          |
+| SDK methods (admin: matches, results, standings, bracket)              | Yes         | Separate client files; bracket via `admin.tournaments.getBracket()` |
+| Match generation (round_robin, single_elimination)                     | Yes         | `tournament-match-generation.ts`                                    |
+| Standings projection (round_robin, single_elimination, manual)         | Yes         | Projection-based, no collection                                     |
+| Bracket projection                                                     | Yes         | Projection-based from match records, no collection                  |
+| Public frontend match/result/standing/bracket pages                    | No          | Deferred to Slice 9                                                 |
+| Admin frontend match/result/standing/bracket pages                     | No          | Deferred to Slice 10                                                |
+| Bracket collection/model/schema                                        | No          | Permanently forbidden                                               |
+| Permanent standings collection                                         | No          | Permanently forbidden — projection-based only                       |
+| Swiss / Double Elimination formats                                     | No          | Permanently unsupported                                             |
+| Live scoring / WebSocket scoreboard                                    | No          | Permanently out of scope                                            |
+| Public match detail route                                              | No          | Permanently forbidden                                               |
+| Public result detail or mutation route                                 | No          | Permanently forbidden                                               |
+| Bracket editor / editable bracket state                                | No          | Permanently forbidden                                               |
+| Prize / payment / shop                                                 | No          | Permanently out of scope                                            |
+| Fake/seed operational data (matches, results, standings)               | No          | Permanently forbidden                                               |
+| Referee or dispute workflow                                            | No          | Permanently out of scope                                            |
+| Streaming or live result feed                                          | No          | Permanently out of scope                                            |
 
 ---
 
@@ -144,7 +144,8 @@ No `TournamentStandings` collection is created or maintained.
 All participants are seeded with 0 wins/losses even if no matches have been completed.  
 Sort is deterministic: ties broken by `participantId` lexicographic order.
 
-Display names: `registration.participantDisplayName ?? registration.userId`
+Display names: `participantDisplayName ?? (type === 'team' ? teamName ?? 'Team' : 'Participant')`  
+userId is never exposed in standings or bracket projections.
 
 **Public endpoint:** `GET /api/v1/tournaments/:slug/standings`  
 **Admin endpoints:** `GET` and `POST .../recalculate` at `/admin/v1/tournaments/:id/standings`
@@ -242,27 +243,28 @@ Forbidden SDK methods (must never exist on public client):
 
 ### Admin SDK
 
-| File                                             | Methods                                                 |
-| ------------------------------------------------ | ------------------------------------------------------- |
-| `packages/sdk/src/admin-tournament-matches.ts`   | `list`, `create`, `generate`, `update`, `cancel`, `get` |
-| `packages/sdk/src/admin-tournament-results.ts`   | `record`, `update`, `void`                              |
-| `packages/sdk/src/admin-tournament-standings.ts` | `get`, `recalculate`                                    |
-| `packages/sdk/src/admin-tournament-bracket.ts`   | `get`                                                   |
+| File                                             | Methods                                                                  |
+| ------------------------------------------------ | ------------------------------------------------------------------------ |
+| `packages/sdk/src/admin-tournament-matches.ts`   | `list`, `create`, `generate`, `update`, `cancel`, `get`                  |
+| `packages/sdk/src/admin-tournament-results.ts`   | `record`, `update`, `void`                                               |
+| `packages/sdk/src/admin-tournament-standings.ts` | `get`, `recalculate`                                                     |
+| `packages/sdk/src/admin-tournaments.ts`          | `getBracket` (bracket access consolidated onto `AdminTournamentsClient`) |
 
 ---
 
 ## Admin Bracket SDK Method Decision
 
-**Decision (Slice 1 locked):** The admin bracket SDK method is `createAdminTournamentBracketClient().get()`.
+**Decision (Slice 7 closeout):** The sole admin bracket SDK method is `admin.tournaments.getBracket(tournamentId)`.
 
-This was established in Slice 1 (approved and locked). It is the sole admin bracket method.
+Bracket access is a projection read on a tournament — not an independent resource with its own client factory.
 
 **Consequences:**
 
-- `admin-tournaments.ts` does **not** define a `getBracket` method.
-- `AdminTournamentsClient` does **not** have a `getBracket` property.
-- No duplication between `createAdminTournamentBracketClient` and `AdminTournamentsClient`.
-- Bracket is a projection, not an independent resource requiring separate tournament-scoped methods.
+- `admin-tournaments.ts` **defines** `getBracket`, making it available as `admin.tournaments.getBracket(id)`.
+- `AdminTournamentsClient` **includes** a `getBracket` property.
+- No separate `admin-tournament-bracket.ts` client file exists.
+- No `AdminTournamentBracketClient` interface exists.
+- No competing `createAdminTournamentBracketClient()` factory exists.
 
 This decision is verified by guardrail tests in `slice7-closeout.spec.ts`.
 
@@ -471,9 +473,12 @@ pnpm format:check
 - [ ] No alternative analytics event name spellings in runtime code
 - [ ] Public SDK has getMatches, getResults, getStandings, getBracket
 - [ ] Public SDK has no getMatchById, getResultById, recordResult, updateResult, voidResult
-- [ ] Admin bracket SDK is `createAdminTournamentBracketClient().get()` (Slice 1 locked)
-- [ ] `admin-tournaments.ts` does NOT define `getBracket` (no duplication)
-- [ ] `AdminTournamentsClient` does NOT have `getBracket` property (no duplication)
+- [ ] Admin bracket SDK is `admin.tournaments.getBracket(id)` — sole method on `AdminTournamentsClient`
+- [ ] `admin-tournaments.ts` defines `getBracket` (no separate bracket client file)
+- [ ] `AdminTournamentsClient` includes `getBracket` property
+- [ ] `admin-tournament-bracket.ts` does not exist (removed)
+- [ ] `admin-tournament-bracket-types.ts` does not exist (removed)
+- [ ] No competing `createAdminTournamentBracketClient` factory exists
 - [ ] No public frontend matches/results/standings/bracket pages (TEMPORARY — Slice 9)
 - [ ] No admin frontend matches/results/standings/bracket pages (TEMPORARY — Slice 10)
 - [ ] No standalone `/admin/tournaments/:id/operations` page

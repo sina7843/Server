@@ -22,7 +22,7 @@ import type { TournamentRegistrationDocument } from '../tournament-registrations
 //                       if total rounds allow. Otherwise "Round N".
 //   round_robin / manual: "Round N" labels.
 //
-// Participant display names come from registration.participantDisplayName ?? userId.
+// Participant display names: participantDisplayName ?? (type === 'team' ? teamName ?? 'Team' : 'Participant').
 // Seed is registration.seed ?? 0 (0 = unseeded).
 
 @Injectable()

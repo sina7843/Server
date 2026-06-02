@@ -31,7 +31,7 @@ import type { TournamentRegistrationDocument } from '../tournament-registrations
 //   Returns empty standings with format='manual'.
 //
 // Result fields: participant IDs in matches are registration ObjectId references.
-// Display names are derived from registration.participantDisplayName ?? registration.userId.
+// Display names: participantDisplayName ?? (type === 'team' ? teamName ?? 'Team' : 'Participant').
 
 @Injectable()
 export class TournamentStandingsService {

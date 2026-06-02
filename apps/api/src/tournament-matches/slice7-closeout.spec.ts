@@ -15,7 +15,7 @@
  *   - Audit action names are exact
  *   - Analytics event names are exact
  *   - No hardcoded localhost or qesb.ir in runtime code
- *   - Admin bracket SDK method is createAdminTournamentBracketClient.get() (no duplication)
+ *   - Admin bracket SDK method is admin.tournaments.getBracket() — sole method, no competing client
  *
  * Temporary Slice-7 checks (clearly labeled — remove when feature slice lands):
  *   - No public frontend matches page (/tournaments/:slug/matches) → remove when Slice 9 lands

@@ -77,6 +77,65 @@ describe('createApiClient', () => {
     );
   });
 
+  it('204 No Content response returns undefined without throwing', async () => {
+    const client = createApiClient({
+      baseUrl: 'https://api.example.test',
+      fetch: jest.fn().mockResolvedValue({
+        ok: true,
+        status: 204,
+      } as unknown as Response),
+    });
+
+    const result = await client.request<void>({ path: '/result/void', method: 'POST' });
+    expect(result).toBeUndefined();
+  });
+
+  it('empty body (non-204 ok response with no JSON) returns undefined without throwing', async () => {
+    const client = createApiClient({
+      baseUrl: 'https://api.example.test',
+      fetch: jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => {
+          throw new SyntaxError('Unexpected end of JSON input');
+        },
+      } as unknown as Response),
+    });
+
+    const result = await client.request<void>({ path: '/some-path', method: 'POST' });
+    expect(result).toBeUndefined();
+  });
+
+  it('normal JSON response still parses correctly', async () => {
+    const client = createApiClient({
+      baseUrl: 'https://api.example.test',
+      fetch: jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 'abc', value: 42 }),
+      } as Response),
+    });
+
+    const result = await client.request<{ id: string; value: number }>({ path: '/thing' });
+    expect(result).toEqual({ id: 'abc', value: 42 });
+  });
+
+  it('non-ok response still throws ApiClientError regardless of body', async () => {
+    const client = createApiClient({
+      baseUrl: 'https://api.example.test',
+      fetch: jest.fn().mockResolvedValue({
+        ok: false,
+        status: 422,
+        json: async () => ({ error: 'validation failed' }),
+      } as Response),
+    });
+
+    await expect(client.request({ path: '/bad' })).rejects.toMatchObject({
+      name: 'ApiClientError',
+      status: 422,
+    });
+  });
+
   it('token response from login does not contain refreshToken', async () => {
     const fetchMock = jest.fn().mockResolvedValue({
       ok: true,

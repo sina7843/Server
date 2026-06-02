@@ -17,7 +17,11 @@ import {
   assertMatchIsUpdatable,
   assertTournamentAllowsGeneration,
 } from './tournament-match-policy';
-import { generateSingleEliminationRound1, generateRoundRobin } from './tournament-match-generation';
+import {
+  generateSingleEliminationRound1,
+  generateRoundRobin,
+  isPowerOfTwo,
+} from './tournament-match-generation';
 
 @Injectable()
 export class TournamentMatchService {
@@ -86,6 +90,13 @@ export class TournamentMatchService {
     if (participantIds.length < 2) {
       throw new BadRequestException(
         'At least 2 active participants are required to generate matches.',
+      );
+    }
+
+    if (tournamentFormat === 'single_elimination' && !isPowerOfTwo(participantIds.length)) {
+      throw new BadRequestException(
+        `single_elimination generation requires a power-of-two participant count (2, 4, 8, 16, …). ` +
+          `Got ${participantIds.length}. Use manual match creation for non-power-of-two participant counts.`,
       );
     }
 

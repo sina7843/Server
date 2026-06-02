@@ -52,7 +52,18 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
           );
         }
 
-        return (await response.json()) as TResponse;
+        if (response.status === 204) {
+          return undefined as TResponse;
+        }
+
+        try {
+          return (await response.json()) as TResponse;
+        } catch (parseError) {
+          if (parseError instanceof SyntaxError) {
+            return undefined as TResponse;
+          }
+          throw parseError;
+        }
       } catch (error) {
         if (error instanceof ApiClientError) {
           throw error;

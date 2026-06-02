@@ -142,6 +142,38 @@ describe('TournamentMatchService — generateMatches', () => {
     ).rejects.toThrow(ConflictException);
   });
 
+  it.each([3, 5, 6, 7])(
+    'throws BadRequestException for single_elimination with non-power-of-two count: %i',
+    async (count) => {
+      const { service } = makeService();
+      const participants = Array.from({ length: count }, () => new Types.ObjectId());
+      await expect(
+        service.generateMatches(
+          TOURNAMENT_OID,
+          'registration_closed',
+          'single_elimination',
+          participants,
+          ADMIN_USER_ID,
+        ),
+      ).rejects.toThrow(BadRequestException);
+    },
+  );
+
+  it.each([2, 4, 8])('accepts single_elimination with power-of-two count: %i', async (count) => {
+    const { service, repoMock } = makeService();
+    repoMock.createMany.mockResolvedValueOnce([]);
+    const participants = Array.from({ length: count }, () => new Types.ObjectId());
+    await expect(
+      service.generateMatches(
+        TOURNAMENT_OID,
+        'registration_closed',
+        'single_elimination',
+        participants,
+        ADMIN_USER_ID,
+      ),
+    ).resolves.not.toThrow();
+  });
+
   it('calls createMany for single_elimination with 4 participants', async () => {
     const { service, repoMock } = makeService();
     repoMock.createMany.mockResolvedValueOnce([makeMatch(), makeMatch()]);

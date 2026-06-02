@@ -77,6 +77,21 @@ Slice 7 implements the full match, result, standings, and bracket backend for Ph
 Generation is idempotent per round — calling generate again when matches exist is rejected.  
 Swiss and Double Elimination are permanently unsupported.
 
+### Conservative `single_elimination` Generation Policy (Phase 1)
+
+`single_elimination` auto-generation requires a **power-of-two participant count** (2, 4, 8, 16, …).
+
+**Why:** Result recording requires both participant slots to be filled. A non-power-of-two count
+produces an incomplete first-round match (one participant, no opponent) that can never be completed.
+To avoid uncompletable matches, the service rejects non-power-of-two counts with a `BadRequestException`.
+
+**Non-power-of-two cases (e.g. 3, 5, 6):** Use manual match creation
+(`POST /admin/v1/tournaments/:id/matches`) to set up each match individually.
+A future slice may add bye support or advanced bracket seeding for these cases.
+
+**`bye` match status is permanently excluded from Phase 1.** No `bye` value exists on
+`TournamentMatchStatus`. Do not add it.
+
 ---
 
 ## Result API Summary
@@ -461,6 +476,9 @@ pnpm format:check
 - [ ] Admin bracket controller has only GET (no POST/PATCH/DELETE)
 - [ ] Tournament format enum excludes `swiss` and `double_elimination`
 - [ ] Match generation file has no Swiss or Double Elimination logic
+- [ ] `single_elimination` generation rejects non-power-of-two participant counts (`BadRequestException`)
+- [ ] `single_elimination` generation accepts 2, 4, 8, 16 participant counts
+- [ ] No `bye` match status exists (`TournamentMatchStatus` has no `bye` value)
 - [ ] Standings service has no Swiss or Double Elimination logic
 - [ ] No WebSocket or live score references in any Slice 7 service
 - [ ] No fake/seed operational data in any Slice 7 runtime file

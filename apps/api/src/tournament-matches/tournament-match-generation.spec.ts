@@ -1,5 +1,9 @@
 import { Types } from 'mongoose';
-import { generateSingleEliminationRound1, generateRoundRobin } from './tournament-match-generation';
+import {
+  generateSingleEliminationRound1,
+  generateRoundRobin,
+  isPowerOfTwo,
+} from './tournament-match-generation';
 
 function makeIds(n: number): Types.ObjectId[] {
   return Array.from({ length: n }, () => new Types.ObjectId());
@@ -33,13 +37,6 @@ describe('generateSingleEliminationRound1', () => {
     expect(String(matches[1]!.participant2Id)).toBe(String(ids[3]));
   });
 
-  it('odd participant count — last match has no opponent', () => {
-    const ids = makeIds(5);
-    const matches = generateSingleEliminationRound1(ids);
-    expect(matches).toHaveLength(3);
-    expect(matches[2]!.participant2Id).toBeUndefined();
-  });
-
   it('handles 2 participants', () => {
     const ids = makeIds(2);
     const matches = generateSingleEliminationRound1(ids);
@@ -48,6 +45,18 @@ describe('generateSingleEliminationRound1', () => {
 
   it('returns empty array for 0 participants', () => {
     expect(generateSingleEliminationRound1([])).toHaveLength(0);
+  });
+});
+
+// ─── isPowerOfTwo ─────────────────────────────────────────────────────────────
+
+describe('isPowerOfTwo', () => {
+  it.each([2, 4, 8, 16, 32])('returns true for power-of-two: %i', (n) => {
+    expect(isPowerOfTwo(n)).toBe(true);
+  });
+
+  it.each([0, 1, 3, 5, 6, 7, 9, 10, 15])('returns false for non-power-of-two: %i', (n) => {
+    expect(isPowerOfTwo(n)).toBe(false);
   });
 });
 

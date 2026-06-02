@@ -1,11 +1,23 @@
 import type { Types } from 'mongoose';
 import type { CreateMatchInput } from './tournament-match.types';
 
+// ─── Power-of-two guard ───────────────────────────────────────────────────────
+//
+// Phase 1 single_elimination generation requires a power-of-two participant
+// count (2, 4, 8, 16, ...). Non-power-of-two counts produce incomplete first-
+// round matches that cannot be completed (result recording requires both slots
+// filled). Admins may use manual match creation for non-power-of-two setups
+// until a future bye / advanced bracket policy exists.
+
+export function isPowerOfTwo(n: number): boolean {
+  return n >= 2 && (n & (n - 1)) === 0;
+}
+
 // ─── Single Elimination ───────────────────────────────────────────────────────
 //
 // Generates only round 1 pairings. Subsequent rounds are created manually
-// as results are recorded (Task 7.2+). Seeded by position: 1v2, 3v4, etc.
-// Odd last participant gets no opponent (no participant2Id set).
+// as results are recorded. Seeded by position: 1v2, 3v4, etc.
+// Caller must ensure participant count is a power of two (see isPowerOfTwo).
 
 export function generateSingleEliminationRound1(
   participantIds: Types.ObjectId[],

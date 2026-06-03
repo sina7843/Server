@@ -15,7 +15,10 @@
  *   - No fake tournament data
  *   - No hardcoded localhost or qesb.ir
  *   - analytics event name 'tournament.viewed' is the only permitted name (integration deferred)
- *   - No public operational pages created (participants, matches, results, standings, bracket)
+ *   - No public operational pages created (participants, results, standings, bracket)
+ *   - /tournaments/:slug/matches/:matchId is permanently forbidden (match detail)
+ *   - /tournaments/:slug/matches and /tournaments/:slug/matches/index are NOT permanently forbidden
+ *     (legal Slice 9 list routes; only TEMPORARY checks cover them — remove when Slice 9 lands)
  *
  * Related:
  *   - slice8-guardrails.spec.ts (discovery page)
@@ -394,10 +397,6 @@ describe('PERMANENT — no public operational pages exist', () => {
     expect(existsSync(join(SLUG_DIR, 'participants.vue'))).toBe(false);
   });
 
-  it('no /tournaments/[slug]/matches.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'matches.vue'))).toBe(false);
-  });
-
   it('no /tournaments/[slug]/results.vue', () => {
     expect(existsSync(join(SLUG_DIR, 'results.vue'))).toBe(false);
   });
@@ -410,8 +409,30 @@ describe('PERMANENT — no public operational pages exist', () => {
     expect(existsSync(join(SLUG_DIR, 'bracket.vue'))).toBe(false);
   });
 
-  it('PERMANENT — no /tournaments/[slug]/matches directory (match detail route)', () => {
-    expect(existsSync(join(SLUG_DIR, 'matches'))).toBe(false);
+  // Only dynamic match detail routes are permanently forbidden.
+  // The matches list route (matches.vue or matches/index.vue) is a legal Slice 9 route —
+  // it is covered by TEMPORARY checks below; do NOT add a permanent check for it here.
+  it('PERMANENT — no /tournaments/[slug]/matches/[matchId].vue (public match detail forbidden)', () => {
+    expect(existsSync(join(SLUG_DIR, 'matches', '[matchId].vue'))).toBe(false);
+  });
+
+  it('PERMANENT — no /tournaments/[slug]/matches/[id].vue (public match detail forbidden)', () => {
+    expect(existsSync(join(SLUG_DIR, 'matches', '[id].vue'))).toBe(false);
+  });
+});
+
+// ─── TEMPORARY: Slice 9 matches list route not yet created ───────────────────
+//
+// These checks verify that the matches list page has not been accidentally
+// created before Slice 9. Remove when Slice 9 adds the route.
+
+describe('TEMPORARY — Slice 9 matches list route not yet created (remove when Slice 9 lands)', () => {
+  it('TEMPORARY — no /tournaments/[slug]/matches.vue', () => {
+    expect(existsSync(join(SLUG_DIR, 'matches.vue'))).toBe(false);
+  });
+
+  it('TEMPORARY — no /tournaments/[slug]/matches/index.vue', () => {
+    expect(existsSync(join(SLUG_DIR, 'matches', 'index.vue'))).toBe(false);
   });
 });
 

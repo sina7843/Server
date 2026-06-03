@@ -3,7 +3,9 @@
  *
  * Permanent guardrails (never remove):
  *   - Unrelated public content/news pages must NOT be noindexed
- *   - PERMANENT FORBIDDEN: /tournaments/[slug]/matches/[matchId] (public match detail)
+ *   - PERMANENT FORBIDDEN: /tournaments/[slug]/matches/[matchId] (match detail only)
+ *   - /tournaments/[slug]/matches and /tournaments/[slug]/matches/index are NOT permanently forbidden
+ *     (legal Slice 9 list routes; covered by TEMPORARY checks — remove when Slice 9 lands)
  *   - PERMANENT FORBIDDEN: admin /tournaments/[id]/operations standalone page
  *   - PERMANENT FORBIDDEN: admin /tournaments/[id]/preview standalone page
  *   - No raw permission strings in registration feature web code
@@ -83,10 +85,15 @@ describe('PERMANENT — forbidden admin standalone tournament routes do not exis
 // ─── PERMANENT: no public match detail route ──────────────────────────────────
 
 describe('PERMANENT — public match detail route is forbidden', () => {
-  // PERMANENT: /tournaments/:slug/matches/:matchId is permanently forbidden in Phase 1.
-  // The matches/ directory would create nested routes including [matchId].vue.
-  it('PERMANENT — no /tournaments/[slug]/matches directory (match detail route)', () => {
-    expect(existsSync(join(SLUG_DIR, 'matches'))).toBe(false);
+  // Only dynamic match detail routes are permanently forbidden.
+  // The matches list route (matches.vue or matches/index.vue) is a legal Slice 9 route —
+  // it is covered by TEMPORARY checks below; do NOT add a permanent check for the directory.
+  it('PERMANENT — no /tournaments/[slug]/matches/[matchId].vue (public match detail forbidden)', () => {
+    expect(existsSync(join(SLUG_DIR, 'matches', '[matchId].vue'))).toBe(false);
+  });
+
+  it('PERMANENT — no /tournaments/[slug]/matches/[id].vue (public match detail forbidden)', () => {
+    expect(existsSync(join(SLUG_DIR, 'matches', '[id].vue'))).toBe(false);
   });
 });
 
@@ -97,6 +104,11 @@ describe('TEMPORARY — public match listing page is not yet implemented (Slice 
   // /tournaments/:slug/matches is a legal future Phase 1 route — do NOT permanently forbid it.
   it('TEMPORARY — no /tournaments/[slug]/matches.vue (remove when matches page lands)', () => {
     expect(existsSync(join(SLUG_DIR, 'matches.vue'))).toBe(false);
+  });
+
+  // TEMPORARY: both forms of the Slice 9 list route are not yet implemented.
+  it('TEMPORARY — no /tournaments/[slug]/matches/index.vue (remove when matches page lands)', () => {
+    expect(existsSync(join(SLUG_DIR, 'matches', 'index.vue'))).toBe(false);
   });
 });
 

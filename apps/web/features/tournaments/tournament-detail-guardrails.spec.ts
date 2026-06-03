@@ -15,10 +15,8 @@
  *   - No fake tournament data
  *   - No hardcoded localhost or qesb.ir
  *   - analytics event name 'tournament.viewed' is the only permitted name (integration deferred)
- *   - No public operational pages created (participants, results, standings, bracket)
  *   - /tournaments/:slug/matches/:matchId is permanently forbidden (match detail)
- *   - /tournaments/:slug/matches and /tournaments/:slug/matches/index are NOT permanently forbidden
- *     (legal Slice 9 list routes; only TEMPORARY checks cover them — remove when Slice 9 lands)
+ *   - Slice 9 added all operational list pages (participants, matches, results, standings, bracket)
  *
  * Related:
  *   - slice8-guardrails.spec.ts (discovery page)
@@ -396,7 +394,6 @@ describe('PERMANENT — analytics event name correctness', () => {
 // Only public match detail and result detail routes remain permanently forbidden.
 
 describe('PERMANENT — forbidden public detail routes only (never remove)', () => {
-
   // Only dynamic match detail routes are permanently forbidden.
   // The matches list route (matches.vue or matches/index.vue) is a legal Slice 9 route —
   // it is covered by TEMPORARY checks below; do NOT add a permanent check for it here.

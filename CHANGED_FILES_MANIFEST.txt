@@ -1,25 +1,25 @@
 Phase 1 / Slice 9 — Changed Files
 
-apps/api/src/tournament-matches/public-tournament-matches.controller.ts
-apps/api/src/tournament-matches/public-tournament-matches.module.ts
+apps/api/src/tournament-matches/slice7-closeout.spec.ts
 apps/api/src/tournament-participants/public-tournament-participants.controller.ts
-apps/api/src/tournament-participants/public-tournament-participants.module.ts
-apps/api/src/tournament-results/public-tournament-results.controller.ts
-apps/api/src/tournament-results/public-tournament-results.module.ts
-apps/api/src/tournament-standings/public-tournament-standings.controller.ts
-apps/api/src/tournament-standings/public-tournament-standings.module.ts
-apps/api/src/tournament-bracket/public-tournament-bracket.controller.ts
-apps/api/src/tournament-bracket/public-tournament-bracket.module.ts
-apps/api/src/app.module.ts
+apps/api/src/tournament-participants/public-tournament-participants.guardrails.spec.ts
+apps/api/src/tournament-participants/tournament-participant-projection.ts
+apps/api/src/tournament-participants/tournament-participants.module.ts
+apps/api/src/tournament-registrations/slice6-closeout.spec.ts
 apps/web/composables/useTournamentBracket.ts
 apps/web/composables/useTournamentMatches.ts
 apps/web/composables/useTournamentParticipants.ts
 apps/web/composables/useTournamentResults.ts
 apps/web/composables/useTournamentStandings.ts
+apps/web/features/esports/homepage-hardening.spec.ts
+apps/web/features/registrations/registration-guardrails.spec.ts
+apps/web/features/registrations/slice6-hardening.spec.ts
+apps/web/features/tournaments/slice8-hardening.spec.ts
 apps/web/features/tournaments/slice9-bracket-guardrails.spec.ts
 apps/web/features/tournaments/slice9-guardrails.spec.ts
 apps/web/features/tournaments/slice9-hardening.spec.ts
 apps/web/features/tournaments/slice9-results-standings-guardrails.spec.ts
+apps/web/features/tournaments/tournament-detail-guardrails.spec.ts
 apps/web/pages/tournaments/[slug]/bracket.vue
 apps/web/pages/tournaments/[slug]/matches.vue
 apps/web/pages/tournaments/[slug]/participants.vue

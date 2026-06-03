@@ -18,14 +18,13 @@
  *   - Admin bracket SDK method is admin.tournaments.getBracket() — sole method, no competing client
  *
  * Temporary Slice-7 checks (clearly labeled — remove when feature slice lands):
- *   - No public frontend matches page (/tournaments/:slug/matches) → remove when Slice 9 lands
- *   - No public frontend results page (/tournaments/:slug/results) → remove when Slice 9 lands
- *   - No public frontend standings page (/tournaments/:slug/standings) → remove when Slice 9 lands
- *   - No public frontend bracket page (/tournaments/:slug/bracket) → remove when Slice 9 lands
  *   - No admin frontend matches page (/tournaments/:id/matches) → remove when Slice 10 lands
  *   - No admin frontend results page (/tournaments/:id/results) → remove when Slice 10 lands
  *   - No admin frontend standings page (/tournaments/:id/standings) → remove when Slice 10 lands
  *   - No admin frontend bracket page (/tournaments/:id/bracket) → remove when Slice 10 lands
+ *
+ * Slice 9 landed — public frontend operational pages (matches, results, standings, bracket)
+ * now exist. All Slice-9 TEMPORARY frontend checks have been removed.
  */
 
 import { existsSync } from 'fs';

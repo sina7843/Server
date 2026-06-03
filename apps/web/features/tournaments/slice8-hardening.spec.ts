@@ -20,14 +20,6 @@
  *   - analytics event name 'tournament.viewed' in useTournamentDetail (exact)
  *   - No hardcoded localhost or qesb.ir in Slice 8 composables
  *
- * Temporary Slice-8 precondition checks (labeled TEMPORARY — remove when feature slice lands):
- *   - No /tournaments/[slug]/participants.vue        → remove when Slice 9 lands
- *   - No /tournaments/[slug]/matches.vue             → remove when Slice 9 lands
- *   - No /tournaments/[slug]/matches/index.vue       → remove when Slice 9 lands
- *   - No /tournaments/[slug]/results.vue             → remove when Slice 9 lands
- *   - No /tournaments/[slug]/standings.vue           → remove when Slice 9 lands
- *   - No /tournaments/[slug]/bracket.vue             → remove when Slice 9 lands
- *
  * Related:
  *   - slice8-guardrails.spec.ts (discovery page SDK/SEO/fake-data)
  *   - tournament-detail-guardrails.spec.ts (detail page)
@@ -100,11 +92,6 @@ describe('PERMANENT — Slice 8 required public routes exist', () => {
 //   - /tournaments/[slug]/participants.vue
 //   - /tournaments/[slug]/matches.vue (or matches/index.vue)
 //
-// The following remain NOT created (deferred to future slices):
-//   - /tournaments/[slug]/results.vue
-//   - /tournaments/[slug]/standings.vue
-//   - /tournaments/[slug]/bracket.vue
-
 // Slice 9 fully landed — all operational pages (participants, matches, results, standings, bracket) now exist.
 // All TEMPORARY route checks have been removed.
 

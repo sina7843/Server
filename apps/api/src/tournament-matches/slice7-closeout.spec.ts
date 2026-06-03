@@ -433,30 +433,9 @@ describe('PERMANENT — no hardcoded localhost or qesb.ir in Slice 7 runtime cod
 // Slice 9 fully landed — all operational pages (participants, matches, results, standings, bracket)
 // now exist in the frontend. All TEMPORARY frontend page checks have been removed.
 
-// ─── TEMPORARY: No frontend admin operational pages (Slice 10) ───────────────
-// Remove these checks when Slice 10 (admin operational frontend) lands.
-
-describe('TEMPORARY (Slice 10) — no admin frontend operational pages yet', () => {
-  it('TEMPORARY — no /admin/tournaments/:id/matches page yet', () => {
-    expect(existsSync(join(ADMIN_PAGES, 'tournaments/[id]/matches.vue'))).toBe(false);
-    expect(existsSync(join(ADMIN_PAGES, 'tournaments/[id]/matches/index.vue'))).toBe(false);
-  });
-
-  it('TEMPORARY — no /admin/tournaments/:id/results page yet', () => {
-    expect(existsSync(join(ADMIN_PAGES, 'tournaments/[id]/results.vue'))).toBe(false);
-    expect(existsSync(join(ADMIN_PAGES, 'tournaments/[id]/results/index.vue'))).toBe(false);
-  });
-
-  it('TEMPORARY — no /admin/tournaments/:id/standings page yet', () => {
-    expect(existsSync(join(ADMIN_PAGES, 'tournaments/[id]/standings.vue'))).toBe(false);
-    expect(existsSync(join(ADMIN_PAGES, 'tournaments/[id]/standings/index.vue'))).toBe(false);
-  });
-
-  it('TEMPORARY — no /admin/tournaments/:id/bracket page yet', () => {
-    expect(existsSync(join(ADMIN_PAGES, 'tournaments/[id]/bracket.vue'))).toBe(false);
-    expect(existsSync(join(ADMIN_PAGES, 'tournaments/[id]/bracket/index.vue'))).toBe(false);
-  });
-});
+// ─── Slice 10 fully landed — all admin operational pages exist ───────────────
+// Slice 10 fully landed — all operational admin pages (matches, results, standings, bracket)
+// now exist in the admin frontend. All TEMPORARY admin page checks have been removed.
 
 // ─── PERMANENT: No standalone admin operations/preview routes ─────────────────
 

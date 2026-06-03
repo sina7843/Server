@@ -81,6 +81,55 @@
       </dl>
     </div>
 
+    <!-- Operation routes -->
+    <div class="hub-section">
+      <h2 class="section-title">عملیات تورنمنت</h2>
+      <div class="op-grid">
+        <NuxtLink
+          v-if="canReadRegistrations"
+          :to="`/tournaments/${tournament.id}/registrations`"
+          class="op-link"
+        >
+          ثبت‌نام‌ها
+        </NuxtLink>
+        <NuxtLink
+          v-if="canReadParticipants"
+          :to="`/tournaments/${tournament.id}/participants`"
+          class="op-link"
+        >
+          شرکت‌کنندگان
+        </NuxtLink>
+        <NuxtLink
+          v-if="canReadMatches"
+          :to="`/tournaments/${tournament.id}/matches`"
+          class="op-link"
+        >
+          مسابقات
+        </NuxtLink>
+        <NuxtLink
+          v-if="canReadMatches"
+          :to="`/tournaments/${tournament.id}/results`"
+          class="op-link"
+        >
+          نتایج
+        </NuxtLink>
+        <NuxtLink
+          v-if="canReadMatches"
+          :to="`/tournaments/${tournament.id}/standings`"
+          class="op-link"
+        >
+          جدول امتیازات
+        </NuxtLink>
+        <NuxtLink
+          v-if="canReadMatches"
+          :to="`/tournaments/${tournament.id}/bracket`"
+          class="op-link"
+        >
+          نمای درختی
+        </NuxtLink>
+      </div>
+    </div>
+
     <!-- Management actions -->
     <div class="hub-section hub-management">
       <NuxtLink
@@ -158,6 +207,11 @@ const canCancel = computed(() => hasPermission(Permissions.TOURNAMENT_CANCEL));
 const canArchive = computed(() => hasPermission(Permissions.TOURNAMENT_ARCHIVE));
 const canUpdate = computed(() => hasPermission(Permissions.TOURNAMENT_UPDATE));
 const canDelete = computed(() => hasPermission(Permissions.TOURNAMENT_ARCHIVE));
+const canReadRegistrations = computed(() =>
+  hasPermission(Permissions.TOURNAMENT_REGISTRATION_READ),
+);
+const canReadParticipants = computed(() => hasPermission(Permissions.TOURNAMENT_PARTICIPANT_READ));
+const canReadMatches = computed(() => hasPermission(Permissions.TOURNAMENT_MATCH_READ));
 
 const deleteDialogOpen = ref(false);
 const pendingAction = ref<LifecycleAction | null>(null);
@@ -334,6 +388,33 @@ function formatDate(iso: string): string {
   font-family: monospace;
   color: #64748b;
   font-size: 0.8rem;
+}
+
+.op-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.op-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.9rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  background: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.op-link:hover {
+  background: #e0f2fe;
+  color: #0c4a6e;
 }
 
 .hub-management {

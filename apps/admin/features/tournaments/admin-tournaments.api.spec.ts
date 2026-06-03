@@ -461,11 +461,12 @@ describe('tournaments scope guardrails — no out-of-scope features', () => {
     }
   });
 
-  it('tournament pages do not contain bracket or match UI', () => {
-    const pages = collectFiles(join(ADMIN_ROOT, 'pages', 'tournaments'), ['.vue']);
+  it('non-bracket tournament pages do not contain bracket UI components', () => {
+    const pages = collectFiles(join(ADMIN_ROOT, 'pages', 'tournaments'), ['.vue']).filter(
+      (f) => !f.replace(/\\/g, '/').includes('/bracket'),
+    );
     for (const file of pages) {
       const src = readFileSync(file, 'utf8');
-      expect(src).not.toMatch(/bracket/i);
       expect(src).not.toMatch(/BracketEditor/i);
     }
   });

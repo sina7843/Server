@@ -273,19 +273,6 @@ describe('no forbidden public routes defined', () => {
     expect(hasMatchDetailPage).toBe(false);
   });
 
-  // SLICE 1 PRECONDITION: The following check is TEMPORARY.
-  // It verifies that no public tournament pages exist yet.
-  // ACTION REQUIRED: When the slice that implements public tournament pages is merged,
-  // remove the it() block below. Leaving it in place will permanently block a legal
-  // future route. This is NOT a permanent guardrail.
-  it('[slice-1-precondition] no public tournament pages yet (remove when implemented)', () => {
-    const hasTournamentPage = WEB_PAGES.some((f) => {
-      const normalized = f.replace(/\\/g, '/');
-      return normalized.includes('/pages/tournaments/');
-    });
-    expect(hasTournamentPage).toBe(false);
-  });
-
   // PERMANENTLY forbidden: public /games and /games/:slug pages are never allowed in Phase 1.
   // The games list/detail flow is admin-only. Do not remove this check in future slices.
   it('[permanent] no public games pages exist (public games route is forbidden in Phase 1)', () => {
@@ -349,43 +336,39 @@ describe('no placeholder or coming-soon pages in apps', () => {
   });
 });
 
-// ─── Slice 5: future operation sub-routes not implemented early ───────────────
+// ─── Slice 10: all operation sub-routes now exist ────────────────────────────
 
-// SLICE 5 PRECONDITIONS: The checks below are TEMPORARY.
-// They verify that operation sub-routes not in Slice 5 scope are not implemented yet.
-// ACTION REQUIRED: When the slice implementing each sub-route is merged, remove
-// its it() block. These are NOT permanent guardrails — do not block legal future routes.
-describe('[slice-5-precondition] future operation sub-routes not implemented early', () => {
+describe('[slice-10] all operation sub-routes exist', () => {
   const ADMIN_PAGES = collectFiles(join(ADMIN_ROOT, 'pages', 'tournaments'), ['.vue']);
 
-  it('no /tournaments/:id/registrations page (future slice, remove when implemented)', () => {
+  it('/tournaments/:id/registrations route exists (Slice 10)', () => {
     const has = ADMIN_PAGES.some((f) => f.replace(/\\/g, '/').includes('/registrations'));
-    expect(has).toBe(false);
+    expect(has).toBe(true);
   });
 
-  it('no /tournaments/:id/participants page (future slice, remove when implemented)', () => {
+  it('/tournaments/:id/participants route exists (Slice 10)', () => {
     const has = ADMIN_PAGES.some((f) => f.replace(/\\/g, '/').includes('/participants'));
-    expect(has).toBe(false);
+    expect(has).toBe(true);
   });
 
-  it('no /tournaments/:id/matches page (future slice, remove when implemented)', () => {
+  it('/tournaments/:id/matches route exists (Slice 10)', () => {
     const has = ADMIN_PAGES.some((f) => f.replace(/\\/g, '/').includes('/matches'));
-    expect(has).toBe(false);
+    expect(has).toBe(true);
   });
 
-  it('no /tournaments/:id/results page (future slice, remove when implemented)', () => {
+  it('/tournaments/:id/results route exists (Slice 10)', () => {
     const has = ADMIN_PAGES.some((f) => f.replace(/\\/g, '/').includes('/results'));
-    expect(has).toBe(false);
+    expect(has).toBe(true);
   });
 
-  it('no /tournaments/:id/standings page (future slice, remove when implemented)', () => {
+  it('/tournaments/:id/standings route exists (Slice 10)', () => {
     const has = ADMIN_PAGES.some((f) => f.replace(/\\/g, '/').includes('/standings'));
-    expect(has).toBe(false);
+    expect(has).toBe(true);
   });
 
-  it('no /tournaments/:id/bracket page (future slice, remove when implemented)', () => {
+  it('/tournaments/:id/bracket route exists (Slice 10)', () => {
     const has = ADMIN_PAGES.some((f) => f.replace(/\\/g, '/').includes('/bracket'));
-    expect(has).toBe(false);
+    expect(has).toBe(true);
   });
 });
 

@@ -5,6 +5,14 @@
     </div>
 
     <div
+      v-else-if="fetchError"
+      class="participants-page__state participants-page__state--error"
+      role="alert"
+    >
+      <p class="participants-page__state-text">خطا در بارگذاری شرکت‌کنندگان.</p>
+    </div>
+
+    <div
       v-else-if="notFound"
       class="participants-page__state participants-page__state--not-found"
       role="alert"
@@ -61,22 +69,8 @@
 
       <h1 class="participants-page__title">شرکت‌کنندگان</h1>
 
-      <!-- Error state -->
-      <div
-        v-if="participantsError"
-        class="participants-page__state participants-page__state--error"
-        role="alert"
-      >
-        <p class="participants-page__state-text">خطا در بارگذاری شرکت‌کنندگان.</p>
-      </div>
-
-      <!-- Loading participants -->
-      <div v-else-if="participantsPending" class="participants-page__state" role="status">
-        <span class="participants-page__state-text">در حال بارگذاری شرکت‌کنندگان...</span>
-      </div>
-
       <!-- Empty state -->
-      <div v-else-if="!participants.length" class="participants-page__empty" role="status">
+      <div v-if="!participants.length" class="participants-page__empty" role="status">
         <p class="participants-page__empty-text">هنوز شرکت‌کننده‌ای ثبت نشده است.</p>
       </div>
 
@@ -153,9 +147,7 @@ const participants = computed<readonly TournamentParticipantPublicDto[]>(
 );
 const total = computed<number>(() => data.value?.participants?.total ?? 0);
 
-const participantsPending = computed(() => pending.value);
-const participantsError = computed(() => fetchError.value ?? null);
-const notFound = computed(() => !pending.value && (!tournament.value || !!fetchError.value));
+const notFound = computed(() => !pending.value && !fetchError.value && !tournament.value);
 
 // ─── Labels / formatting ──────────────────────────────────────────────────────
 

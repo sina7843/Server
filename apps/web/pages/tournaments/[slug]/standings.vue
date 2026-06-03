@@ -5,6 +5,14 @@
     </div>
 
     <div
+      v-else-if="fetchError"
+      class="standings-page__state standings-page__state--error"
+      role="alert"
+    >
+      <p class="standings-page__state-text">خطا در بارگذاری جدول رده‌بندی.</p>
+    </div>
+
+    <div
       v-else-if="notFound"
       class="standings-page__state standings-page__state--not-found"
       role="alert"
@@ -59,17 +67,8 @@
 
       <h1 class="standings-page__title">جدول رده‌بندی</h1>
 
-      <!-- Error state -->
-      <div
-        v-if="fetchError"
-        class="standings-page__state standings-page__state--error"
-        role="alert"
-      >
-        <p class="standings-page__state-text">خطا در بارگذاری جدول رده‌بندی.</p>
-      </div>
-
       <!-- Unavailable for manual format or empty standings -->
-      <div v-else-if="standingsUnavailable" class="standings-page__unavailable" role="status">
+      <div v-if="standingsUnavailable" class="standings-page__unavailable" role="status">
         <p class="standings-page__unavailable-text">
           جدول رده‌بندی برای این فرمت تورنمنت در دسترس نیست.
         </p>
@@ -152,7 +151,7 @@ const standingRows = computed<readonly TournamentStandingDto[]>(
   () => standingsData.value?.standings ?? [],
 );
 
-const notFound = computed(() => !pending.value && (!tournament.value || !!fetchError.value));
+const notFound = computed(() => !pending.value && !fetchError.value && !tournament.value);
 
 // Standings are unavailable for manual format (server returns empty array).
 // We show an honest "unavailable" message rather than an empty list.

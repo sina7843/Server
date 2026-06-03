@@ -224,10 +224,25 @@ describe('PublicTournamentParticipantsController', () => {
     await controller.listParticipants('test-tournament');
     expect(participantService.listParticipants).toHaveBeenCalledWith(
       tournament._id,
-      undefined,
+      'active',
       1,
       20,
     );
+  });
+
+  it('passes active status filter so only approved non-removed non-disqualified participants are returned', async () => {
+    const tournament = makeTournament({ status: 'in_progress' });
+    tournamentService.findBySlug.mockResolvedValue(tournament);
+    participantService.listParticipants.mockResolvedValue({ items: [], total: 0 });
+
+    await controller.listParticipants('test-tournament');
+    const [, statusArg] = participantService.listParticipants.mock.calls[0] as [
+      unknown,
+      string,
+      number,
+      number,
+    ];
+    expect(statusArg).toBe('active');
   });
 
   it('clamps limit to MAX_LIMIT of 100', async () => {

@@ -4,6 +4,10 @@
       <span class="bracket-page__state-text">در حال بارگذاری...</span>
     </div>
 
+    <div v-else-if="fetchError" class="bracket-page__state bracket-page__state--error" role="alert">
+      <p class="bracket-page__state-text">خطا در بارگذاری براکت.</p>
+    </div>
+
     <div
       v-else-if="notFound"
       class="bracket-page__state bracket-page__state--not-found"
@@ -53,13 +57,8 @@
 
       <h1 class="bracket-page__title">براکت تورنمنت</h1>
 
-      <!-- Error state -->
-      <div v-if="fetchError" class="bracket-page__state bracket-page__state--error" role="alert">
-        <p class="bracket-page__state-text">خطا در بارگذاری براکت.</p>
-      </div>
-
       <!-- Empty / unavailable state: bracket is unavailable until matches exist -->
-      <div v-else-if="!rounds.length" class="bracket-page__unavailable" role="status">
+      <div v-if="!rounds.length" class="bracket-page__unavailable" role="status">
         <p class="bracket-page__unavailable-text">براکت تا زمان ایجاد مسابقات در دسترس نیست.</p>
       </div>
 
@@ -188,7 +187,7 @@ const tournament = computed<PublicTournamentDto | null>(() => data.value?.tourna
 const bracketData = computed<TournamentBracketDto | null>(() => data.value?.bracket ?? null);
 const rounds = computed<readonly BracketRoundDto[]>(() => bracketData.value?.rounds ?? []);
 
-const notFound = computed(() => !pending.value && (!tournament.value || !!fetchError.value));
+const notFound = computed(() => !pending.value && !fetchError.value && !tournament.value);
 
 // ─── Round label mapping (backend provides English; map to Persian) ───────────
 

@@ -39,7 +39,7 @@ export class PublicTournamentParticipantsController {
 
     const { items, total } = await this.participantService.listParticipants(
       tournament._id,
-      undefined,
+      'active',
       page,
       limit,
     );

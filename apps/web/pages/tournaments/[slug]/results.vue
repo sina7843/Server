@@ -4,6 +4,10 @@
       <span class="results-page__state-text">در حال بارگذاری...</span>
     </div>
 
+    <div v-else-if="fetchError" class="results-page__state results-page__state--error" role="alert">
+      <p class="results-page__state-text">خطا در بارگذاری نتایج.</p>
+    </div>
+
     <div
       v-else-if="notFound"
       class="results-page__state results-page__state--not-found"
@@ -53,13 +57,8 @@
 
       <h1 class="results-page__title">نتایج مسابقات</h1>
 
-      <!-- Error state -->
-      <div v-if="fetchError" class="results-page__state results-page__state--error" role="alert">
-        <p class="results-page__state-text">خطا در بارگذاری نتایج.</p>
-      </div>
-
       <!-- Empty state -->
-      <div v-else-if="!results.length" class="results-page__empty" role="status">
+      <div v-if="!results.length" class="results-page__empty" role="status">
         <p class="results-page__empty-text">هنوز نتیجه‌ای ثبت نشده است.</p>
       </div>
 
@@ -136,7 +135,7 @@ const participantMap = computed<Map<string, TournamentParticipantPublicDto>>(() 
   return map;
 });
 
-const notFound = computed(() => !pending.value && (!tournament.value || !!fetchError.value));
+const notFound = computed(() => !pending.value && !fetchError.value && !tournament.value);
 
 // ─── Participant name resolution ──────────────────────────────────────────────
 

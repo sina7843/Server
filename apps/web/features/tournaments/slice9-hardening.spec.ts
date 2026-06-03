@@ -143,7 +143,7 @@ describe('PERMANENT — forbidden public match and result detail routes', () => 
 // ─── No admin operational frontend routes ────────────────────────────────────
 
 describe('PERMANENT — no admin standalone operations or preview routes', () => {
-  const adminSlugDir = join(PAGES_DIR, 'admin', 'tournaments', '[id]');
+  const adminSlugDir = join(REPO_ROOT, 'apps', 'admin', 'pages', 'tournaments', '[id]');
 
   it('no /admin/tournaments/[id]/operations.vue (permanently forbidden admin route)', () => {
     expect(existsSync(join(adminSlugDir, 'operations.vue'))).toBe(false);
@@ -163,7 +163,7 @@ describe('PERMANENT — no admin standalone operations or preview routes', () =>
 // adds the respective admin operational pages.
 
 describe('TEMPORARY (Slice 10) — admin operational pages not yet created', () => {
-  const adminSlugDir = join(PAGES_DIR, 'admin', 'tournaments', '[id]');
+  const adminSlugDir = join(REPO_ROOT, 'apps', 'admin', 'pages', 'tournaments', '[id]');
 
   it('TEMPORARY — no /admin/tournaments/[id]/matches page (Slice 10 boundary)', () => {
     expect(existsSync(join(adminSlugDir, 'matches.vue'))).toBe(false);

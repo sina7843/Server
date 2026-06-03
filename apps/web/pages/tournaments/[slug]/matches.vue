@@ -4,6 +4,10 @@
       <span class="matches-page__state-text">در حال بارگذاری...</span>
     </div>
 
+    <div v-else-if="fetchError" class="matches-page__state matches-page__state--error" role="alert">
+      <p class="matches-page__state-text">خطا در بارگذاری مسابقات.</p>
+    </div>
+
     <div
       v-else-if="notFound"
       class="matches-page__state matches-page__state--not-found"
@@ -53,13 +57,8 @@
 
       <h1 class="matches-page__title">مسابقات</h1>
 
-      <!-- Error state -->
-      <div v-if="fetchError" class="matches-page__state matches-page__state--error" role="alert">
-        <p class="matches-page__state-text">خطا در بارگذاری مسابقات.</p>
-      </div>
-
       <!-- Empty state -->
-      <div v-else-if="!matches.length" class="matches-page__empty" role="status">
+      <div v-if="!matches.length" class="matches-page__empty" role="status">
         <p class="matches-page__empty-text">هنوز مسابقه‌ای تولید نشده است.</p>
       </div>
 
@@ -179,7 +178,7 @@ const participantMap = computed<Map<string, TournamentParticipantPublicDto>>(() 
   return map;
 });
 
-const notFound = computed(() => !pending.value && (!tournament.value || !!fetchError.value));
+const notFound = computed(() => !pending.value && !fetchError.value && !tournament.value);
 
 // ─── Round grouping ───────────────────────────────────────────────────────────
 

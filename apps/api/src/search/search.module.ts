@@ -7,6 +7,7 @@ import { MediaAsset, MediaAssetSchema } from '../media/media-asset.schema';
 import { AuthModule } from '../auth/auth.module';
 import { RbacModule } from '../rbac/rbac.module';
 import { JobsModule } from '../jobs/jobs.module';
+import { TournamentsModule } from '../tournaments/tournaments.module';
 import { SearchService } from './search.service';
 import { MongoSearchAdapter } from './mongo-search.adapter';
 import { PublicSearchController } from './public-search.controller';
@@ -23,6 +24,7 @@ import { AdminSearchController } from './admin-search.controller';
     AuthModule,
     JobsModule,
     RbacModule,
+    TournamentsModule,
   ],
   controllers: [PublicSearchController, AdminSearchController],
   providers: [MongoSearchAdapter, { provide: SearchService, useExisting: MongoSearchAdapter }],

@@ -75,6 +75,12 @@ export class TournamentRepository {
     if (!filter.includeDeleted) query.deletedAt = { $exists: false };
     if (!filter.includeArchived) query.archivedAt = { $exists: false };
 
+    if (filter.titleSearch !== undefined && filter.titleSearch.length > 0) {
+      // Escape regex metacharacters before constructing the pattern.
+      const escaped = filter.titleSearch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.title = { $regex: escaped, $options: 'i' };
+    }
+
     const clampedLimit = Math.min(Math.max(1, limit), MAX_LIMIT);
     const skip = (Math.max(1, page) - 1) * clampedLimit;
 

@@ -61,4 +61,7 @@ export interface TournamentListFilter {
   // archivedAt is a soft-archive marker independent of status.
   // Default (false) excludes tournaments where archivedAt is set; admin queries may set true.
   readonly includeArchived?: boolean;
+  // Case-insensitive substring search on the title field.
+  // Used exclusively by GET /api/v1/search/tournaments — never by the structured list endpoint.
+  readonly titleSearch?: string;
 }

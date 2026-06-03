@@ -8,10 +8,10 @@ Slice 8 implements the public-facing tournament discovery and detail experience 
 | --------------------------------------------------------------- | ------------- | -------------------------------------------------------------------------- |
 | Public tournament list API (`GET /api/v1/tournaments`)          | Yes           | Structured filter only — no text search                                    |
 | Public tournament detail API (`GET /api/v1/tournaments/:slug`)  | Yes           | Public-safe fields; 404 for draft/deleted/archived                         |
-| Public tournament search API (`GET /api/v1/search/tournaments`) | Yes (Slice 1) | Text search endpoint; used by discovery page when `q` is present           |
+| Public tournament search API (`GET /api/v1/search/tournaments`) | Yes           | Text search endpoint; q + public-safe filters; Final Alignment Fix 2       |
 | SDK `tournaments.list()`                                        | Yes           | Structured list — no `q` param                                             |
 | SDK `tournaments.getBySlug()`                                   | Yes           | Returns `PublicTournamentDto`                                              |
-| SDK `search.tournaments()`                                      | Yes (Slice 1) | Text search — used when `q` present in discovery page                      |
+| SDK `search.tournaments()`                                      | Yes           | Text search — used when `q` present in discovery page                      |
 | SDK `games.list()`                                              | Yes (Slice 3) | Used for game filter dropdown in discovery page                            |
 | Discovery page `/tournaments`                                   | Yes           | Filters, search, pagination, all states                                    |
 | Detail page `/tournaments/:slug`                                | Yes           | Public-safe fields, status-aware CTA, SEO metadata                         |
@@ -44,10 +44,11 @@ Slice 8 implements the public-facing tournament discovery and detail experience 
 
 ### Endpoints
 
-| Method | Path                        | Description                                                     |
-| ------ | --------------------------- | --------------------------------------------------------------- |
-| `GET`  | `/api/v1/tournaments`       | Structured public listing with filters                          |
-| `GET`  | `/api/v1/tournaments/:slug` | Public-safe detail by slug; 404 for non-public-safe tournaments |
+| Method | Path                         | Description                                                     |
+| ------ | ---------------------------- | --------------------------------------------------------------- |
+| `GET`  | `/api/v1/tournaments`        | Structured public listing with filters                          |
+| `GET`  | `/api/v1/tournaments/:slug`  | Public-safe detail by slug; 404 for non-public-safe tournaments |
+| `GET`  | `/api/v1/search/tournaments` | Public-safe text search; accepts `q` plus same public filters   |
 
 ### Query Parameters — `GET /api/v1/tournaments`
 
@@ -61,6 +62,20 @@ Slice 8 implements the public-facing tournament discovery and detail experience 
 | `limit`            | `number` (default: 20, max: 100) | Pagination                                               |
 
 **Text search is NOT accepted here.** Use `GET /api/v1/search/tournaments?q=...` instead.
+
+### Query Parameters — `GET /api/v1/search/tournaments`
+
+| Parameter          | Type                             | Description                                              |
+| ------------------ | -------------------------------- | -------------------------------------------------------- |
+| `q`                | `string` (optional, max 200)     | Title substring search (case-insensitive regex)          |
+| `gameId`           | `string` (optional)              | Filter by game ID                                        |
+| `status`           | `TournamentStatus`               | Public-safe status only; draft/archived silently dropped |
+| `format`           | `TournamentFormat`               | Phase 1 formats only; unknown values silently dropped    |
+| `registrationOpen` | `"true"` (optional)              | Filter to registration-open tournaments                  |
+| `page`             | `number` (default: 1)            | Pagination                                               |
+| `limit`            | `number` (default: 20, max: 100) | Pagination                                               |
+
+Returns `TournamentListResponseDto` using the same public-safe summary projection as `GET /api/v1/tournaments`. draft, archived, deleted, and soft-archived (`archivedAt` set) tournaments are never included.
 
 ---
 
@@ -255,7 +270,18 @@ This means a tournament can have `status === 'registration_open'` but a CTA of `
 | `cancelled`           | N/A                     | Any                                      | Static text "لغو شده" (non-actionable) |
 | `published`           | N/A                     | Any                                      | No CTA (`none`)                        |
 
-The `view_registration` CTA is only shown after a successful `getMyRegistration` response (200). A 404 or error from that call falls back to the `register` CTA.
+The `view_registration` CTA is only shown after a successful `getMyRegistration` response (200).
+
+**`getMyRegistration` error policy (Final Alignment Fix 3):** The catch block now distinguishes HTTP status codes using `ApiClientError.status`:
+
+| `getMyRegistration` response | CTA shown                                        |
+| ---------------------------- | ------------------------------------------------ |
+| 200                          | `view_registration`                              |
+| 404                          | `register` (no registration)                     |
+| 401 / 403 / auth error       | `none` (neutral — do not assume no registration) |
+| 5xx / network / unknown      | `none` (neutral — do not assume no registration) |
+
+A non-404 error must **not** show the Register CTA, because the user might have an existing registration and the error is transient (expired session, network fault, server error). Showing Register in that case could cause a duplicate registration attempt.
 
 The `cancelled` CTA never renders a clickable element — no `dr-btn-primary` class, no `/register` link.
 

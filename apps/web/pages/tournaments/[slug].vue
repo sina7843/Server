@@ -125,6 +125,7 @@ import type {
   TournamentFormat,
   TournamentParticipantType,
 } from '@dragon/types';
+import { ApiClientError } from '@dragon/sdk';
 import { createGamesDiscoveryApi } from '~/features/tournaments/tournaments-api';
 
 const route = useRoute();
@@ -204,12 +205,19 @@ async function resolveCtaState() {
       return;
     }
     // Authenticated: check if user already has a registration.
-    // 200 → show "view my registration"; 404 → show "register".
+    // 200 → view my registration; 404 → register; other errors → neutral (do not assume no registration).
     try {
       await registrationApi.value.getMyRegistration(slug);
       ctaState.value = 'view_registration';
-    } catch {
-      ctaState.value = 'register';
+    } catch (err: unknown) {
+      if (err instanceof ApiClientError && err.status === 404) {
+        // Confirmed no registration exists for this user on this tournament.
+        ctaState.value = 'register';
+        return;
+      }
+      // Auth errors (401/403), server errors (5xx), or network failures must not
+      // be treated as "no registration" — fall back to neutral to avoid a misleading Register CTA.
+      ctaState.value = 'none';
     }
     return;
   }

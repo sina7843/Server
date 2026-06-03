@@ -470,6 +470,39 @@ describe('PERMANENT — game information is displayed on detail page', () => {
   });
 });
 
+// ─── CTA getMyRegistration error handling (Final Alignment Fix 3) ────────────
+
+describe('PERMANENT — getMyRegistration error handling is safe (never remove)', () => {
+  it('detail page imports ApiClientError from @dragon/sdk', () => {
+    const src = readDetailPage();
+    expect(src).toContain('ApiClientError');
+    expect(src).toContain('@dragon/sdk');
+  });
+
+  it('detail page maps 404 from getMyRegistration to register CTA', () => {
+    const src = readDetailPage();
+    // Must check status === 404 before showing Register
+    expect(src).toMatch(/ApiClientError.*404|404.*ApiClientError/s);
+    expect(src).toMatch(/status.*404|404.*status/);
+  });
+
+  it('detail page does not map all getMyRegistration errors to register (non-404 falls back to none)', () => {
+    const src = readDetailPage();
+    // After the 404 branch, must set ctaState to 'none' not 'register'
+    // Look for a fallback that assigns 'none' in the catch block
+    expect(src).toMatch(/none/);
+    // The catch must NOT just unconditionally set 'register'
+    // There must be a conditional check before setting 'register' in the catch block
+    expect(src).toMatch(/instanceof ApiClientError/);
+  });
+
+  it('detail page has comment explaining why non-404 errors fall back to none', () => {
+    const src = readDetailPage();
+    // A comment should explain the safety rationale
+    expect(src).toMatch(/401|403|5xx|auth|neutral|misleading/i);
+  });
+});
+
 // ─── CTA registration window (Task 8.4 closeout Fix 2) ───────────────────────
 
 describe('PERMANENT — CTA respects registration window when fields are present', () => {

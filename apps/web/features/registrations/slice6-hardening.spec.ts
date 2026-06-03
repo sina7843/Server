@@ -97,20 +97,8 @@ describe('PERMANENT — public match detail route is forbidden', () => {
   });
 });
 
-// ─── TEMPORARY: public matches listing page not yet implemented ───────────────
-
-describe('TEMPORARY — public match listing page is not yet implemented (Slice 6)', () => {
-  // TEMPORARY: remove when the public matches listing page lands in a later Phase 1 slice.
-  // /tournaments/:slug/matches is a legal future Phase 1 route — do NOT permanently forbid it.
-  it('TEMPORARY — no /tournaments/[slug]/matches.vue (remove when matches page lands)', () => {
-    expect(existsSync(join(SLUG_DIR, 'matches.vue'))).toBe(false);
-  });
-
-  // TEMPORARY: both forms of the Slice 9 list route are not yet implemented.
-  it('TEMPORARY — no /tournaments/[slug]/matches/index.vue (remove when matches page lands)', () => {
-    expect(existsSync(join(SLUG_DIR, 'matches', 'index.vue'))).toBe(false);
-  });
-});
+// Slice 9 has landed — TEMPORARY matches listing page checks removed.
+// /tournaments/:slug/matches and /tournaments/:slug/participants now exist.
 
 // ─── PERMANENT: registration pages remain noindex ─────────────────────────────
 

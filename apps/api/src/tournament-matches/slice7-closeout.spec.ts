@@ -43,7 +43,6 @@ const ADMIN_BRACKET_DIR = join(API_SRC, 'admin/tournament-bracket');
 
 const REPO_ROOT = join(API_SRC, '../../..');
 const SDK_SRC = join(REPO_ROOT, 'packages/sdk/src');
-const WEB_PAGES = join(REPO_ROOT, 'apps/web/pages');
 const ADMIN_PAGES = join(REPO_ROOT, 'apps/admin/pages');
 
 function read(filePath: string): string {
@@ -432,27 +431,8 @@ describe('PERMANENT — no hardcoded localhost or qesb.ir in Slice 7 runtime cod
 // ─── TEMPORARY: No frontend public operational pages (Slice 9) ───────────────
 // Remove these checks when Slice 9 (public operational frontend) lands.
 
-describe('TEMPORARY (Slice 9) — no public frontend operational pages yet', () => {
-  it('TEMPORARY — no /tournaments/:slug/matches page yet', () => {
-    expect(existsSync(join(WEB_PAGES, 'tournaments/[slug]/matches.vue'))).toBe(false);
-    expect(existsSync(join(WEB_PAGES, 'tournaments/[slug]/matches/index.vue'))).toBe(false);
-  });
-
-  it('TEMPORARY — no /tournaments/:slug/results page yet', () => {
-    expect(existsSync(join(WEB_PAGES, 'tournaments/[slug]/results.vue'))).toBe(false);
-    expect(existsSync(join(WEB_PAGES, 'tournaments/[slug]/results/index.vue'))).toBe(false);
-  });
-
-  it('TEMPORARY — no /tournaments/:slug/standings page yet', () => {
-    expect(existsSync(join(WEB_PAGES, 'tournaments/[slug]/standings.vue'))).toBe(false);
-    expect(existsSync(join(WEB_PAGES, 'tournaments/[slug]/standings/index.vue'))).toBe(false);
-  });
-
-  it('TEMPORARY — no /tournaments/:slug/bracket page yet', () => {
-    expect(existsSync(join(WEB_PAGES, 'tournaments/[slug]/bracket.vue'))).toBe(false);
-    expect(existsSync(join(WEB_PAGES, 'tournaments/[slug]/bracket/index.vue'))).toBe(false);
-  });
-});
+// Slice 9 fully landed — all operational pages (participants, matches, results, standings, bracket)
+// now exist in the frontend. All TEMPORARY frontend page checks have been removed.
 
 // ─── TEMPORARY: No frontend admin operational pages (Slice 10) ───────────────
 // Remove these checks when Slice 10 (admin operational frontend) lands.

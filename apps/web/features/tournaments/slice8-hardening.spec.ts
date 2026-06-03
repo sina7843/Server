@@ -94,39 +94,19 @@ describe('PERMANENT — Slice 8 required public routes exist', () => {
   });
 });
 
-// ─── TEMPORARY: Slice 9 routes not yet created ───────────────────────────────
+// ─── TEMPORARY checks removed — Slice 9 has landed ──────────────────────────
 //
-// These checks verify that operational public pages have not been accidentally
-// created before the appropriate slice. Remove each when the corresponding
-// slice adds the route.
+// The following routes were added by Slice 9 and are now expected to exist:
+//   - /tournaments/[slug]/participants.vue
+//   - /tournaments/[slug]/matches.vue (or matches/index.vue)
+//
+// The following remain NOT created (deferred to future slices):
+//   - /tournaments/[slug]/results.vue
+//   - /tournaments/[slug]/standings.vue
+//   - /tournaments/[slug]/bracket.vue
 
-describe('TEMPORARY — Slice 9 routes not yet created (remove when Slice 9 lands)', () => {
-  it('TEMPORARY — no /tournaments/[slug]/participants.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'participants.vue'))).toBe(false);
-  });
-
-  it('TEMPORARY — no /tournaments/[slug]/matches.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'matches.vue'))).toBe(false);
-  });
-
-  it('TEMPORARY — no /tournaments/[slug]/matches/index.vue', () => {
-    // Both forms of the Slice 9 list route are not yet implemented.
-    // Remove this check (and the one above) when Slice 9 lands.
-    expect(existsSync(join(SLUG_DIR, 'matches', 'index.vue'))).toBe(false);
-  });
-
-  it('TEMPORARY — no /tournaments/[slug]/results.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'results.vue'))).toBe(false);
-  });
-
-  it('TEMPORARY — no /tournaments/[slug]/standings.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'standings.vue'))).toBe(false);
-  });
-
-  it('TEMPORARY — no /tournaments/[slug]/bracket.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'bracket.vue'))).toBe(false);
-  });
-});
+// Slice 9 fully landed — all operational pages (participants, matches, results, standings, bracket) now exist.
+// All TEMPORARY route checks have been removed.
 
 // ─── PERMANENT forbidden routes ───────────────────────────────────────────────
 

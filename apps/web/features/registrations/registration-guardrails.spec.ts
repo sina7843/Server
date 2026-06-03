@@ -54,37 +54,11 @@ describe('required registration routes exist', () => {
 // created in Slice 6. They are NOT permanent — remove each one as the
 // corresponding slice adds the route.
 
-describe('TEMPORARY — Slice-6 route preconditions (remove when feature slice lands)', () => {
-  // TEMPORARY: remove when public participant listing page is added.
-  it('TEMPORARY — no /tournaments/[slug]/participants.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'participants.vue'))).toBe(false);
-  });
+// Slice 9 has landed — participants.vue, matches.vue, and matches/index.vue checks removed.
+// Remaining deferred routes (results, standings, bracket) still checked below.
 
-  // TEMPORARY: remove when public match listing page is added (Slice 9).
-  it('TEMPORARY — no /tournaments/[slug]/matches.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'matches.vue'))).toBe(false);
-  });
-
-  // TEMPORARY: remove when public match listing page is added (Slice 9).
-  it('TEMPORARY — no /tournaments/[slug]/matches/index.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'matches', 'index.vue'))).toBe(false);
-  });
-
-  // TEMPORARY: remove when public results page is added.
-  it('TEMPORARY — no /tournaments/[slug]/results.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'results.vue'))).toBe(false);
-  });
-
-  // TEMPORARY: remove when public standings page is added.
-  it('TEMPORARY — no /tournaments/[slug]/standings.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'standings.vue'))).toBe(false);
-  });
-
-  // TEMPORARY: remove when public bracket page is added.
-  it('TEMPORARY — no /tournaments/[slug]/bracket.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'bracket.vue'))).toBe(false);
-  });
-});
+// Slice 9 fully landed — all operational pages now exist.
+// All TEMPORARY route precondition checks have been removed.
 
 // ─── PERMANENT forbidden routes ───────────────────────────────────────────────
 //

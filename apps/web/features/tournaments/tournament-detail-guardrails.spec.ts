@@ -390,24 +390,12 @@ describe('PERMANENT — analytics event name correctness', () => {
   });
 });
 
-// ─── No operational pages ─────────────────────────────────────────────────────
+// ─── Forbidden detail routes remain (not operational list pages) ─────────────
+//
+// Slice 9 added all operational pages: participants, matches, results, standings, bracket.
+// Only public match detail and result detail routes remain permanently forbidden.
 
-describe('PERMANENT — no public operational pages exist', () => {
-  it('no /tournaments/[slug]/participants.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'participants.vue'))).toBe(false);
-  });
-
-  it('no /tournaments/[slug]/results.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'results.vue'))).toBe(false);
-  });
-
-  it('no /tournaments/[slug]/standings.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'standings.vue'))).toBe(false);
-  });
-
-  it('no /tournaments/[slug]/bracket.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'bracket.vue'))).toBe(false);
-  });
+describe('PERMANENT — forbidden public detail routes only (never remove)', () => {
 
   // Only dynamic match detail routes are permanently forbidden.
   // The matches list route (matches.vue or matches/index.vue) is a legal Slice 9 route —
@@ -421,20 +409,8 @@ describe('PERMANENT — no public operational pages exist', () => {
   });
 });
 
-// ─── TEMPORARY: Slice 9 matches list route not yet created ───────────────────
-//
-// These checks verify that the matches list page has not been accidentally
-// created before Slice 9. Remove when Slice 9 adds the route.
-
-describe('TEMPORARY — Slice 9 matches list route not yet created (remove when Slice 9 lands)', () => {
-  it('TEMPORARY — no /tournaments/[slug]/matches.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'matches.vue'))).toBe(false);
-  });
-
-  it('TEMPORARY — no /tournaments/[slug]/matches/index.vue', () => {
-    expect(existsSync(join(SLUG_DIR, 'matches', 'index.vue'))).toBe(false);
-  });
-});
+// Slice 9 has landed — TEMPORARY matches list checks removed.
+// The matches list route (/tournaments/:slug/matches) is now expected to exist.
 
 // ─── No prize/payment/shop ────────────────────────────────────────────────────
 

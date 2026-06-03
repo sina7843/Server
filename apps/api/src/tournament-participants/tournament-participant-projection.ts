@@ -52,3 +52,12 @@ export function toAdminParticipantListResponse(
 ): { items: TournamentParticipantDto[]; total: number; page: number; limit: number } {
   return { items: items.map(toParticipantDto), total, page, limit };
 }
+
+export function toPublicParticipantListResponse(
+  items: TournamentRegistrationDocument[],
+  total: number,
+  page: number,
+  limit: number,
+): { items: TournamentParticipantPublicDto[]; total: number; page: number; limit: number } {
+  return { items: items.map(toParticipantPublicDto), total, page, limit };
+}

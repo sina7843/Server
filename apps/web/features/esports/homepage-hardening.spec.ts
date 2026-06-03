@@ -155,12 +155,10 @@ describe('homepage does not link to unsupported Slice 2 tournament routes', () =
   // implemented in Slice 2. When a later tournament slice implements any of them, remove or
   // update the corresponding check below so it no longer blocks the legal route.
   // register and my-registration routes implemented in Slice 6 / Task 8.3 — removed from preconditions.
-  const SLICE2_PRECONDITION_PATTERNS = [
-    { label: 'tournament participants', pattern: /\/tournaments\/[^'"\s]*\/participants/ },
-    { label: 'tournament results', pattern: /\/tournaments\/[^'"\s]*\/results/ },
-    { label: 'tournament standings', pattern: /\/tournaments\/[^'"\s]*\/standings/ },
-    { label: 'tournament bracket', pattern: /\/tournaments\/[^'"\s]*\/bracket/ },
-  ];
+  // Slice 9 fully landed: all operational page preconditions removed.
+  // 'tournament participants', 'tournament matches', 'tournament results',
+  // 'tournament standings', and 'tournament bracket' are all now implemented.
+  const SLICE2_PRECONDITION_PATTERNS: Array<{ label: string; pattern: RegExp }> = [];
 
   // [permanent] — /tournaments/:slug/matches/:matchId is permanently forbidden in Phase 1.
   // Do not remove this check in future slices.

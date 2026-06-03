@@ -324,15 +324,9 @@ describe('PERMANENT — no hardcoded localhost or qesb.ir in Slice 6 source', ()
 // been accidentally created in Slice 6. Remove each check when the
 // corresponding route is added in a future slice.
 
-describe('TEMPORARY — Slice-6 public operational route preconditions', () => {
-  // TEMPORARY: remove when public participant listing API lands.
-  it('TEMPORARY — no public-participants controller in tournament-participants dir', () => {
-    expect(existsSync(join(PARTICIPANT_DIR, 'public-tournament-participants.controller.ts'))).toBe(
-      false,
-    );
-    expect(existsSync(join(PARTICIPANT_DIR, 'tournament-participants.controller.ts'))).toBe(false);
-  });
+// Slice 9 has landed — public participants controller check removed.
 
+describe('TEMPORARY — Slice-6 public operational route preconditions', () => {
   // TEMPORARY: remove when results API lands.
   it('TEMPORARY — no tournament-results directory exists', () => {
     expect(existsSync(join(API_SRC, 'tournament-results'))).toBe(false);

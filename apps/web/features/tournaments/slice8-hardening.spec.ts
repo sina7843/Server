@@ -3,7 +3,9 @@
  *
  * Permanent guardrails (never remove):
  *   - /tournaments and /tournaments/:slug are the only new Slice 8 public routes
- *   - /tournaments/:slug/matches/:matchId is permanently forbidden
+ *   - /tournaments/:slug/matches/:matchId is permanently forbidden (match detail)
+ *   - /tournaments/:slug/matches and /tournaments/:slug/matches/index are NOT permanently forbidden
+ *     (legal Slice 9 list routes; only TEMPORARY checks cover them — remove those when Slice 9 lands)
  *   - /admin/v1/tournaments/:id/operations is permanently forbidden
  *   - /admin/v1/tournaments/:id/preview is permanently forbidden
  *   - /tournaments is indexable (no noindex)
@@ -19,11 +21,12 @@
  *   - No hardcoded localhost or qesb.ir in Slice 8 composables
  *
  * Temporary Slice-8 precondition checks (labeled TEMPORARY — remove when feature slice lands):
- *   - No /tournaments/[slug]/participants.vue  → remove when Slice 9 lands
- *   - No /tournaments/[slug]/matches.vue       → remove when Slice 9 lands
- *   - No /tournaments/[slug]/results.vue       → remove when Slice 9 lands
- *   - No /tournaments/[slug]/standings.vue     → remove when Slice 9 lands
- *   - No /tournaments/[slug]/bracket.vue       → remove when Slice 9 lands
+ *   - No /tournaments/[slug]/participants.vue        → remove when Slice 9 lands
+ *   - No /tournaments/[slug]/matches.vue             → remove when Slice 9 lands
+ *   - No /tournaments/[slug]/matches/index.vue       → remove when Slice 9 lands
+ *   - No /tournaments/[slug]/results.vue             → remove when Slice 9 lands
+ *   - No /tournaments/[slug]/standings.vue           → remove when Slice 9 lands
+ *   - No /tournaments/[slug]/bracket.vue             → remove when Slice 9 lands
  *
  * Related:
  *   - slice8-guardrails.spec.ts (discovery page SDK/SEO/fake-data)
@@ -106,6 +109,12 @@ describe('TEMPORARY — Slice 9 routes not yet created (remove when Slice 9 land
     expect(existsSync(join(SLUG_DIR, 'matches.vue'))).toBe(false);
   });
 
+  it('TEMPORARY — no /tournaments/[slug]/matches/index.vue', () => {
+    // Both forms of the Slice 9 list route are not yet implemented.
+    // Remove this check (and the one above) when Slice 9 lands.
+    expect(existsSync(join(SLUG_DIR, 'matches', 'index.vue'))).toBe(false);
+  });
+
   it('TEMPORARY — no /tournaments/[slug]/results.vue', () => {
     expect(existsSync(join(SLUG_DIR, 'results.vue'))).toBe(false);
   });
@@ -122,8 +131,15 @@ describe('TEMPORARY — Slice 9 routes not yet created (remove when Slice 9 land
 // ─── PERMANENT forbidden routes ───────────────────────────────────────────────
 
 describe('PERMANENT — forbidden routes (never remove)', () => {
-  it('PERMANENT — no /tournaments/[slug]/matches directory (public match detail forbidden)', () => {
-    expect(existsSync(join(SLUG_DIR, 'matches'))).toBe(false);
+  // Only dynamic match detail routes are permanently forbidden.
+  // The matches list route (matches.vue or matches/index.vue) is a legal Slice 9 route —
+  // do NOT add a permanent check for it here.
+  it('PERMANENT — no /tournaments/[slug]/matches/[matchId].vue (public match detail forbidden)', () => {
+    expect(existsSync(join(SLUG_DIR, 'matches', '[matchId].vue'))).toBe(false);
+  });
+
+  it('PERMANENT — no /tournaments/[slug]/matches/[id].vue (public match detail forbidden)', () => {
+    expect(existsSync(join(SLUG_DIR, 'matches', '[id].vue'))).toBe(false);
   });
 
   it('PERMANENT — admin tournaments controller has no /operations route', () => {

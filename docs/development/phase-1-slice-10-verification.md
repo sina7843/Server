@@ -10,7 +10,7 @@ link to all 6 routes.
 | Area                                                         | Implemented | Notes                                                              |
 | ------------------------------------------------------------ | ----------- | ------------------------------------------------------------------ |
 | Admin registrations page `/tournaments/:id/registrations`    | Yes         | List + approve/reject; TOURNAMENT_REGISTRATION_READ                |
-| Admin participants page `/tournaments/:id/participants`      | Yes         | List + seed/remove; TOURNAMENT_PARTICIPANT_READ                    |
+| Admin participants page `/tournaments/:id/participants`      | Yes         | List + update/remove/disqualify; TOURNAMENT_PARTICIPANT_READ       |
 | Admin matches page `/tournaments/:id/matches`                | Yes         | List + create/generate/update/cancel; TOURNAMENT_MATCH_READ        |
 | Admin results page `/tournaments/:id/results`                | Yes         | Record/update/void winner per match; TOURNAMENT_RESULT_MANAGE      |
 | Admin standings page `/tournaments/:id/standings`            | Yes         | Read-only table + recalculate; TOURNAMENT_RESULT_MANAGE for recalc |
@@ -99,26 +99,27 @@ matches via `useAdminTournamentMatches` and uses `useAdminTournamentResults` onl
 Slice 10 frontend pages consume existing backend APIs added in Slices 6–7. No new API endpoints
 were added in Slice 10.
 
-| Endpoint                                                    | Controller                             | Added in |
-| ----------------------------------------------------------- | -------------------------------------- | -------- |
-| `GET /admin/v1/tournaments/:id/registrations`               | `admin-tournament-registrations`       | Slice 6  |
-| `PATCH /admin/v1/tournaments/:id/registrations/:id/approve` | `admin-tournament-registrations`       | Slice 6  |
-| `PATCH /admin/v1/tournaments/:id/registrations/:id/reject`  | `admin-tournament-registrations`       | Slice 6  |
-| `GET /admin/v1/tournaments/:id/participants`                | `admin-tournament-participants`        | Slice 6  |
-| `POST /admin/v1/tournaments/:id/participants`               | `admin-tournament-participants`        | Slice 6  |
-| `PATCH /admin/v1/tournaments/:id/participants/:id/seed`     | `admin-tournament-participants`        | Slice 6  |
-| `DELETE /admin/v1/tournaments/:id/participants/:id`         | `admin-tournament-participants`        | Slice 6  |
-| `GET /admin/v1/tournaments/:id/matches`                     | `admin-tournament-matches`             | Slice 7  |
-| `POST /admin/v1/tournaments/:id/matches`                    | `admin-tournament-matches`             | Slice 7  |
-| `POST /admin/v1/tournaments/:id/matches/generate`           | `admin-tournament-matches`             | Slice 7  |
-| `PATCH /admin/v1/tournaments/:id/matches/:matchId`          | `admin-tournament-matches`             | Slice 7  |
-| `PATCH /admin/v1/tournaments/:id/matches/:matchId/cancel`   | `admin-tournament-matches`             | Slice 7  |
-| `POST /admin/v1/tournaments/:id/matches/:matchId/result`    | `admin-tournament-results`             | Slice 7  |
-| `PATCH /admin/v1/tournaments/:id/matches/:matchId/result`   | `admin-tournament-results`             | Slice 7  |
-| `DELETE /admin/v1/tournaments/:id/matches/:matchId/result`  | `admin-tournament-results`             | Slice 7  |
-| `GET /admin/v1/tournaments/:id/standings`                   | `admin-tournament-standings`           | Slice 7  |
-| `POST /admin/v1/tournaments/:id/standings/recalculate`      | `admin-tournament-standings`           | Slice 7  |
-| `GET /admin/v1/tournaments/:id/bracket`                     | `admin-tournaments` (tournaments ctrl) | Slice 7  |
+| Endpoint                                                      | Controller                             | Added in |
+| ------------------------------------------------------------- | -------------------------------------- | -------- |
+| `GET /admin/v1/tournaments/:id/registrations`                 | `admin-tournament-registrations`       | Slice 6  |
+| `POST /admin/v1/tournaments/:id/registrations/:id/approve`    | `admin-tournament-registrations`       | Slice 6  |
+| `POST /admin/v1/tournaments/:id/registrations/:id/reject`     | `admin-tournament-registrations`       | Slice 6  |
+| `POST /admin/v1/tournaments/:id/registrations/:id/cancel`     | `admin-tournament-registrations`       | Slice 6  |
+| `GET /admin/v1/tournaments/:id/participants`                  | `admin-tournament-participants`        | Slice 6  |
+| `PATCH /admin/v1/tournaments/:id/participants/:id`            | `admin-tournament-participants`        | Slice 6  |
+| `POST /admin/v1/tournaments/:id/participants/:id/remove`      | `admin-tournament-participants`        | Slice 6  |
+| `POST /admin/v1/tournaments/:id/participants/:id/disqualify`  | `admin-tournament-participants`        | Slice 6  |
+| `GET /admin/v1/tournaments/:id/matches`                       | `admin-tournament-matches`             | Slice 7  |
+| `POST /admin/v1/tournaments/:id/matches`                      | `admin-tournament-matches`             | Slice 7  |
+| `POST /admin/v1/tournaments/:id/matches/generate`             | `admin-tournament-matches`             | Slice 7  |
+| `PATCH /admin/v1/tournaments/:id/matches/:matchId`            | `admin-tournament-matches`             | Slice 7  |
+| `POST /admin/v1/tournaments/:id/matches/:matchId/cancel`      | `admin-tournament-matches`             | Slice 7  |
+| `POST /admin/v1/tournaments/:id/matches/:matchId/result`      | `admin-tournament-results`             | Slice 7  |
+| `PATCH /admin/v1/tournaments/:id/matches/:matchId/result`     | `admin-tournament-results`             | Slice 7  |
+| `POST /admin/v1/tournaments/:id/matches/:matchId/result/void` | `admin-tournament-results`             | Slice 7  |
+| `GET /admin/v1/tournaments/:id/standings`                     | `admin-tournament-standings`           | Slice 7  |
+| `POST /admin/v1/tournaments/:id/standings/recalculate`        | `admin-tournament-standings`           | Slice 7  |
+| `GET /admin/v1/tournaments/:id/bracket`                       | `admin-tournaments` (tournaments ctrl) | Slice 7  |
 
 ---
 
@@ -152,8 +153,8 @@ were added in Slice 10.
 
 | File                                                         | Purpose                                                     |
 | ------------------------------------------------------------ | ----------------------------------------------------------- |
-| `features/tournaments/admin-tournament-registrations.api.ts` | Thin wrapper: list/approve/reject via admin SDK             |
-| `features/tournaments/admin-tournament-participants.api.ts`  | Thin wrapper: list/create/seed/remove via admin SDK         |
+| `features/tournaments/admin-tournament-registrations.api.ts` | Thin wrapper: list/approve/reject/cancel via admin SDK      |
+| `features/tournaments/admin-tournament-participants.api.ts`  | Thin wrapper: list/update/remove/disqualify via admin SDK   |
 | `features/tournaments/admin-tournament-matches.api.ts`       | Thin wrapper: list/create/generate/update/cancel            |
 | `features/tournaments/admin-tournament-results.api.ts`       | Thin wrapper: record/update/void via admin SDK              |
 | `features/tournaments/admin-tournament-standings.api.ts`     | Thin wrapper: get/recalculate via admin SDK                 |

@@ -465,6 +465,57 @@ describe('operational pages — correct composable usage', () => {
   });
 });
 
+// ─── Participant selection in matches page ────────────────────────────────────
+
+describe('matches page — participant selection via composable', () => {
+  const matchesPages = OPERATIONAL_PAGES.filter((f) => f.replace(/\\/g, '/').includes('/matches'));
+
+  it('matches page uses useAdminTournamentParticipants composable', () => {
+    for (const file of matchesPages) {
+      const src = readFileSync(file, 'utf8');
+      expect(src).toMatch(/useAdminTournamentParticipants/);
+    }
+  });
+
+  it('create match participant fields are select-backed (not free-text input)', () => {
+    for (const file of matchesPages) {
+      const src = readFileSync(file, 'utf8');
+      expect(src).toMatch(/id="create-p1"/);
+      expect(src).not.toMatch(/<input[^>]*id="create-p1"/s);
+      expect(src).toMatch(/id="create-p2"/);
+      expect(src).not.toMatch(/<input[^>]*id="create-p2"/s);
+    }
+  });
+
+  it('update match participant fields are select-backed (not free-text input)', () => {
+    for (const file of matchesPages) {
+      const src = readFileSync(file, 'utf8');
+      expect(src).toMatch(/id="edit-p1"/);
+      expect(src).not.toMatch(/<input[^>]*id="edit-p1"/s);
+      expect(src).toMatch(/id="edit-p2"/);
+      expect(src).not.toMatch(/<input[^>]*id="edit-p2"/s);
+    }
+  });
+
+  it('no arbitrary raw participant ID free-text input remains for create/update', () => {
+    for (const file of matchesPages) {
+      const src = readFileSync(file, 'utf8');
+      expect(src).not.toMatch(/type="text"[^>]*placeholder[^>]*شناسه شرکت‌کننده/s);
+      expect(src).not.toMatch(/placeholder[^>]*شناسه شرکت‌کننده[^>]*type="text"/s);
+    }
+  });
+
+  it('no fake participant options in matches page', () => {
+    for (const file of matchesPages) {
+      const src = readFileSync(file, 'utf8');
+      expect(src).not.toMatch(/fakeParticipant/i);
+      expect(src).not.toMatch(/mockParticipant/i);
+      expect(src).not.toMatch(/['"]Player One['"]/);
+      expect(src).not.toMatch(/['"]Team Alpha['"]/);
+    }
+  });
+});
+
 // ─── No separate bracket SDK client ──────────────────────────────────────────
 
 describe('bracket SDK design guardrail', () => {

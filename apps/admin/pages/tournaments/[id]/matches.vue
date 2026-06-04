@@ -151,24 +151,38 @@
             />
           </div>
           <div class="field">
-            <label class="field-label" for="create-p1">شناسه شرکت‌کننده ۱</label>
-            <input
+            <label class="field-label" for="create-p1">شرکت‌کننده ۱</label>
+            <select
               id="create-p1"
               v-model="createForm.participant1Id"
               class="field-input"
-              type="text"
-              placeholder="شناسه شرکت‌کننده (اختیاری)"
-            />
+              :disabled="participantsLoading || !!participantsError"
+            >
+              <option value="">— بدون شرکت‌کننده —</option>
+              <option v-for="p in participants" :key="p.id" :value="p.id">
+                {{ p.displayName }}{{ p.seed != null ? ` (#${p.seed})` : '' }}
+              </option>
+            </select>
+            <p v-if="participantsError" class="field-hint field-hint--error">
+              {{ participantsError }}
+            </p>
           </div>
           <div class="field">
-            <label class="field-label" for="create-p2">شناسه شرکت‌کننده ۲</label>
-            <input
+            <label class="field-label" for="create-p2">شرکت‌کننده ۲</label>
+            <select
               id="create-p2"
               v-model="createForm.participant2Id"
               class="field-input"
-              type="text"
-              placeholder="شناسه شرکت‌کننده (اختیاری)"
-            />
+              :disabled="participantsLoading || !!participantsError"
+            >
+              <option value="">— بدون شرکت‌کننده —</option>
+              <option v-for="p in participants" :key="p.id" :value="p.id">
+                {{ p.displayName }}{{ p.seed != null ? ` (#${p.seed})` : '' }}
+              </option>
+            </select>
+            <p v-if="participantsError" class="field-hint field-hint--error">
+              {{ participantsError }}
+            </p>
           </div>
           <div class="field">
             <label class="field-label" for="create-scheduled">زمان برگزاری</label>
@@ -212,24 +226,38 @@
             دور {{ pendingMatch?.round }} — شماره {{ pendingMatch?.matchNumber }}
           </p>
           <div class="field">
-            <label class="field-label" for="edit-p1">شناسه شرکت‌کننده ۱</label>
-            <input
+            <label class="field-label" for="edit-p1">شرکت‌کننده ۱</label>
+            <select
               id="edit-p1"
               v-model="editForm.participant1Id"
               class="field-input"
-              type="text"
-              placeholder="شناسه شرکت‌کننده (خالی = حذف)"
-            />
+              :disabled="participantsLoading || !!participantsError"
+            >
+              <option value="">— بدون شرکت‌کننده —</option>
+              <option v-for="p in participants" :key="p.id" :value="p.id">
+                {{ p.displayName }}{{ p.seed != null ? ` (#${p.seed})` : '' }}
+              </option>
+            </select>
+            <p v-if="participantsError" class="field-hint field-hint--error">
+              {{ participantsError }}
+            </p>
           </div>
           <div class="field">
-            <label class="field-label" for="edit-p2">شناسه شرکت‌کننده ۲</label>
-            <input
+            <label class="field-label" for="edit-p2">شرکت‌کننده ۲</label>
+            <select
               id="edit-p2"
               v-model="editForm.participant2Id"
               class="field-input"
-              type="text"
-              placeholder="شناسه شرکت‌کننده (خالی = حذف)"
-            />
+              :disabled="participantsLoading || !!participantsError"
+            >
+              <option value="">— بدون شرکت‌کننده —</option>
+              <option v-for="p in participants" :key="p.id" :value="p.id">
+                {{ p.displayName }}{{ p.seed != null ? ` (#${p.seed})` : '' }}
+              </option>
+            </select>
+            <p v-if="participantsError" class="field-hint field-hint--error">
+              {{ participantsError }}
+            </p>
           </div>
           <div class="field">
             <label class="field-label" for="edit-scheduled">زمان برگزاری</label>
@@ -307,6 +335,9 @@ const {
   clearActionState,
 } = useAdminTournamentMatches();
 
+const { participants, participantsLoading, participantsError, loadParticipants } =
+  useAdminTournamentParticipants();
+
 const canManage = computed(() => hasPermission(Permissions.TOURNAMENT_MATCH_MANAGE));
 
 const generateDialogOpen = ref(false);
@@ -365,7 +396,10 @@ function matchesByRound(round: number): readonly AdminTournamentMatchDto[] {
 
 async function load() {
   clearActionState();
-  await loadMatches(tournamentId, { limit: 100 });
+  await Promise.all([
+    loadMatches(tournamentId, { limit: 100 }),
+    loadParticipants(tournamentId, { limit: 200 }),
+  ]);
 }
 
 async function onGenerateConfirm() {
@@ -731,6 +765,15 @@ onMounted(() => {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.field-hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+}
+
+.field-hint--error {
+  color: #dc2626;
 }
 
 .dialog-actions {

@@ -46,7 +46,10 @@ const SMS_CONFIG = join(API_SRC, 'auth/sms/sms.service.ts');
 
 const PHASE0_ANALYTICS_CTRL = join(API_SRC, 'analytics/admin/admin-analytics.controller.ts');
 const PHASE0_AUDIT_CTRL = join(API_SRC, 'admin/audit/admin-audit.controller.ts');
-const PHASE0_NOTIFICATIONS_CTRL = join(API_SRC, 'admin/notifications/admin-notifications.controller.ts');
+const PHASE0_NOTIFICATIONS_CTRL = join(
+  API_SRC,
+  'admin/notifications/admin-notifications.controller.ts',
+);
 
 // ─── 1. AuditAction constant coverage ────────────────────────────────────────
 

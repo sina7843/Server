@@ -8,6 +8,7 @@ import { PermissionResolverService } from '../src/rbac/resolution/permission-res
 import { PublicSearchController } from '../src/search/public-search.controller';
 import { AdminSearchController } from '../src/search/admin-search.controller';
 import { SearchService } from '../src/search/search.service';
+import { TournamentService } from '../src/tournaments/tournament.service';
 import { JobLogService } from '../src/jobs/job-log.service';
 import { RBAC_TEST_TOKENS, RbacTestAccessTokenGuard } from './helpers/rbac-test.factory';
 
@@ -24,10 +25,17 @@ const mockJobLogService = {
   enqueue: jest.fn().mockResolvedValue(undefined),
 };
 
+const mockTournamentService = {
+  list: jest.fn().mockResolvedValue({ items: [], total: 0 }),
+};
+
 async function createPublicApp(): Promise<INestApplication> {
   const moduleRef = await Test.createTestingModule({
     controllers: [PublicSearchController],
-    providers: [{ provide: SearchService, useValue: mockSearchService }],
+    providers: [
+      { provide: SearchService, useValue: mockSearchService },
+      { provide: TournamentService, useValue: mockTournamentService },
+    ],
   }).compile();
 
   const testApp = moduleRef.createNestApplication();

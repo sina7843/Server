@@ -1,41 +1,19 @@
-Phase 1 / Slice 11 — Changed Files
+Phase 1 Final Checkpoint — Changed Files
 
-Task 11.1 — Transactional Notifications
+Task FC.1 — Stale Slice 9 Boundary Test Removal
 
-apps/api/src/notifications/tournament-notification.service.ts
-apps/api/src/notifications/tournament-notification.service.spec.ts
-apps/api/src/notifications/notifications.module.ts
-apps/api/src/tournament-registrations/tournament-registration.service.ts
-apps/api/src/tournament-registrations/tournament-registrations.module.ts
-apps/api/src/tournament-registrations/slice6-closeout.spec.ts
-apps/api/src/admin/tournaments/admin-tournaments.module.ts
-apps/api/src/admin/tournaments/admin-tournaments.controller.ts
-apps/api/src/admin/tournaments/slice5-guardrails.spec.ts
+apps/web/features/tournaments/slice9-hardening.spec.ts
 
-Task 11.2 — Analytics Event Integration
+Task FC.2 — Smoke Test DI Fix (TournamentService missing from PublicSearchController test module)
 
-apps/api/src/public-tournaments/public-tournaments.controller.ts
-apps/api/src/public-tournaments/public-tournaments.module.ts
-apps/api/src/tournament-registrations/public-tournament-registrations.controller.ts
-apps/api/src/tournament-bracket/public-tournament-bracket.controller.ts
-apps/api/src/tournament-bracket/tournament-bracket.module.ts
-apps/api/src/tournament-matches/public-tournament-matches.controller.ts
-apps/api/src/tournament-matches/tournament-matches.module.ts
-apps/api/src/analytics/tournament-analytics.guardrails.spec.ts
-apps/web/composables/useTournamentDetail.ts
-apps/web/composables/useTournamentMatches.ts
-apps/web/composables/useTournamentBracket.ts
+apps/api/test/search-smoke.e2e-spec.ts
 
-Task 11.3 — Audit, Observability, and Phase 1 Operational Hardening
+Task FC.3 — Prettier Formatting
 
 apps/api/src/audit/phase1-audit-hardening.spec.ts
-
-Task 11.4 — Phase 1 Verification Docs and Release Checklist
-
 docs/development/phase-1-operational-checklist.md
-apps/admin/features/guardrails/phase1-guardrails.spec.ts
-
-Docs
-
 docs/development/phase-1-slice-11-verification.md
+
+Manifest
+
 CHANGED_FILES_MANIFEST.txt

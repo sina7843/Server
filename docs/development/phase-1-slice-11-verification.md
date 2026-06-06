@@ -313,11 +313,11 @@ Enforced by: `phase1-audit-hardening.spec.ts` (backend) + `phase1-guardrails.spe
 
 The following routes exist from Phase 0 and were not created or expanded by Slice 11. They are allowlisted in guardrail tests.
 
-| Route                              | Controller                     | Scope                                            |
-| ---------------------------------- | ------------------------------ | ------------------------------------------------ |
-| `/admin/v1/analytics`              | `AdminAnalyticsController`     | Auth, OTP, content, media analytics (Phase 0)    |
-| `/admin/v1/audit-logs`             | `AdminAuditController`         | Read-only audit log list and detail (Phase 0)    |
-| `/admin/v1/system/notifications`   | `AdminNotificationsController` | Read-only notification log viewer (Phase 0)      |
+| Route                            | Controller                     | Scope                                         |
+| -------------------------------- | ------------------------------ | --------------------------------------------- |
+| `/admin/v1/analytics`            | `AdminAnalyticsController`     | Auth, OTP, content, media analytics (Phase 0) |
+| `/admin/v1/audit-logs`           | `AdminAuditController`         | Read-only audit log list and detail (Phase 0) |
+| `/admin/v1/system/notifications` | `AdminNotificationsController` | Read-only notification log viewer (Phase 0)   |
 
 **Permanently forbidden backend routes (never in Phase 1):**
 

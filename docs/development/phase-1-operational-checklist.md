@@ -30,28 +30,28 @@ Do not add features to Phase 1 after this checklist is finalized. Extension belo
 
 ## Admin Capabilities
 
-| Capability                                              | Status         |
-| ------------------------------------------------------- | -------------- |
-| Create, edit, delete tournaments                        | Implemented    |
-| Publish, cancel, archive tournaments                    | Implemented    |
-| Open/close registration window                          | Implemented    |
-| List and view registrations                             | Implemented    |
-| Approve, reject, cancel individual registrations        | Implemented    |
-| Manage participants (list, remove, disqualify)          | Implemented    |
-| Manage matches (list, create, update, cancel, generate) | Implemented    |
-| Record, update, void results                            | Implemented    |
-| Recalculate standings                                   | Implemented    |
-| View bracket                                            | Implemented    |
-| View audit logs                                         | Implemented    |
-| Manage games                                            | Implemented    |
+| Capability                                                  | Status                              |
+| ----------------------------------------------------------- | ----------------------------------- |
+| Create, edit, delete tournaments                            | Implemented                         |
+| Publish, cancel, archive tournaments                        | Implemented                         |
+| Open/close registration window                              | Implemented                         |
+| List and view registrations                                 | Implemented                         |
+| Approve, reject, cancel individual registrations            | Implemented                         |
+| Manage participants (list, remove, disqualify)              | Implemented                         |
+| Manage matches (list, create, update, cancel, generate)     | Implemented                         |
+| Record, update, void results                                | Implemented                         |
+| Recalculate standings                                       | Implemented                         |
+| View bracket                                                | Implemented                         |
+| View audit logs                                             | Implemented                         |
+| Manage games                                                | Implemented                         |
 | Admin analytics viewer (Phase 0: auth, OTP, content, media) | Pre-existing Phase 0 infrastructure |
-| Tournament analytics dashboard                          | Not in Phase 1 |
-| Audit log viewer — list and detail                      | Pre-existing Phase 0 infrastructure |
-| Audit dashboard / advanced search / export              | Not in Phase 1 |
-| Notification log viewer (/system/notifications)         | Pre-existing Phase 0 infrastructure |
-| Notification management / campaign routes               | Not in Phase 1 |
-| Tournament preview route                                | Not in Phase 1 |
-| Tournament operations route                             | Not in Phase 1 |
+| Tournament analytics dashboard                              | Not in Phase 1                      |
+| Audit log viewer — list and detail                          | Pre-existing Phase 0 infrastructure |
+| Audit dashboard / advanced search / export                  | Not in Phase 1                      |
+| Notification log viewer (/system/notifications)             | Pre-existing Phase 0 infrastructure |
+| Notification management / campaign routes                   | Not in Phase 1                      |
+| Tournament preview route                                    | Not in Phase 1                      |
+| Tournament operations route                                 | Not in Phase 1                      |
 
 ---
 
@@ -241,11 +241,11 @@ Before real SMS delivery can occur in production:
 
 The following routes exist as pre-existing Phase 0 infrastructure. Slice 11 did not create or expand them.
 
-| Route                                | Controller                         | Scope                                |
-| ------------------------------------ | ---------------------------------- | ------------------------------------ |
-| `/admin/v1/analytics`                | `AdminAnalyticsController`         | Auth, OTP, content, media analytics  |
-| `/admin/v1/audit-logs`               | `AdminAuditController`             | Read-only audit log list and detail  |
-| `/admin/v1/system/notifications`     | `AdminNotificationsController`     | Read-only notification log viewer    |
+| Route                            | Controller                     | Scope                               |
+| -------------------------------- | ------------------------------ | ----------------------------------- |
+| `/admin/v1/analytics`            | `AdminAnalyticsController`     | Auth, OTP, content, media analytics |
+| `/admin/v1/audit-logs`           | `AdminAuditController`         | Read-only audit log list and detail |
+| `/admin/v1/system/notifications` | `AdminNotificationsController` | Read-only notification log viewer   |
 
 ### Permanently forbidden backend routes (never in Phase 1)
 

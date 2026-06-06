@@ -156,36 +156,6 @@ describe('PERMANENT — no admin standalone operations or preview routes', () =>
   });
 });
 
-// ─── Future Slice 10 admin routes — not permanently blocked here ──────────────
-//
-// These checks confirm that Slice 9 has NOT created the admin operational pages
-// that belong to Slice 10. They are TEMPORARY and must be removed when Slice 10
-// adds the respective admin operational pages.
-
-describe('TEMPORARY (Slice 10) — admin operational pages not yet created', () => {
-  const adminSlugDir = join(REPO_ROOT, 'apps', 'admin', 'pages', 'tournaments', '[id]');
-
-  it('TEMPORARY — no /admin/tournaments/[id]/matches page (Slice 10 boundary)', () => {
-    expect(existsSync(join(adminSlugDir, 'matches.vue'))).toBe(false);
-    expect(existsSync(join(adminSlugDir, 'matches', 'index.vue'))).toBe(false);
-  });
-
-  it('TEMPORARY — no /admin/tournaments/[id]/results page (Slice 10 boundary)', () => {
-    expect(existsSync(join(adminSlugDir, 'results.vue'))).toBe(false);
-    expect(existsSync(join(adminSlugDir, 'results', 'index.vue'))).toBe(false);
-  });
-
-  it('TEMPORARY — no /admin/tournaments/[id]/standings page (Slice 10 boundary)', () => {
-    expect(existsSync(join(adminSlugDir, 'standings.vue'))).toBe(false);
-    expect(existsSync(join(adminSlugDir, 'standings', 'index.vue'))).toBe(false);
-  });
-
-  it('TEMPORARY — no /admin/tournaments/[id]/bracket page (Slice 10 boundary)', () => {
-    expect(existsSync(join(adminSlugDir, 'bracket.vue'))).toBe(false);
-    expect(existsSync(join(adminSlugDir, 'bracket', 'index.vue'))).toBe(false);
-  });
-});
-
 // ─── All composables: SDK-only, no admin SDK, no direct fetch ─────────────────
 
 describe('PERMANENT — all operational composables use SDK only, no admin SDK, no direct fetch', () => {

@@ -51,7 +51,12 @@ export function parseTournamentSearchQuery(raw: unknown): ParsedTournamentSearch
       ? (query.format as TournamentFormat)
       : undefined;
 
-  const registrationOpen = query.registrationOpen === 'true' ? true : undefined;
+  let registrationOpen: boolean | undefined;
+  if (query.registrationOpen !== undefined) {
+    if (query.registrationOpen === 'true') registrationOpen = true;
+    else if (query.registrationOpen === 'false') registrationOpen = false;
+    else throw new BadRequestException('registrationOpen must be "true" or "false".');
+  }
 
   const pageRaw = query.page !== undefined ? Number(query.page) : DEFAULT_PAGE;
   const limitRaw = query.limit !== undefined ? Number(query.limit) : DEFAULT_LIMIT;

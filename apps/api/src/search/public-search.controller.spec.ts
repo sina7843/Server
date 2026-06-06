@@ -433,4 +433,43 @@ describe('parseTournamentSearchQuery', () => {
   it('rejects page below 1', () => {
     expect(() => parseTournamentSearchQuery({ page: '0' })).toThrow(BadRequestException);
   });
+
+  it('parses registrationOpen=true as boolean true', () => {
+    const result = parseTournamentSearchQuery({ registrationOpen: 'true' });
+    expect(result.registrationOpen).toBe(true);
+  });
+
+  it('parses registrationOpen=false as boolean false', () => {
+    const result = parseTournamentSearchQuery({ registrationOpen: 'false' });
+    expect(result.registrationOpen).toBe(false);
+  });
+
+  it('omits registrationOpen when not provided', () => {
+    const result = parseTournamentSearchQuery({});
+    expect('registrationOpen' in result).toBe(false);
+  });
+
+  it('rejects registrationOpen=yes with 400', () => {
+    expect(() => parseTournamentSearchQuery({ registrationOpen: 'yes' })).toThrow(
+      BadRequestException,
+    );
+  });
+
+  it('rejects registrationOpen=1 with 400', () => {
+    expect(() => parseTournamentSearchQuery({ registrationOpen: '1' })).toThrow(
+      BadRequestException,
+    );
+  });
+
+  it('rejects registrationOpen=0 with 400', () => {
+    expect(() => parseTournamentSearchQuery({ registrationOpen: '0' })).toThrow(
+      BadRequestException,
+    );
+  });
+
+  it('rejects registrationOpen=random with 400', () => {
+    expect(() => parseTournamentSearchQuery({ registrationOpen: 'random' })).toThrow(
+      BadRequestException,
+    );
+  });
 });

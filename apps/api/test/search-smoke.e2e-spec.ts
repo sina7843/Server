@@ -121,6 +121,54 @@ describe('Public search smoke', () => {
       expect(res.status).toBe(400);
     });
   });
+
+  describe('GET /api/v1/search/tournaments', () => {
+    it('returns 200 with q param', async () => {
+      app = await createPublicApp();
+      const res = await fetch(`${await app.getUrl()}/api/v1/search/tournaments?q=test`);
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as { items: unknown[] };
+      expect(Array.isArray(body.items)).toBe(true);
+    });
+
+    it('passes registrationOpen=true to service as boolean true', async () => {
+      app = await createPublicApp();
+      await fetch(`${await app.getUrl()}/api/v1/search/tournaments?q=test&registrationOpen=true`);
+      expect(mockTournamentService.list).toHaveBeenCalledWith(
+        expect.objectContaining({ registrationOpen: true }),
+        expect.any(Number),
+        expect.any(Number),
+      );
+    });
+
+    it('passes registrationOpen=false to service as boolean false', async () => {
+      app = await createPublicApp();
+      await fetch(`${await app.getUrl()}/api/v1/search/tournaments?q=test&registrationOpen=false`);
+      expect(mockTournamentService.list).toHaveBeenCalledWith(
+        expect.objectContaining({ registrationOpen: false }),
+        expect.any(Number),
+        expect.any(Number),
+      );
+    });
+
+    it('rejects invalid registrationOpen value with 400', async () => {
+      app = await createPublicApp();
+      const res = await fetch(
+        `${await app.getUrl()}/api/v1/search/tournaments?q=test&registrationOpen=yes`,
+      );
+      expect(res.status).toBe(400);
+    });
+
+    it('omits registrationOpen filter when param is absent', async () => {
+      app = await createPublicApp();
+      await fetch(`${await app.getUrl()}/api/v1/search/tournaments?q=test`);
+      const callFilter = (mockTournamentService.list as jest.Mock).mock.calls[0][0] as Record<
+        string,
+        unknown
+      >;
+      expect(callFilter).not.toHaveProperty('registrationOpen');
+    });
+  });
 });
 
 describe('Admin search smoke', () => {

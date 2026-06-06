@@ -589,6 +589,16 @@ describe('Slice 11 — verification docs exist and are accurate', () => {
       // Rejects table rows like "| Audit dashboard | Implemented |"
       expect(src).not.toMatch(/\|\s*Audit dashboard\s*\|\s*Implemented/i);
     });
+
+    it('checklist does not claim admin analytics routes are absent (AdminAnalyticsController at /admin/v1/analytics is Phase 0 pre-existing)', () => {
+      if (!existsSync(checklistPath)) return;
+      const src = readSrc(checklistPath);
+      // Must not make a blanket "no ... admin analytics routes ... exists" claim.
+      // AdminAnalyticsController at /admin/v1/analytics is Phase 0 pre-existing infrastructure.
+      // That route must be acknowledged in the checklist, not denied.
+      expect(src).not.toMatch(/no.{0,40}admin analytics routes.{0,40}exists?/i);
+      expect(src).toContain('/admin/v1/analytics');
+    });
   });
 
   describe('operational checklist — forbidden routes documented as absent', () => {

@@ -111,7 +111,7 @@ All 5 Phase 1 analytics events have exactly one canonical backend owner. Events 
 - [x] `tournament.viewed`, `tournament.bracket_viewed`, `tournament.match_viewed` only fire after `isPubliclyVisible()` passes — draft/archived/deleted tournaments do not generate events
 - [x] Frontend composables (`useTournamentDetail.ts`, `useTournamentBracket.ts`, `useTournamentMatches.ts`) do not fire analytics events client-side
 - [x] No phone, email, access tokens, or admin-only fields in any analytics payload
-- [x] No analytics dashboard, admin analytics routes, or analytics export exists
+- [x] No Slice 11 tournament analytics dashboard, new admin analytics routes, or analytics export introduced (Phase 0 `AdminAnalyticsController` at `/admin/v1/analytics` is pre-existing infrastructure covering auth/OTP/content/media — not introduced or expanded by Slice 11)
 
 ---
 
@@ -140,7 +140,7 @@ All 5 Phase 1 analytics events have exactly one canonical backend owner. Events 
 - [x] Redactor covers: `password`, `refreshToken`, `accessToken`, `secret`, `authorization`, `cookie`, `providerCredentials`, `providerSecret`, `resetToken`, `otp`, `code`, and variants (case-insensitive)
 - [x] No phone/email/raw PII in audit `after` objects for registration or participant services
 - [x] No new public audit log endpoints
-- [x] No admin audit dashboard, search, or export UI
+- [x] No new admin audit dashboard, advanced search, or export UI introduced by Slice 11 (Phase 0 `AdminAuditController` at `/admin/v1/audit-logs` provides read-only log access — not a dashboard, not expanded by Slice 11)
 
 ---
 

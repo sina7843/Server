@@ -427,8 +427,7 @@ TournamentMatchesModule
 
 ### Deferred / Out of scope (Task 11.2)
 
-- Analytics dashboard
-- Admin analytics routes
+- Tournament analytics dashboard or tournament-specific reporting (Phase 0 `AdminAnalyticsController` at `/admin/v1/analytics` is pre-existing and covers auth/OTP/content/media — not introduced or expanded by Slice 11)
 - Analytics settings or preferences UI
 - Client-side analytics tracking
 - Public match detail page (`tournament.match_viewed` fires from the matches list endpoint)

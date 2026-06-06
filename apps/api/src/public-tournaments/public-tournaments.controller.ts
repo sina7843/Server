@@ -1,10 +1,11 @@
-import { Controller, Get, NotFoundException, Param, Query } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Optional, Param, Query } from '@nestjs/common';
 import type {
   TournamentDetailDto,
   TournamentListResponseDto,
   TournamentStatus,
   TournamentFormat,
 } from '@dragon/types';
+import { AnalyticsService } from '../analytics/analytics.service';
 import { TournamentService } from '../tournaments/tournament.service';
 import {
   isPubliclyVisible,
@@ -49,7 +50,10 @@ const VALID_FORMATS = new Set<string>(['single_elimination', 'round_robin', 'man
 
 @Controller('api/v1/tournaments')
 export class PublicTournamentsController {
-  constructor(private readonly tournamentService: TournamentService) {}
+  constructor(
+    private readonly tournamentService: TournamentService,
+    @Optional() private readonly analyticsService?: AnalyticsService,
+  ) {}
 
   // GET /api/v1/tournaments
   // Structured public listing. Filters: gameId, status, format, registrationOpen, page, limit.
@@ -112,6 +116,13 @@ export class PublicTournamentsController {
     if (!tournament || !isPubliclyVisible(tournament)) {
       throw new NotFoundException('Tournament not found.');
     }
+
+    this.analyticsService?.track({
+      type: 'tournament.viewed',
+      resourceType: 'tournament',
+      resourceId: String(tournament._id),
+      metadata: { slug: tournament.slug },
+    });
 
     return toPublicTournamentDetail(tournament);
   }

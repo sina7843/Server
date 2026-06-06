@@ -474,3 +474,174 @@ describe('Slice 5 — docs exist', () => {
     expect(src).toMatch(/PATCH/);
   });
 });
+
+// ─── Slice 11: docs verification ─────────────────────────────────────────────
+
+describe('Slice 11 — verification docs exist and are accurate', () => {
+  const DOCS_ROOT = join(ADMIN_ROOT, '..', '..', 'docs', 'development');
+
+  const slice11Path = join(DOCS_ROOT, 'phase-1-slice-11-verification.md');
+  const checklistPath = join(DOCS_ROOT, 'phase-1-operational-checklist.md');
+
+  it('phase-1-slice-11-verification.md exists in docs/development', () => {
+    expect(existsSync(slice11Path)).toBe(true);
+  });
+
+  it('phase-1-operational-checklist.md exists in docs/development', () => {
+    expect(existsSync(checklistPath)).toBe(true);
+  });
+
+  describe('slice-11 verification doc — analytics event names', () => {
+    const EXPECTED_EVENTS = [
+      'tournament.viewed',
+      'tournament.registration_started',
+      'tournament.registration_completed',
+      'tournament.bracket_viewed',
+      'tournament.match_viewed',
+    ];
+
+    for (const event of EXPECTED_EVENTS) {
+      it(`slice-11 doc documents analytics event '${event}'`, () => {
+        if (!existsSync(slice11Path)) return;
+        const src = readSrc(slice11Path);
+        expect(src).toContain(event);
+      });
+    }
+  });
+
+  describe('operational checklist — analytics event names', () => {
+    const EXPECTED_EVENTS = [
+      'tournament.viewed',
+      'tournament.registration_started',
+      'tournament.registration_completed',
+      'tournament.bracket_viewed',
+      'tournament.match_viewed',
+    ];
+
+    for (const event of EXPECTED_EVENTS) {
+      it(`checklist documents analytics event '${event}'`, () => {
+        if (!existsSync(checklistPath)) return;
+        const src = readSrc(checklistPath);
+        expect(src).toContain(event);
+      });
+    }
+  });
+
+  describe('operational checklist — no forbidden alternative event names', () => {
+    const FORBIDDEN_ALIASES = [
+      'tournament_viewed',
+      'tournamentViewed',
+      'registration_started',
+      'registrationStarted',
+      'registration_completed',
+      'registrationCompleted',
+      'bracket_viewed',
+      'bracketViewed',
+      'match_viewed',
+      'matchViewed',
+    ];
+
+    for (const alias of FORBIDDEN_ALIASES) {
+      it(`checklist does not use forbidden alias '${alias}' as an implemented event`, () => {
+        if (!existsSync(checklistPath)) return;
+        const src = readSrc(checklistPath);
+        // Allow in comments or note sections but not as a backtick-quoted event value
+        expect(src).not.toMatch(new RegExp(`\`${alias}\``));
+      });
+    }
+  });
+
+  describe('operational checklist — scope integrity', () => {
+    it('checklist does not claim Phase 1 is an MVP', () => {
+      if (!existsSync(checklistPath)) return;
+      const src = readSrc(checklistPath);
+      expect(src).not.toMatch(/\bMVP\b/);
+    });
+
+    it('checklist uses Production Slice or launchable within controlled scope framing', () => {
+      if (!existsSync(checklistPath)) return;
+      const src = readSrc(checklistPath);
+      expect(src).toMatch(
+        /Production Slice|launchable within.*controlled scope|complete within.*locked scope/i,
+      );
+    });
+
+    it('checklist does not claim a real SMS provider is active for Phase 1', () => {
+      if (!existsSync(checklistPath)) return;
+      const src = readSrc(checklistPath);
+      // Must not claim real SMS delivery is available — mock only in Phase 1
+      // Pattern targets affirmative claims; "no real SMS delivery" and "mock provider" are allowed
+      expect(src).not.toMatch(
+        /real SMS delivery.*available|production SMS.*active|SMS provider.*active for Phase 1/i,
+      );
+    });
+
+    it('checklist does not claim an analytics dashboard exists as implemented', () => {
+      if (!existsSync(checklistPath)) return;
+      const src = readSrc(checklistPath);
+      // Rejects table rows like "| Analytics dashboard | Implemented |"
+      expect(src).not.toMatch(/\|\s*Analytics dashboard\s*\|\s*Implemented/i);
+    });
+
+    it('checklist does not claim an audit dashboard exists as implemented', () => {
+      if (!existsSync(checklistPath)) return;
+      const src = readSrc(checklistPath);
+      // Rejects table rows like "| Audit dashboard | Implemented |"
+      expect(src).not.toMatch(/\|\s*Audit dashboard\s*\|\s*Implemented/i);
+    });
+  });
+
+  describe('operational checklist — forbidden routes documented as absent', () => {
+    // Routes that must never exist in Phase 1 (no pre-existing infrastructure at these paths).
+    const FORBIDDEN_BACKEND_ROUTES = [
+      '/api/v1/notifications',
+      '/api/v1/notification-preferences',
+      '/admin/v1/campaigns',
+    ];
+
+    for (const route of FORBIDDEN_BACKEND_ROUTES) {
+      it(`checklist documents forbidden backend route '${route}' as absent`, () => {
+        if (!existsSync(checklistPath)) return;
+        const src = readSrc(checklistPath);
+        expect(src).toContain(route);
+      });
+    }
+  });
+
+  describe('operational checklist — Phase 0 pre-existing backend infrastructure documented', () => {
+    // These routes exist as pre-existing Phase 0 infrastructure, not introduced by Slice 11.
+    // The checklist must document them as pre-existing, not claim they are absent.
+    const PHASE0_ROUTES = [
+      '/admin/v1/analytics',
+      '/admin/v1/audit-logs',
+      '/admin/v1/system/notifications',
+    ];
+
+    for (const route of PHASE0_ROUTES) {
+      it(`checklist documents Phase 0 pre-existing route '${route}'`, () => {
+        if (!existsSync(checklistPath)) return;
+        const src = readSrc(checklistPath);
+        expect(src).toContain(route);
+      });
+    }
+  });
+
+  describe('operational checklist — out-of-scope capabilities documented', () => {
+    const OUT_OF_SCOPE = [
+      'Marketing SMS',
+      'Push notification',
+      'In-app notification',
+      'campaign',
+      'analytics dashboard',
+      'audit dashboard',
+    ];
+
+    for (const item of OUT_OF_SCOPE) {
+      it(`checklist documents '${item}' as out of scope`, () => {
+        if (!existsSync(checklistPath)) return;
+        const src = readSrc(checklistPath);
+        expect(src).toMatch(new RegExp(item, 'i'));
+      });
+    }
+  });
+});

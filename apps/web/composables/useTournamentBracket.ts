@@ -1,9 +1,7 @@
 import { createTournamentsDiscoveryApi } from '~/features/tournaments/tournaments-api';
 
-// Analytics: fire 'tournament.bracket_viewed' when the public bracket page is viewed.
-// Exact event name: 'tournament.bracket_viewed' (from ANALYTICS_EVENT_TYPES in @dragon/types).
-// Full integration deferred — analytics composable not yet implemented client-side.
-// Do NOT use: bracket_viewed, tournament_bracket_viewed, tournament.bracketViewed.
+// Analytics: tournament.bracket_viewed is fired server-side from PublicTournamentBracketController.getBracket()
+// on each successful GET /api/v1/tournaments/:slug/bracket response (Slice 11).
 
 export function useTournamentBracket() {
   const runtimeConfig = useRuntimeConfig();

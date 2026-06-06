@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuditModule } from '../audit/audit.module';
 import { AuthModule } from '../auth/auth.module';
 import { AnalyticsModule } from '../analytics/analytics.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { TournamentsModule } from '../tournaments/tournaments.module';
 import {
   TournamentRegistration,
@@ -23,6 +24,7 @@ import { PublicTournamentRegistrationsController } from './public-tournament-reg
     AuditModule,
     AuthModule,
     AnalyticsModule,
+    NotificationsModule,
     TournamentsModule,
   ],
   providers: [TournamentRegistrationRepository, TournamentRegistrationService],

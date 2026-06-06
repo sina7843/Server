@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   NotFoundException,
+  Optional,
   Param,
   Patch,
   Post,
@@ -13,6 +14,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { MyTournamentRegistrationDto, TournamentRegistrationContextDto } from '@dragon/types';
+import { AnalyticsService } from '../analytics/analytics.service';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import type { AuthenticatedRequest } from '../auth/guards/authenticated-request';
 import { TournamentService } from '../tournaments/tournament.service';
@@ -33,6 +35,7 @@ export class PublicTournamentRegistrationsController {
   constructor(
     private readonly tournamentService: TournamentService,
     private readonly registrationService: TournamentRegistrationService,
+    @Optional() private readonly analyticsService?: AnalyticsService,
   ) {}
 
   // GET /api/v1/tournaments/:slug/registration-context
@@ -44,6 +47,14 @@ export class PublicTournamentRegistrationsController {
     @Param('slug') slug: string,
   ): Promise<TournamentRegistrationContextDto> {
     const tournament = await this.requirePubliclyVisibleTournament(slug);
+
+    this.analyticsService?.track({
+      type: 'tournament.registration_started',
+      resourceType: 'tournament',
+      resourceId: String(tournament._id),
+      metadata: { slug: tournament.slug },
+    });
+
     return {
       tournamentTitle: tournament.title,
       registrationOpen: tournament.status === 'registration_open',

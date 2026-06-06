@@ -1,9 +1,7 @@
 import { createTournamentsDiscoveryApi } from '~/features/tournaments/tournaments-api';
 
-// Analytics: fire 'tournament.match_viewed' when the public matches list page is viewed.
-// Exact event name: 'tournament.match_viewed' (from ANALYTICS_EVENT_TYPES in @dragon/types).
-// Full integration deferred — analytics composable not yet implemented client-side.
-// Do NOT use: match_viewed, tournament_match_viewed, tournament.matches_viewed, tournament.matchListViewed.
+// Analytics: tournament.match_viewed is fired server-side from PublicTournamentMatchesController.listMatches()
+// on each successful GET /api/v1/tournaments/:slug/matches response (Slice 11).
 
 export function useTournamentMatches() {
   const runtimeConfig = useRuntimeConfig();

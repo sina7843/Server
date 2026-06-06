@@ -68,9 +68,9 @@ describe('permanent — admin tournament controller scope', () => {
     expect(src).not.toMatch(/prize|payment|shop|stream/i);
   });
 
-  it('admin tournament module has no registration/participant/match/bracket imports', () => {
+  it('admin tournament module has no participant/match/bracket imports (Slice 11: TournamentRegistrationsModule allowed for notification wiring)', () => {
     const src = readAdminTournament('admin-tournaments.module.ts');
-    expect(src).not.toMatch(/Registration|Participant|Match|Bracket/);
+    expect(src).not.toMatch(/Participant|Match|Bracket/);
   });
 });
 

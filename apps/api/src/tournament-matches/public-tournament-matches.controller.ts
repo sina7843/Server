@@ -1,5 +1,6 @@
-import { Controller, Get, NotFoundException, Param, Query } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Optional, Param, Query } from '@nestjs/common';
 import type { TournamentMatchListResponseDto } from '@dragon/types';
+import { AnalyticsService } from '../analytics/analytics.service';
 import { TournamentService } from '../tournaments/tournament.service';
 import { isPubliclyVisible } from '../tournaments/tournament-projection';
 import { TournamentMatchService } from './tournament-match.service';
@@ -14,6 +15,7 @@ export class PublicTournamentMatchesController {
   constructor(
     private readonly tournamentService: TournamentService,
     private readonly matchService: TournamentMatchService,
+    @Optional() private readonly analyticsService?: AnalyticsService,
   ) {}
 
   // GET /api/v1/tournaments/:slug/matches
@@ -30,6 +32,13 @@ export class PublicTournamentMatchesController {
     if (!tournament || !isPubliclyVisible(tournament)) {
       throw new NotFoundException('Tournament not found.');
     }
+
+    this.analyticsService?.track({
+      type: 'tournament.match_viewed',
+      resourceType: 'tournament',
+      resourceId: String(tournament._id),
+      metadata: { slug },
+    });
 
     const page =
       rawPage !== undefined ? Math.max(1, parseInt(rawPage, 10) || DEFAULT_PAGE) : DEFAULT_PAGE;

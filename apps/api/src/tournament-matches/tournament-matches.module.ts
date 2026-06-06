@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { AnalyticsModule } from '../analytics/analytics.module';
 import { AuditModule } from '../audit/audit.module';
 import { AuthModule } from '../auth/auth.module';
 import { TournamentsModule } from '../tournaments/tournaments.module';
@@ -13,6 +14,7 @@ import { PublicTournamentResultsController } from './public-tournament-results.c
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: TournamentMatch.name, schema: TournamentMatchSchema }]),
+    AnalyticsModule,
     AuditModule,
     AuthModule,
     TournamentsModule,

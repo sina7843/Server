@@ -8,6 +8,7 @@ import {
 import { AuditAction } from '@dragon/types';
 import { AuditService } from '../audit/audit.service';
 import { AnalyticsService } from '../analytics/analytics.service';
+import { TournamentNotificationService } from '../notifications/tournament-notification.service';
 import type { TournamentDocument } from '../tournaments/tournament.schema';
 import { TournamentRegistrationRepository } from './tournament-registration.repository';
 import type { TournamentRegistrationDocument } from './tournament-registration.schema';
@@ -33,13 +34,14 @@ import {
 
 // ─── Service ──────────────────────────────────────────────────────────────────
 //
-// Public registration notifications (submitted/approved/rejected) are deferred
-// to Slice 11. The NotificationService currently handles only transactional
-// SMS for auth flows and does not support general registration notifications.
-//
 // Analytics: tournament.registration_started is a frontend event (user opens
 // the registration form). tournament.registration_completed fires here on
 // successful backend submission.
+//
+// Notifications: transactional SMS notifications for registration lifecycle
+// events (submitted, approved, rejected, withdrawn, cancelled) are handled by
+// TournamentNotificationService injected below. Notification failure never
+// aborts the business operation — all notification calls are fire-and-forget.
 
 @Injectable()
 export class TournamentRegistrationService {
@@ -47,6 +49,7 @@ export class TournamentRegistrationService {
     private readonly registrationRepository: TournamentRegistrationRepository,
     @Optional() private readonly auditService?: AuditService,
     @Optional() private readonly analyticsService?: AnalyticsService,
+    @Optional() private readonly tournamentNotificationService?: TournamentNotificationService,
   ) {}
 
   // ─── Public: submit registration ──────────────────────────────────────────
@@ -128,7 +131,7 @@ export class TournamentRegistrationService {
       metadata: { registrationId: String(registration._id), type: registration.type },
     });
 
-    // Notification stub: notify user of registration submission (Slice 11).
+    void this.tournamentNotificationService?.notifyRegistrationSubmitted(registration);
 
     return registration;
   }
@@ -229,6 +232,8 @@ export class TournamentRegistrationService {
       severity: 'info',
     });
 
+    void this.tournamentNotificationService?.notifyRegistrationWithdrawn(updated);
+
     return updated;
   }
 
@@ -276,7 +281,7 @@ export class TournamentRegistrationService {
       severity: 'info',
     });
 
-    // Notification stub: notify user of approval (Slice 11).
+    void this.tournamentNotificationService?.notifyRegistrationApproved(updated);
 
     return updated;
   }
@@ -313,7 +318,7 @@ export class TournamentRegistrationService {
       severity: 'info',
     });
 
-    // Notification stub: notify user of rejection (Slice 11).
+    void this.tournamentNotificationService?.notifyRegistrationRejected(updated);
 
     return updated;
   }
@@ -344,6 +349,8 @@ export class TournamentRegistrationService {
       after: { status: 'cancelled' },
       severity: 'warning',
     });
+
+    void this.tournamentNotificationService?.notifyRegistrationCancelled(updated);
 
     return updated;
   }

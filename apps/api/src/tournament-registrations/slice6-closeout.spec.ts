@@ -167,9 +167,13 @@ describe('PERMANENT — audit actions for registration lifecycle', () => {
   });
 });
 
-// ─── PERMANENT: Notifications are deferred — no marketing/push/campaign ───────
+// ─── PERMANENT: Notifications scope — no marketing/push/campaign ─────────────
+//
+// Slice 11 implemented transactional notifications (submitted/approved/rejected/
+// withdrawn/cancelled) via TournamentNotificationService. Scope guardrails below
+// confirm no marketing or push notification expansion occurred.
 
-describe('PERMANENT — notification scope is deferred and limited', () => {
+describe('PERMANENT — notification scope is safe and limited', () => {
   it('registration service has no push notification references', () => {
     const src = read(join(REGISTRATION_DIR, 'tournament-registration.service.ts'));
     expect(src).not.toMatch(/pushNotif|PushNotif|fcm|apns/i);
@@ -180,9 +184,12 @@ describe('PERMANENT — notification scope is deferred and limited', () => {
     expect(src).not.toMatch(/campaign|marketing|broadcast/i);
   });
 
-  it('registration service defers notifications to Slice 11 (stub comment present)', () => {
+  it('registration service uses TournamentNotificationService for transactional notifications (Slice 11 implemented)', () => {
     const src = read(join(REGISTRATION_DIR, 'tournament-registration.service.ts'));
-    expect(src).toContain('Slice 11');
+    expect(src).toContain('TournamentNotificationService');
+    expect(src).toContain('notifyRegistrationSubmitted');
+    expect(src).toContain('notifyRegistrationApproved');
+    expect(src).toContain('notifyRegistrationRejected');
   });
 });
 

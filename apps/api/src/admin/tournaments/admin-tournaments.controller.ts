@@ -22,10 +22,12 @@ import type {
 import { AuditService } from '../../audit/audit.service';
 import { AccessTokenGuard } from '../../auth/guards/access-token.guard';
 import type { AuthenticatedRequest } from '../../auth/guards/authenticated-request';
+import { TournamentNotificationService } from '../../notifications/tournament-notification.service';
 import { RequirePermission } from '../../rbac/decorators/require-permission.decorator';
 import { PermissionGuard } from '../../rbac/guards/permission.guard';
 import { Permissions } from '../../rbac/registry/permission-keys';
 import { validateObjectId } from '../../rbac/dto/rbac-validation';
+import { TournamentRegistrationService } from '../../tournament-registrations/tournament-registration.service';
 import { TournamentService } from '../../tournaments/tournament.service';
 import {
   parseAdminCreateTournamentBody,
@@ -36,6 +38,13 @@ import {
   toAdminTournamentResponse,
   toAdminTournamentListResponse,
 } from './dto/admin-tournament-response';
+
+// Maximum registrations fetched for tournament-cancelled notification.
+// Phase 1 tournament capacity is well within this bound.
+// Known limitation: tournaments with >100 active registrations will not have
+// all registrants notified in a single call. Cursor-based enumeration is
+// deferred to a future slice.
+const TOURNAMENT_CANCEL_NOTIFY_LIMIT = 100;
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
@@ -60,6 +69,8 @@ export class AdminTournamentsController {
   constructor(
     private readonly tournamentService: TournamentService,
     @Optional() private readonly auditService?: AuditService,
+    @Optional() private readonly registrationService?: TournamentRegistrationService,
+    @Optional() private readonly tournamentNotificationService?: TournamentNotificationService,
   ) {}
 
   @Get()
@@ -312,6 +323,7 @@ export class AdminTournamentsController {
       after: { status: tournament.status },
       severity: 'warning',
     });
+    void this.notifyRegistrantsOfCancellation(id);
     return toAdminTournamentResponse(tournament);
   }
 
@@ -335,5 +347,36 @@ export class AdminTournamentsController {
       severity: 'info',
     });
     return toAdminTournamentResponse(tournament);
+  }
+
+  // ─── Private helpers ───────────────────────────────────────────────────────
+
+  // Enumerates active registrations for a cancelled tournament and dispatches
+  // transactional notifications to each registrant. Fire-and-forget: errors are
+  // swallowed so that a notification failure never affects the HTTP response.
+  //
+  // Recipient contact is resolved from trusted backend data only (UserRepository
+  // via TournamentNotificationService). No client-supplied contact is used.
+  //
+  // Known limitation: only the first 100 active registrations are notified per
+  // call (repository list() cap). Cursor-based enumeration deferred.
+  private async notifyRegistrantsOfCancellation(tournamentId: string): Promise<void> {
+    if (!this.registrationService || !this.tournamentNotificationService) return;
+    try {
+      const { items } = await this.registrationService.listForTournament(
+        tournamentId,
+        {},
+        1,
+        TOURNAMENT_CANCEL_NOTIFY_LIMIT,
+      );
+      const notifiableUserIds = items
+        .filter((r) =>
+          this.tournamentNotificationService!.isNotifiableForTournamentCancellation(r.status),
+        )
+        .map((r) => r.userId);
+      await this.tournamentNotificationService.notifyUsersOfTournamentCancelled(notifiableUserIds);
+    } catch {
+      // Notification failure must not propagate — cancellation is already committed.
+    }
   }
 }

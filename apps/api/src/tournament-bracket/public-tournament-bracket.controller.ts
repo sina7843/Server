@@ -1,5 +1,6 @@
-import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Optional, Param } from '@nestjs/common';
 import type { TournamentBracketDto } from '@dragon/types';
+import { AnalyticsService } from '../analytics/analytics.service';
 import { TournamentService } from '../tournaments/tournament.service';
 import { isPubliclyVisible } from '../tournaments/tournament-projection';
 import { TournamentParticipantService } from '../tournament-participants/tournament-participant.service';
@@ -11,6 +12,7 @@ export class PublicTournamentBracketController {
     private readonly tournamentService: TournamentService,
     private readonly participantService: TournamentParticipantService,
     private readonly bracketService: TournamentBracketService,
+    @Optional() private readonly analyticsService?: AnalyticsService,
   ) {}
 
   // GET /api/v1/tournaments/:slug/bracket
@@ -22,6 +24,13 @@ export class PublicTournamentBracketController {
     if (!tournament || !isPubliclyVisible(tournament)) {
       throw new NotFoundException('Tournament not found.');
     }
+
+    this.analyticsService?.track({
+      type: 'tournament.bracket_viewed',
+      resourceType: 'tournament',
+      resourceId: String(tournament._id),
+      metadata: { slug },
+    });
 
     const { items: participants } = await this.participantService.listParticipants(
       tournament._id,

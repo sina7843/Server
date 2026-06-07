@@ -86,7 +86,7 @@ export class PublicTournamentsController {
         ? (rawFormat as TournamentFormat)
         : undefined;
 
-    const registrationOpen = parseOptionalBooleanQuery(rawRegistrationOpen, 'registrationOpen');
+    const registrationOpen = parseOptionalBooleanQuery(rawRegistrationOpen);
 
     const { items, total } = await this.tournamentService.list(
       {

@@ -101,10 +101,7 @@ export class AdminTournamentsController {
         ? (rawFormat as TournamentFormat)
         : undefined;
 
-    const registrationOpenFilter = parseOptionalBooleanQuery(
-      rawRegistrationOpen,
-      'registrationOpen',
-    );
+    const registrationOpenFilter = parseOptionalBooleanQuery(rawRegistrationOpen);
 
     const { items, total } = await this.tournamentService.list(
       {

@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import type { TournamentStatus, TournamentFormat } from '@dragon/types';
+import { parseOptionalBooleanQuery } from '../../common/query-parsers';
 
 const PUBLIC_SAFE_STATUSES = new Set<string>([
   'published',
@@ -51,12 +52,10 @@ export function parseTournamentSearchQuery(raw: unknown): ParsedTournamentSearch
       ? (query.format as TournamentFormat)
       : undefined;
 
-  let registrationOpen: boolean | undefined;
-  if (query.registrationOpen !== undefined) {
-    if (query.registrationOpen === 'true') registrationOpen = true;
-    else if (query.registrationOpen === 'false') registrationOpen = false;
-    else throw new BadRequestException('registrationOpen must be "true" or "false".');
-  }
+  // Keep optional boolean parsing lenient for backward compatibility with the public tournament
+  // search endpoint. Invalid or repeated values are treated as "not provided"; strict boolean
+  // validation should use a separate helper if ever needed.
+  const registrationOpen = parseOptionalBooleanQuery(query.registrationOpen);
 
   const pageRaw = query.page !== undefined ? Number(query.page) : DEFAULT_PAGE;
   const limitRaw = query.limit !== undefined ? Number(query.limit) : DEFAULT_LIMIT;

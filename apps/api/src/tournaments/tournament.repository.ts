@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Tournament, type TournamentDocument } from './tournament.schema';
+import { REGISTRATION_OPEN_STATUS } from './tournament.constants';
+import { InvalidTournamentFilterError } from './tournament.types';
 import type {
   TournamentId,
   CreateTournamentInput,
@@ -44,30 +46,48 @@ export class TournamentRepository {
     page = DEFAULT_PAGE,
     limit = DEFAULT_LIMIT,
   ): Promise<{ items: TournamentDocument[]; total: number }> {
+    // Defense-in-depth: reject contradictory scalar status + registrationOpen combinations.
+    // The service layer normally prevents these from reaching the repository; this guard
+    // protects direct repository callers and makes the invariant explicit at the boundary.
+    // statuses[] (internal public-safe array) is NOT checked here — only explicit scalar status.
+    if (filter.status === REGISTRATION_OPEN_STATUS && filter.registrationOpen === false) {
+      throw new InvalidTournamentFilterError(
+        'status=registration_open cannot be combined with registrationOpen=false.',
+      );
+    }
+    if (
+      filter.status !== undefined &&
+      filter.status !== REGISTRATION_OPEN_STATUS &&
+      filter.registrationOpen === true
+    ) {
+      throw new InvalidTournamentFilterError(
+        `status=${filter.status} cannot be combined with registrationOpen=true.`,
+      );
+    }
+
     const query: Record<string, unknown> = {};
+    // Half-open interval policy: a tournament is registration-open when
+    // registrationOpenAt <= now < registrationCloseAt.
+    // Both the true and false branches are constructed to be complementary under this policy.
+    const andConditions: Record<string, unknown>[] = [];
 
     if (filter.gameId !== undefined) query.gameId = filter.gameId;
     if (filter.format !== undefined) query.format = filter.format;
 
-    // Status precedence: registrationOpen=true > explicit status > statuses array.
-    // registrationOpen=false is additive — it ANDs with whatever status/statuses filter applies,
-    // so callers' public-safety statuses restriction still takes effect.
     if (filter.registrationOpen === true) {
-      // Primary: status must be registration_open (status-primary policy).
-      // Window check: if fields exist they must be active; absent fields = status-only fallback.
       const now = new Date();
-      query.status = 'registration_open';
-      query.$and = [
-        {
-          $or: [{ registrationOpenAt: { $exists: false } }, { registrationOpenAt: { $lte: now } }],
-        },
-        {
-          $or: [
-            { registrationCloseAt: { $exists: false } },
-            { registrationCloseAt: { $gte: now } },
-          ],
-        },
-      ];
+      // The service layer guarantees no contradictory explicit status reaches the repository.
+      // When filter.status is set it must equal REGISTRATION_OPEN_STATUS; when absent we pin it.
+      query.status = filter.status ?? REGISTRATION_OPEN_STATUS;
+      andConditions.push({
+        $or: [{ registrationOpenAt: { $exists: false } }, { registrationOpenAt: { $lte: now } }],
+      });
+      andConditions.push({
+        $or: [
+          { registrationCloseAt: { $exists: false } },
+          { registrationCloseAt: { $gt: now } },
+        ],
+      });
     } else if (filter.status !== undefined) {
       query.status = filter.status;
     } else if (filter.statuses !== undefined && filter.statuses.length > 0) {
@@ -75,19 +95,18 @@ export class TournamentRepository {
     }
 
     if (filter.registrationOpen === false) {
-      // Exclude open-registration: complement of the registrationOpen=true condition.
-      // A tournament is "not registration open" when its status is not registration_open,
-      // or when registration_open status exists but the window has already closed or not yet started.
-      // Applied additively so public-safety statuses restrictions from the caller still apply.
       const now = new Date();
-      const notOpen = {
+      andConditions.push({
         $or: [
-          { status: { $ne: 'registration_open' } },
-          { registrationCloseAt: { $exists: true, $lt: now } },
+          { status: { $ne: REGISTRATION_OPEN_STATUS } },
+          { registrationCloseAt: { $exists: true, $lte: now } },
           { registrationOpenAt: { $exists: true, $gt: now } },
         ],
-      };
-      query.$and = query.$and ? [...(query.$and as unknown[]), notOpen] : [notOpen];
+      });
+    }
+
+    if (andConditions.length > 0) {
+      query.$and = andConditions;
     }
 
     if (!filter.includeDeleted) query.deletedAt = { $exists: false };

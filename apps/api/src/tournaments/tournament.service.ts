@@ -1,10 +1,12 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import type { TournamentStatus } from '@dragon/types';
+import { REGISTRATION_OPEN_STATUS } from './tournament.constants';
 import { normalizeSlug, SlugPolicyError } from '../content/slug/slug-policy';
 import { GameService } from '../games/game.service';
 import { assertTransition } from './tournament-policy';
@@ -19,6 +21,7 @@ import {
 } from './tournament-validation';
 import { TournamentRepository } from './tournament.repository';
 import type { TournamentDocument } from './tournament.schema';
+import { InvalidTournamentFilterError } from './tournament.types';
 import type {
   TournamentId,
   CreateTournamentInput,
@@ -42,11 +45,32 @@ export class TournamentService {
     return this.tournamentRepository.findBySlug(slug.toLowerCase().trim());
   }
 
-  list(
+  async list(
     filter: TournamentListFilter,
     page?: number,
     limit?: number,
   ): Promise<{ items: TournamentDocument[]; total: number }> {
+    // Symmetric contradiction guard for explicit scalar status + registrationOpen pairs.
+    // registrationOpen=false contradicts status=registration_open (a tournament cannot be
+    // simultaneously in registration_open status and not registration-open by time window).
+    // registrationOpen=true contradicts any non-registration_open status (a tournament in
+    // published/cancelled/etc. status cannot simultaneously satisfy the registration-open filter).
+    // statuses[] (internal public-safe array) is NOT checked here — it is not a direct user
+    // intent filter and the statuses-bypass finding was verified as non-contradictory.
+    if (filter.status === REGISTRATION_OPEN_STATUS && filter.registrationOpen === false) {
+      throw new BadRequestException(
+        'status=registration_open cannot be combined with registrationOpen=false.',
+      );
+    }
+    if (
+      filter.status !== undefined &&
+      filter.status !== REGISTRATION_OPEN_STATUS &&
+      filter.registrationOpen === true
+    ) {
+      throw new BadRequestException(
+        `status=${filter.status} cannot be combined with registrationOpen=true.`,
+      );
+    }
     return this.tournamentRepository.list(filter, page, limit);
   }
 

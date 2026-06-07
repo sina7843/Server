@@ -105,6 +105,94 @@ describe('TournamentService', () => {
       const result = await service.list({ status: 'published', includeDeleted: false });
       expect(result.items).toHaveLength(0);
     });
+
+    it('throws BadRequestException for status=registration_open + registrationOpen=false', async () => {
+      await expect(
+        service.list({ status: 'registration_open', registrationOpen: false }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('contradiction error message names the conflicting filters', async () => {
+      await expect(
+        service.list({ status: 'registration_open', registrationOpen: false }),
+      ).rejects.toThrow('status=registration_open cannot be combined with registrationOpen=false');
+    });
+
+    it('does not throw for status=registration_open + registrationOpen=true', async () => {
+      await expect(
+        service.list({ status: 'registration_open', registrationOpen: true }),
+      ).resolves.toBeDefined();
+    });
+
+    it('does not throw for status=published + registrationOpen=false', async () => {
+      await expect(
+        service.list({ status: 'published', registrationOpen: false }),
+      ).resolves.toBeDefined();
+    });
+
+    it('does not throw for registrationOpen=true without explicit status', async () => {
+      await expect(service.list({ registrationOpen: true })).resolves.toBeDefined();
+    });
+
+    it('does not throw for registrationOpen=false without explicit status', async () => {
+      await expect(service.list({ registrationOpen: false })).resolves.toBeDefined();
+    });
+
+    // Symmetric guard — registrationOpen=true + non-registration_open status must be rejected.
+    it('throws BadRequestException for status=published + registrationOpen=true', async () => {
+      await expect(
+        service.list({ status: 'published', registrationOpen: true }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('throws BadRequestException for status=cancelled + registrationOpen=true', async () => {
+      await expect(
+        service.list({ status: 'cancelled', registrationOpen: true }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('throws BadRequestException for status=completed + registrationOpen=true', async () => {
+      await expect(
+        service.list({ status: 'completed', registrationOpen: true }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('throws BadRequestException for status=draft + registrationOpen=true', async () => {
+      await expect(
+        service.list({ status: 'draft', registrationOpen: true }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('contradiction error message names the conflicting status for non-registration_open + true', async () => {
+      await expect(
+        service.list({ status: 'published', registrationOpen: true }),
+      ).rejects.toThrow('status=published cannot be combined with registrationOpen=true');
+    });
+
+    it('does not call repository for status=published + registrationOpen=true contradiction', async () => {
+      await expect(
+        service.list({ status: 'published', registrationOpen: true }),
+      ).rejects.toThrow(BadRequestException);
+      expect(repoMock.list).not.toHaveBeenCalled();
+    });
+
+    it('does not call repository when contradiction guard fires', async () => {
+      await expect(
+        service.list({ status: 'registration_open', registrationOpen: false }),
+      ).rejects.toThrow(BadRequestException);
+      expect(repoMock.list).not.toHaveBeenCalled();
+    });
+
+    it('does not reject internal statuses[] + registrationOpen=false (statuses-bypass REFUTED)', async () => {
+      // The public endpoint passes statuses=[...] internally which may include 'registration_open'.
+      // This must NOT trigger the guard — only explicit scalar status triggers it.
+      await expect(
+        service.list({
+          statuses: ['published', 'registration_open', 'completed'],
+          registrationOpen: false,
+        }),
+      ).resolves.toBeDefined();
+    });
   });
 
   // ─── create ───────────────────────────────────────────────────────────────

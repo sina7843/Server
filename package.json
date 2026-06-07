@@ -15,7 +15,9 @@
     "dev:infra": "docker compose -f infra/docker/docker-compose.local.yml --env-file infra/docker/.env.example up -d",
     "dev:infra:down": "docker compose -f infra/docker/docker-compose.local.yml down",
     "dev:apps": "concurrently -k -n api,worker,web,admin -c blue,magenta,green,yellow \"pnpm --filter @dragon/api dev\" \"pnpm --filter @dragon/worker dev\" \"pnpm --filter @dragon/web dev\" \"pnpm --filter @dragon/admin dev\"",
-    "dev:local": "pnpm dev:infra && pnpm dev:apps"
+    "dev:local": "pnpm dev:infra && pnpm dev:apps",
+    "seed:dev": "pnpm --filter @dragon/api build && pnpm --filter @dragon/api seed:dev",
+    "seed:reset": "pnpm --filter @dragon/api build && pnpm --filter @dragon/api seed:reset"
   },
   "devDependencies": {
     "@eslint/js": "9.28.0",

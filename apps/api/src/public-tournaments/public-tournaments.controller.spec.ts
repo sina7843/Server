@@ -545,22 +545,24 @@ describe('registrationOpen filter semantics', () => {
     );
   });
 
-  it('registrationOpen=yes throws BadRequestException', async () => {
+  it('registrationOpen=yes omits filter — lenient parser, no 400', async () => {
     const svc = makeMockService();
     const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
 
-    await expect(
-      ctrl.list(undefined, undefined, undefined, undefined, undefined, 'yes'),
-    ).rejects.toThrow();
+    await ctrl.list(undefined, undefined, undefined, undefined, undefined, 'yes');
+
+    const callFilter = (svc.list as jest.Mock).mock.calls[0][0] as Record<string, unknown>;
+    expect(callFilter).not.toHaveProperty('registrationOpen');
   });
 
-  it('registrationOpen=1 throws BadRequestException', async () => {
+  it('registrationOpen=1 omits filter — lenient parser, no 400', async () => {
     const svc = makeMockService();
     const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
 
-    await expect(
-      ctrl.list(undefined, undefined, undefined, undefined, undefined, '1'),
-    ).rejects.toThrow();
+    await ctrl.list(undefined, undefined, undefined, undefined, undefined, '1');
+
+    const callFilter = (svc.list as jest.Mock).mock.calls[0][0] as Record<string, unknown>;
+    expect(callFilter).not.toHaveProperty('registrationOpen');
   });
 
   it('registrationOpen absent does not pass registrationOpen to service', async () => {

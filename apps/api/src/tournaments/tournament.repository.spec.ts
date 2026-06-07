@@ -104,13 +104,180 @@ describe('TournamentRepository — registrationOpen filter', () => {
     await repo.list({ registrationOpen: true });
 
     const filter = capturedQuery.filter as Record<string, unknown>;
-    // For registrationOpen=true, status is pinned to registration_open (not excluded)
     expect(filter.status).toBe('registration_open');
     const andClauses = (filter.$and ?? []) as Array<Record<string, unknown>>;
-    // None of the $and clauses should contain a $ne: registration_open condition
     const hasNotOpenClause = andClauses.some(
       (c) => Array.isArray(c.$or) && JSON.stringify(c.$or).includes('"$ne"'),
     );
     expect(hasNotOpenClause).toBe(false);
+  });
+
+  it('registrationOpen=true with explicit status=registration_open does not override status', async () => {
+    const { model, capturedQuery } = makeModelMock();
+    const repo = new TournamentRepository(model as never);
+
+    await repo.list({ status: 'registration_open', registrationOpen: true });
+
+    const filter = capturedQuery.filter as Record<string, unknown>;
+    // Must still be 'registration_open' (same value) — not discarded or changed.
+    expect(filter.status).toBe('registration_open');
+  });
+
+  it('registrationOpen=true uses the shared REGISTRATION_OPEN_STATUS constant (string equality)', async () => {
+    const { model, capturedQuery } = makeModelMock();
+    const repo = new TournamentRepository(model as never);
+
+    await repo.list({ registrationOpen: true });
+
+    const filter = capturedQuery.filter as Record<string, unknown>;
+    // Verify the repository sets the status to the exact shared constant value.
+    expect(filter.status).toBe('registration_open');
+  });
+
+  it('registrationOpen=false $ne clause uses the same status string as the true branch', async () => {
+    const { model, capturedQuery } = makeModelMock();
+    const repo = new TournamentRepository(model as never);
+
+    await repo.list({ registrationOpen: false });
+
+    const filter = capturedQuery.filter as Record<string, unknown>;
+    const andClauses = filter.$and as Array<Record<string, unknown>>;
+    const notOpenClause = andClauses.find(
+      (c) => Array.isArray(c.$or) && JSON.stringify(c.$or).includes('registration_open'),
+    );
+    expect(notOpenClause).toBeDefined();
+    const orBranches = notOpenClause!.$or as Array<Record<string, unknown>>;
+    const neValue = (
+      orBranches.find(
+        (b) =>
+          b.status !== undefined &&
+          typeof b.status === 'object' &&
+          '$ne' in (b.status as Record<string, unknown>),
+      )?.status as Record<string, unknown> | undefined
+    )?.$ne;
+    // Both branches must use the identical status string.
+    expect(neValue).toBe('registration_open');
+  });
+});
+
+
+describe('TournamentRepository — half-open registration window boundary (registrationOpenAt <= now < registrationCloseAt)', () => {
+  it('registrationOpen=true uses $gt for registrationCloseAt (half-open: close is strictly after now)', async () => {
+    const { model, capturedQuery } = makeModelMock();
+    const repo = new TournamentRepository(model as never);
+
+    await repo.list({ registrationOpen: true });
+
+    const filter = capturedQuery.filter as Record<string, unknown>;
+    const andClauses = filter.$and as Array<Record<string, unknown>>;
+    const closeClause = andClauses.find(
+      (c) => Array.isArray(c.$or) && JSON.stringify(c.$or).includes('registrationCloseAt'),
+    );
+    expect(closeClause).toBeDefined();
+    const closeOr = closeClause!.$or as Array<Record<string, unknown>>;
+    const closeWindowBranch = closeOr.find(
+      (b) =>
+        b.registrationCloseAt !== undefined &&
+        typeof b.registrationCloseAt === 'object' &&
+        '$gt' in (b.registrationCloseAt as Record<string, unknown>),
+    );
+    expect(closeWindowBranch).toBeDefined();
+    const noBoundaryInclusive = closeOr.find(
+      (b) =>
+        b.registrationCloseAt !== undefined &&
+        typeof b.registrationCloseAt === 'object' &&
+        '$gte' in (b.registrationCloseAt as Record<string, unknown>),
+    );
+    expect(noBoundaryInclusive).toBeUndefined();
+  });
+
+  it('registrationOpen=false uses $lte for registrationCloseAt (half-open: close at-or-before now = closed)', async () => {
+    const { model, capturedQuery } = makeModelMock();
+    const repo = new TournamentRepository(model as never);
+
+    await repo.list({ registrationOpen: false });
+
+    const filter = capturedQuery.filter as Record<string, unknown>;
+    const andClauses = filter.$and as Array<Record<string, unknown>>;
+    const notOpenClause = andClauses.find(
+      (c) => Array.isArray(c.$or) && JSON.stringify(c.$or).includes('registration_open'),
+    );
+    expect(notOpenClause).toBeDefined();
+    const orBranches = notOpenClause!.$or as Array<Record<string, unknown>>;
+    const closeWindowBranch = orBranches.find(
+      (b) =>
+        b.registrationCloseAt !== undefined &&
+        typeof b.registrationCloseAt === 'object' &&
+        '$lte' in (b.registrationCloseAt as Record<string, unknown>),
+    );
+    expect(closeWindowBranch).toBeDefined();
+    const noBoundaryExclusive = orBranches.find(
+      (b) =>
+        b.registrationCloseAt !== undefined &&
+        typeof b.registrationCloseAt === 'object' &&
+        '$lt' in (b.registrationCloseAt as Record<string, unknown>),
+    );
+    expect(noBoundaryExclusive).toBeUndefined();
+  });
+
+  it('registrationOpen=true uses $lte for registrationOpenAt (open time is inclusive)', async () => {
+    const { model, capturedQuery } = makeModelMock();
+    const repo = new TournamentRepository(model as never);
+
+    await repo.list({ registrationOpen: true });
+
+    const filter = capturedQuery.filter as Record<string, unknown>;
+    const andClauses = filter.$and as Array<Record<string, unknown>>;
+    const openClause = andClauses.find(
+      (c) => Array.isArray(c.$or) && JSON.stringify(c.$or).includes('registrationOpenAt'),
+    );
+    expect(openClause).toBeDefined();
+    const openOr = openClause!.$or as Array<Record<string, unknown>>;
+    const openWindowBranch = openOr.find(
+      (b) =>
+        b.registrationOpenAt !== undefined &&
+        typeof b.registrationOpenAt === 'object' &&
+        '$lte' in (b.registrationOpenAt as Record<string, unknown>),
+    );
+    expect(openWindowBranch).toBeDefined();
+  });
+
+  it('registrationOpen=true and false close-boundary operators are complementary ($gt vs $lte)', async () => {
+    const { model: m1, capturedQuery: q1 } = makeModelMock();
+    const repo1 = new TournamentRepository(m1 as never);
+    await repo1.list({ registrationOpen: true });
+
+    const { model: m2, capturedQuery: q2 } = makeModelMock();
+    const repo2 = new TournamentRepository(m2 as never);
+    await repo2.list({ registrationOpen: false });
+
+    const trueAnd = (q1.filter as Record<string, unknown>).$and as Array<Record<string, unknown>>;
+    const falseAnd = (q2.filter as Record<string, unknown>).$and as Array<Record<string, unknown>>;
+
+    // Find the branch inside each $or clause that specifically tests registrationCloseAt with a date.
+    function findCloseBranch(andClauses: Array<Record<string, unknown>>) {
+      for (const clause of andClauses) {
+        if (!Array.isArray(clause.$or)) continue;
+        for (const branch of clause.$or as Array<Record<string, unknown>>) {
+          const close = branch.registrationCloseAt as Record<string, unknown> | undefined;
+          if (close && ('$gt' in close || '$lte' in close || '$gte' in close || '$lt' in close)) {
+            return close;
+          }
+        }
+      }
+      return undefined;
+    }
+
+    const trueCloseBranch = findCloseBranch(trueAnd);
+    const falseCloseBranch = findCloseBranch(falseAnd);
+
+    // Half-open policy: true uses $gt (strictly after now), false uses $lte (at-or-before now).
+    expect(trueCloseBranch).toBeDefined();
+    expect('$gt' in trueCloseBranch!).toBe(true);
+    expect('$gte' in trueCloseBranch!).toBe(false);
+
+    expect(falseCloseBranch).toBeDefined();
+    expect('$lte' in falseCloseBranch!).toBe(true);
+    expect('$lt' in falseCloseBranch!).toBe(false);
   });
 });

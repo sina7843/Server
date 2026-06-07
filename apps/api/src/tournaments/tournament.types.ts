@@ -1,6 +1,17 @@
 import type { TournamentStatus, TournamentFormat, TournamentParticipantType } from '@dragon/types';
 import type { Types } from 'mongoose';
 
+// Domain error thrown by TournamentRepository when a caller passes contradictory
+// scalar filters (e.g. status=published + registrationOpen=true). This is a plain
+// domain error — NOT a NestJS HTTP exception — so it can be caught and mapped by
+// the service layer without coupling the repository to the HTTP stack.
+export class InvalidTournamentFilterError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'InvalidTournamentFilterError';
+  }
+}
+
 export type TournamentId = Types.ObjectId | string;
 
 export interface CreateTournamentInput {

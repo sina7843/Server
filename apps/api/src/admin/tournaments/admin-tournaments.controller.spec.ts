@@ -212,16 +212,24 @@ describe('AdminTournamentsController — listTournaments', () => {
     expect(callFilter).not.toHaveProperty('registrationOpen');
   });
 
-  it('throws BadRequestException for invalid registrationOpen value', async () => {
-    await expect(
-      controller.listTournaments('1', '20', undefined, undefined, undefined, 'yes'),
-    ).rejects.toThrow(BadRequestException);
+  it('omits registrationOpen for invalid value "yes" — lenient parser, no 400', async () => {
+    await controller.listTournaments('1', '20', undefined, undefined, undefined, 'yes');
+
+    const callFilter = (tournamentService.list as jest.Mock).mock.calls[0][0] as Record<
+      string,
+      unknown
+    >;
+    expect(callFilter).not.toHaveProperty('registrationOpen');
   });
 
-  it('throws BadRequestException for registrationOpen=1', async () => {
-    await expect(
-      controller.listTournaments('1', '20', undefined, undefined, undefined, '1'),
-    ).rejects.toThrow(BadRequestException);
+  it('omits registrationOpen for value "1" — lenient parser, no 400', async () => {
+    await controller.listTournaments('1', '20', undefined, undefined, undefined, '1');
+
+    const callFilter = (tournamentService.list as jest.Mock).mock.calls[0][0] as Record<
+      string,
+      unknown
+    >;
+    expect(callFilter).not.toHaveProperty('registrationOpen');
   });
 });
 

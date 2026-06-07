@@ -8,6 +8,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { TournamentService } from './tournament.service';
+import { InvalidTournamentFilterError } from './tournament.types';
 import type { TournamentDocument } from './tournament.schema';
 
 function makeTournament(overrides: Partial<Record<string, unknown>> = {}): TournamentDocument {
@@ -665,6 +666,62 @@ describe('TournamentService', () => {
         expect.objectContaining({ status: 'archived', archivedAt: expect.any(Date) }),
       );
     });
+  });
+});
+
+// ─── Service — repository domain error mapping ────────────────────────────────
+
+describe('TournamentService — InvalidTournamentFilterError mapping', () => {
+  let service: TournamentService;
+  let repoMock: {
+    findById: jest.Mock;
+    findBySlug: jest.Mock;
+    existsBySlug: jest.Mock;
+    list: jest.Mock;
+    create: jest.Mock;
+    update: jest.Mock;
+    softDelete: jest.Mock;
+  };
+
+  beforeEach(() => {
+    repoMock = {
+      findById: jest.fn().mockResolvedValue(null),
+      findBySlug: jest.fn().mockResolvedValue(null),
+      existsBySlug: jest.fn().mockResolvedValue(null),
+      list: jest.fn().mockResolvedValue({ items: [], total: 0 }),
+      create: jest.fn(),
+      update: jest.fn(),
+      softDelete: jest.fn(),
+    };
+    const gameServiceMock = { findById: jest.fn() };
+    service = new TournamentService(repoMock as never, gameServiceMock as never);
+  });
+
+  it('maps InvalidTournamentFilterError from repository to BadRequestException', async () => {
+    repoMock.list.mockRejectedValue(
+      new InvalidTournamentFilterError('status=published cannot be combined with registrationOpen=true.'),
+    );
+
+    await expect(
+      service.list({ status: 'published', registrationOpen: true }),
+    ).rejects.toThrow(BadRequestException);
+  });
+
+  it('preserves the domain error message in the HTTP 400 response', async () => {
+    repoMock.list.mockRejectedValue(
+      new InvalidTournamentFilterError('status=draft cannot be combined with registrationOpen=true.'),
+    );
+
+    await expect(
+      service.list({ status: 'draft', registrationOpen: true }),
+    ).rejects.toThrow('status=draft cannot be combined with registrationOpen=true');
+  });
+
+  it('does not swallow unrelated repository errors', async () => {
+    const dbError = new Error('Mongoose connection lost.');
+    repoMock.list.mockRejectedValue(dbError);
+
+    await expect(service.list({})).rejects.toThrow('Mongoose connection lost.');
   });
 });
 

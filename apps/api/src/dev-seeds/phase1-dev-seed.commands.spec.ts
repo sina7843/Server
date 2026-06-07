@@ -36,10 +36,11 @@ describe('phase1 dev seed commands', () => {
   it('prints deterministic account credentials after successful seed (non-CI)', async () => {
     const log = jest.fn();
     // Pass explicit non-CI env so CI environment of the test runner does not affect output.
+    // Omit CI key entirely (exactOptionalPropertyTypes=true disallows { CI: undefined }).
     const code = await runPhase1DevSeedCommand(
       { runSeed: jest.fn().mockResolvedValue(mockSeedResult) },
       { log, error: jest.fn() },
-      { CI: undefined },
+      {},
     );
 
     expect(code).toBe(0);
@@ -54,7 +55,7 @@ describe('phase1 dev seed commands', () => {
     const code = await runPhase1DevSeedCommand(
       { runSeed: jest.fn().mockResolvedValue(mockSeedResult) },
       { log, error: jest.fn() },
-      { CI: undefined, DRAGON_DEV_SEED_PASSWORD: 'CustomPass@9999' },
+      { DRAGON_DEV_SEED_PASSWORD: 'CustomPass@9999' },
     );
 
     expect(code).toBe(0);
@@ -98,7 +99,7 @@ describe('phase1 dev seed commands', () => {
     const code = await runPhase1DevSeedCommand(
       { runSeed: jest.fn().mockRejectedValue(new Error('Seed failed badly.')) },
       { log, error },
-      { CI: undefined },
+      {},
     );
 
     expect(code).toBe(1);

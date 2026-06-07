@@ -1,4 +1,5 @@
 import { TournamentRepository } from './tournament.repository';
+import { InvalidTournamentFilterError } from './tournament.types';
 
 // Builds a fake chainable Mongoose query that captures the filter passed to find().
 function makeModelMock() {
@@ -279,5 +280,85 @@ describe('TournamentRepository — half-open registration window boundary (regis
     expect(falseCloseBranch).toBeDefined();
     expect('$lte' in falseCloseBranch!).toBe(true);
     expect('$lt' in falseCloseBranch!).toBe(false);
+  });
+});
+
+// ─── Repository defense-in-depth — direct caller contradictions ───────────────
+
+describe('TournamentRepository — defense-in-depth for contradictory scalar filters', () => {
+  it('throws InvalidTournamentFilterError for status=registration_open + registrationOpen=false', async () => {
+    const { model } = makeModelMock();
+    const repo = new TournamentRepository(model as never);
+
+    await expect(
+      repo.list({ status: 'registration_open', registrationOpen: false }),
+    ).rejects.toThrow(InvalidTournamentFilterError);
+  });
+
+  it('throws InvalidTournamentFilterError for status=published + registrationOpen=true', async () => {
+    const { model } = makeModelMock();
+    const repo = new TournamentRepository(model as never);
+
+    await expect(
+      repo.list({ status: 'published', registrationOpen: true }),
+    ).rejects.toThrow(InvalidTournamentFilterError);
+  });
+
+  it('throws InvalidTournamentFilterError for status=cancelled + registrationOpen=true', async () => {
+    const { model } = makeModelMock();
+    const repo = new TournamentRepository(model as never);
+
+    await expect(
+      repo.list({ status: 'cancelled', registrationOpen: true }),
+    ).rejects.toThrow(InvalidTournamentFilterError);
+  });
+
+  it('domain error message names the conflicting filter', async () => {
+    const { model } = makeModelMock();
+    const repo = new TournamentRepository(model as never);
+
+    await expect(
+      repo.list({ status: 'published', registrationOpen: true }),
+    ).rejects.toThrow('status=published cannot be combined with registrationOpen=true');
+  });
+
+  it('does NOT throw for status=registration_open + registrationOpen=true (allowed)', async () => {
+    const { model } = makeModelMock();
+    const repo = new TournamentRepository(model as never);
+
+    await expect(repo.list({ status: 'registration_open', registrationOpen: true })).resolves.toBeDefined();
+  });
+
+  it('does NOT throw for status=published + registrationOpen=false (allowed)', async () => {
+    const { model } = makeModelMock();
+    const repo = new TournamentRepository(model as never);
+
+    await expect(repo.list({ status: 'published', registrationOpen: false })).resolves.toBeDefined();
+  });
+
+  it('does NOT throw for statuses[] + registrationOpen=false (internal array — not over-blocked)', async () => {
+    const { model } = makeModelMock();
+    const repo = new TournamentRepository(model as never);
+
+    await expect(
+      repo.list({
+        statuses: ['published', 'registration_open', 'completed'],
+        registrationOpen: false,
+      }),
+    ).resolves.toBeDefined();
+  });
+
+  it('does NOT throw NestJS HttpException — only throws domain error', async () => {
+    const { model } = makeModelMock();
+    const repo = new TournamentRepository(model as never);
+
+    try {
+      await repo.list({ status: 'published', registrationOpen: true });
+      fail('Expected an error to be thrown');
+    } catch (err) {
+      expect(err).toBeInstanceOf(InvalidTournamentFilterError);
+      // Must not be a NestJS HTTP exception (those have a 'status' property and 'getStatus').
+      expect(typeof (err as Record<string, unknown>).getStatus).not.toBe('function');
+    }
   });
 });

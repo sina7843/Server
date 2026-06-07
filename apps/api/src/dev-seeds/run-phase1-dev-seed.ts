@@ -17,7 +17,9 @@ interface SeedCommandEnv {
 export async function runPhase1DevSeedCommand(
   service: Pick<Phase1DevSeedService, 'runSeed'>,
   logger: SafeLogger = console,
-  env: SeedCommandEnv = process.env,
+  // process.env is compatible at runtime even though exactOptionalPropertyTypes
+  // prevents a direct structural assignment — we assert here for the default only.
+  env: SeedCommandEnv = process.env as SeedCommandEnv,
 ): Promise<number> {
   try {
     const result = await service.runSeed();

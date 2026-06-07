@@ -71,7 +71,17 @@ export class TournamentService {
         `status=${filter.status} cannot be combined with registrationOpen=true.`,
       );
     }
-    return this.tournamentRepository.list(filter, page, limit);
+    // Map domain filter errors from the repository to HTTP 400.
+    // Under normal operation the service guards above catch contradictions first;
+    // this catch handles direct repository calls that bypass the service layer.
+    try {
+      return await this.tournamentRepository.list(filter, page, limit);
+    } catch (err) {
+      if (err instanceof InvalidTournamentFilterError) {
+        throw new BadRequestException(err.message);
+      }
+      throw err;
+    }
   }
 
   async create(input: CreateTournamentInput): Promise<TournamentDocument> {

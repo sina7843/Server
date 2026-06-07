@@ -241,6 +241,7 @@ describe('PublicSearchController — GET /api/v1/search/tournaments', () => {
 
     await controller.searchTournaments({});
 
+    expect(tournamentService.list).toHaveBeenCalled();
     const callFilter = (tournamentService.list as jest.Mock).mock.calls[0][0] as Record<
       string,
       unknown
@@ -253,6 +254,7 @@ describe('PublicSearchController — GET /api/v1/search/tournaments', () => {
 
     await controller.searchTournaments({});
 
+    expect(tournamentService.list).toHaveBeenCalled();
     const callFilter = (tournamentService.list as jest.Mock).mock.calls[0][0] as Record<
       string,
       unknown
@@ -283,6 +285,7 @@ describe('PublicSearchController — GET /api/v1/search/tournaments', () => {
 
     await controller.searchTournaments({ status: 'draft' });
 
+    expect(tournamentService.list).toHaveBeenCalled();
     const callFilter = (tournamentService.list as jest.Mock).mock.calls[0][0] as Record<
       string,
       unknown
@@ -320,6 +323,7 @@ describe('PublicSearchController — GET /api/v1/search/tournaments', () => {
 
     await controller.searchTournaments({ format: 'swiss' });
 
+    expect(tournamentService.list).toHaveBeenCalled();
     const callFilter = (tournamentService.list as jest.Mock).mock.calls[0][0] as Record<
       string,
       unknown

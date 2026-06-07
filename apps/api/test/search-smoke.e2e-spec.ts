@@ -75,7 +75,11 @@ async function createAdminApp(permissionKeys: string[]): Promise<INestApplicatio
 }
 
 describe('Public search smoke', () => {
-  let app: INestApplication;
+  let app: INestApplication | undefined;
+
+  beforeEach(() => {
+    app = undefined;
+  });
 
   afterEach(async () => {
     if (app) await app.close();
@@ -99,7 +103,8 @@ describe('Public search smoke', () => {
         page: 1,
         limit: 10,
       });
-      await fetch(`${await app.getUrl()}/api/v1/search/content?q=test&page=1&limit=10`);
+      const res = await fetch(`${await app.getUrl()}/api/v1/search/content?q=test&page=1&limit=10`);
+      await res.text();
       expect(mockSearchService.searchPublicContent).toHaveBeenCalledWith(
         expect.objectContaining({ q: 'test', limit: 10, page: 1 }),
       );
@@ -133,7 +138,10 @@ describe('Public search smoke', () => {
 
     it('passes registrationOpen=true to service as boolean true', async () => {
       app = await createPublicApp();
-      await fetch(`${await app.getUrl()}/api/v1/search/tournaments?q=test&registrationOpen=true`);
+      const res = await fetch(
+        `${await app.getUrl()}/api/v1/search/tournaments?q=test&registrationOpen=true`,
+      );
+      await res.text();
       expect(mockTournamentService.list).toHaveBeenCalledWith(
         expect.objectContaining({ registrationOpen: true }),
         expect.any(Number),
@@ -143,7 +151,10 @@ describe('Public search smoke', () => {
 
     it('passes registrationOpen=false to service as boolean false', async () => {
       app = await createPublicApp();
-      await fetch(`${await app.getUrl()}/api/v1/search/tournaments?q=test&registrationOpen=false`);
+      const res = await fetch(
+        `${await app.getUrl()}/api/v1/search/tournaments?q=test&registrationOpen=false`,
+      );
+      await res.text();
       expect(mockTournamentService.list).toHaveBeenCalledWith(
         expect.objectContaining({ registrationOpen: false }),
         expect.any(Number),
@@ -161,7 +172,9 @@ describe('Public search smoke', () => {
 
     it('omits registrationOpen filter when param is absent', async () => {
       app = await createPublicApp();
-      await fetch(`${await app.getUrl()}/api/v1/search/tournaments?q=test`);
+      const res = await fetch(`${await app.getUrl()}/api/v1/search/tournaments?q=test`);
+      await res.text();
+      expect(mockTournamentService.list).toHaveBeenCalled();
       const callFilter = (mockTournamentService.list as jest.Mock).mock.calls[0][0] as Record<
         string,
         unknown
@@ -172,7 +185,11 @@ describe('Public search smoke', () => {
 });
 
 describe('Admin search smoke', () => {
-  let app: INestApplication;
+  let app: INestApplication | undefined;
+
+  beforeEach(() => {
+    app = undefined;
+  });
 
   afterEach(async () => {
     if (app) await app.close();

@@ -1,4 +1,5 @@
 import { Controller, Get, NotFoundException, Optional, Param, Query } from '@nestjs/common';
+import { parseOptionalBooleanQuery } from '../common/query-parsers';
 import type {
   TournamentDetailDto,
   TournamentListResponseDto,
@@ -85,7 +86,7 @@ export class PublicTournamentsController {
         ? (rawFormat as TournamentFormat)
         : undefined;
 
-    const registrationOpen = rawRegistrationOpen === 'true' ? true : undefined;
+    const registrationOpen = parseOptionalBooleanQuery(rawRegistrationOpen, 'registrationOpen');
 
     const { items, total } = await this.tournamentService.list(
       {

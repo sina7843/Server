@@ -12,6 +12,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { parseOptionalBooleanQuery } from '../../common/query-parsers';
 import { AuditAction } from '@dragon/types';
 import type {
   TournamentDto,
@@ -100,12 +101,19 @@ export class AdminTournamentsController {
         ? (rawFormat as TournamentFormat)
         : undefined;
 
+    const registrationOpenFilter = parseOptionalBooleanQuery(
+      rawRegistrationOpen,
+      'registrationOpen',
+    );
+
     const { items, total } = await this.tournamentService.list(
       {
         ...(gameId !== undefined ? { gameId } : {}),
         ...(statusFilter !== undefined ? { status: statusFilter } : {}),
         ...(formatFilter !== undefined ? { format: formatFilter } : {}),
-        ...(rawRegistrationOpen === 'true' ? { registrationOpen: true } : {}),
+        ...(registrationOpenFilter !== undefined
+          ? { registrationOpen: registrationOpenFilter }
+          : {}),
       },
       page,
       limit,

@@ -191,9 +191,20 @@ describe('AdminTournamentsController — listTournaments', () => {
     );
   });
 
-  it('omits registrationOpen when rawRegistrationOpen is not "true"', async () => {
+  it('passes registrationOpen: false when rawRegistrationOpen is "false"', async () => {
     await controller.listTournaments('1', '20', undefined, undefined, undefined, 'false');
 
+    expect(tournamentService.list).toHaveBeenCalledWith(
+      expect.objectContaining({ registrationOpen: false }),
+      1,
+      20,
+    );
+  });
+
+  it('omits registrationOpen when not provided', async () => {
+    await controller.listTournaments('1', '20');
+
+    expect(tournamentService.list).toHaveBeenCalled();
     const callFilter = (tournamentService.list as jest.Mock).mock.calls[0][0] as Record<
       string,
       unknown
@@ -201,14 +212,16 @@ describe('AdminTournamentsController — listTournaments', () => {
     expect(callFilter).not.toHaveProperty('registrationOpen');
   });
 
-  it('omits registrationOpen when not provided', async () => {
-    await controller.listTournaments('1', '20');
+  it('throws BadRequestException for invalid registrationOpen value', async () => {
+    await expect(
+      controller.listTournaments('1', '20', undefined, undefined, undefined, 'yes'),
+    ).rejects.toThrow(BadRequestException);
+  });
 
-    const callFilter = (tournamentService.list as jest.Mock).mock.calls[0][0] as Record<
-      string,
-      unknown
-    >;
-    expect(callFilter).not.toHaveProperty('registrationOpen');
+  it('throws BadRequestException for registrationOpen=1', async () => {
+    await expect(
+      controller.listTournaments('1', '20', undefined, undefined, undefined, '1'),
+    ).rejects.toThrow(BadRequestException);
   });
 });
 

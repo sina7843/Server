@@ -49,7 +49,9 @@ export class TournamentRepository {
     if (filter.gameId !== undefined) query.gameId = filter.gameId;
     if (filter.format !== undefined) query.format = filter.format;
 
-    // Status precedence: registrationOpen=true > explicit status > statuses array
+    // Status precedence: registrationOpen=true > explicit status > statuses array.
+    // registrationOpen=false is additive — it ANDs with whatever status/statuses filter applies,
+    // so callers' public-safety statuses restriction still takes effect.
     if (filter.registrationOpen === true) {
       // Primary: status must be registration_open (status-primary policy).
       // Window check: if fields exist they must be active; absent fields = status-only fallback.
@@ -70,6 +72,22 @@ export class TournamentRepository {
       query.status = filter.status;
     } else if (filter.statuses !== undefined && filter.statuses.length > 0) {
       query.status = { $in: filter.statuses };
+    }
+
+    if (filter.registrationOpen === false) {
+      // Exclude open-registration: complement of the registrationOpen=true condition.
+      // A tournament is "not registration open" when its status is not registration_open,
+      // or when registration_open status exists but the window has already closed or not yet started.
+      // Applied additively so public-safety statuses restrictions from the caller still apply.
+      const now = new Date();
+      const notOpen = {
+        $or: [
+          { status: { $ne: 'registration_open' } },
+          { registrationCloseAt: { $exists: true, $lt: now } },
+          { registrationOpenAt: { $exists: true, $gt: now } },
+        ],
+      };
+      query.$and = query.$and ? [...(query.$and as unknown[]), notOpen] : [notOpen];
     }
 
     if (!filter.includeDeleted) query.deletedAt = { $exists: false };

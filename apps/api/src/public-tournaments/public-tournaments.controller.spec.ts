@@ -218,14 +218,17 @@ describe('PublicTournamentsController — list', () => {
     );
   });
 
-  it('omits registrationOpen when not "true"', async () => {
+  it('passes registrationOpen: false when filter is "false"', async () => {
     const svc = makeMockService();
     const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
 
     await ctrl.list(undefined, undefined, undefined, undefined, undefined, 'false');
 
-    const callFilter = (svc.list as jest.Mock).mock.calls[0][0] as Record<string, unknown>;
-    expect(callFilter).not.toHaveProperty('registrationOpen');
+    expect(svc.list).toHaveBeenCalledWith(
+      expect.objectContaining({ registrationOpen: false }),
+      expect.any(Number),
+      expect.any(Number),
+    );
   });
 
   it('uses default pagination when not provided', async () => {
@@ -529,14 +532,35 @@ describe('registrationOpen filter semantics', () => {
     expect(callFilter).toHaveProperty('registrationOpen', true);
   });
 
-  it('registrationOpen=false does not pass registrationOpen to service', async () => {
+  it('registrationOpen=false passes registrationOpen: false to service', async () => {
     const svc = makeMockService();
     const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
 
     await ctrl.list(undefined, undefined, undefined, undefined, undefined, 'false');
 
-    const callFilter = (svc.list as jest.Mock).mock.calls[0][0] as Record<string, unknown>;
-    expect(callFilter).not.toHaveProperty('registrationOpen');
+    expect(svc.list).toHaveBeenCalledWith(
+      expect.objectContaining({ registrationOpen: false }),
+      expect.any(Number),
+      expect.any(Number),
+    );
+  });
+
+  it('registrationOpen=yes throws BadRequestException', async () => {
+    const svc = makeMockService();
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+
+    await expect(
+      ctrl.list(undefined, undefined, undefined, undefined, undefined, 'yes'),
+    ).rejects.toThrow();
+  });
+
+  it('registrationOpen=1 throws BadRequestException', async () => {
+    const svc = makeMockService();
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+
+    await expect(
+      ctrl.list(undefined, undefined, undefined, undefined, undefined, '1'),
+    ).rejects.toThrow();
   });
 
   it('registrationOpen absent does not pass registrationOpen to service', async () => {

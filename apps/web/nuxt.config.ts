@@ -4,10 +4,12 @@ import { defineNuxtConfig } from 'nuxt/config';
 export default defineNuxtConfig({
   ssr: true,
   css: ['~/assets/css/main.css'],
+  components: [{ path: '~/components', pathPrefix: false }],
   runtimeConfig: {
     apiInternalBaseUrl: process.env.API_INTERNAL_BASE_URL,
     public: {
       apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL ?? '/',
+      adminUrl: process.env.NUXT_PUBLIC_ADMIN_URL ?? '',
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? '',
       siteName: process.env.NUXT_PUBLIC_SITE_NAME ?? 'Dragon',
       appEnv: process.env.NUXT_PUBLIC_APP_ENV ?? process.env.APP_ENV ?? 'development',

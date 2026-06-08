@@ -1,9 +1,30 @@
 <template>
   <div class="state-container" role="alert">
-    <p class="state-code">401</p>
-    <p class="state-label">{{ label }}</p>
-    <p class="state-hint">{{ hint }}</p>
-    <a href="/login" class="login-link">ورود به پنل ادمین</a>
+    <div class="state-code-wrap" aria-hidden="true">
+      <span class="state-code">401</span>
+    </div>
+    <div class="state-body">
+      <p class="state-label">{{ label }}</p>
+      <p class="state-hint">{{ hint }}</p>
+      <a href="/login" class="login-link dr-btn dr-btn-primary dr-btn-sm">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+          <polyline points="10 17 15 12 10 7" />
+          <line x1="15" y1="12" x2="3" y2="12" />
+        </svg>
+        ورود به پنل ادمین
+      </a>
+    </div>
   </div>
 </template>
 
@@ -26,40 +47,52 @@ withDefaults(
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 3rem;
+  gap: 20px;
+  padding: 64px 24px;
   text-align: center;
 }
 
+.state-code-wrap {
+  position: relative;
+}
+
 .state-code {
-  margin: 0;
-  font-size: 3.5rem;
+  font-family: var(--font-display);
+  font-size: 72px;
   font-weight: 700;
-  color: #e2e8f0;
   line-height: 1;
+  background: var(--brand-gradient-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: block;
+  filter: drop-shadow(0 8px 24px rgba(109, 40, 217, 0.45));
+}
+
+.state-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 
 .state-label {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #374151;
+  font-size: var(--text-h4-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
 }
 
 .state-hint {
   margin: 0;
-  font-size: 0.9rem;
-  color: #94a3b8;
+  font-size: var(--text-body-sm-size);
+  color: var(--text-muted);
+  max-width: 280px;
+  line-height: 1.6;
 }
 
 .login-link {
-  margin-block-start: 1rem;
-  color: #3b82f6;
-  font-size: 0.9rem;
-  text-decoration: none;
-}
-
-.login-link:hover {
-  text-decoration: underline;
+  margin-top: 8px;
+  gap: 8px;
 }
 </style>

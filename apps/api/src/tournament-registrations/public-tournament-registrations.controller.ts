@@ -25,12 +25,12 @@ import { parseRegisterBody, parseUpdateMyRegistrationBody } from './dto/registra
 
 // ─── Public tournament registration endpoints ─────────────────────────────────
 //
-// All routes require authentication (AccessTokenGuard).
+// registration-context is public (no auth needed — just checks visibility).
+// All other routes require authentication (AccessTokenGuard).
 // Slug-based lookup — no phone/email in URL.
 // Draft, deleted, and archived tournaments return 404 (safe, no state leak).
 
 @Controller('api/v1/tournaments')
-@UseGuards(AccessTokenGuard)
 export class PublicTournamentRegistrationsController {
   constructor(
     private readonly tournamentService: TournamentService,
@@ -63,6 +63,7 @@ export class PublicTournamentRegistrationsController {
 
   // POST /api/v1/tournaments/:slug/register
   @Post(':slug/register')
+  @UseGuards(AccessTokenGuard)
   async register(
     @Param('slug') slug: string,
     @Body() body: unknown,
@@ -77,6 +78,7 @@ export class PublicTournamentRegistrationsController {
 
   // GET /api/v1/tournaments/:slug/my-registration
   @Get(':slug/my-registration')
+  @UseGuards(AccessTokenGuard)
   async getMyRegistration(
     @Param('slug') slug: string,
     @Req() req: AuthenticatedRequest,
@@ -90,6 +92,7 @@ export class PublicTournamentRegistrationsController {
 
   // PATCH /api/v1/tournaments/:slug/my-registration
   @Patch(':slug/my-registration')
+  @UseGuards(AccessTokenGuard)
   async updateMyRegistration(
     @Param('slug') slug: string,
     @Body() body: unknown,
@@ -109,6 +112,7 @@ export class PublicTournamentRegistrationsController {
   // POST /api/v1/tournaments/:slug/my-registration/withdraw
   @Post(':slug/my-registration/withdraw')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(AccessTokenGuard)
   async withdraw(
     @Param('slug') slug: string,
     @Req() req: AuthenticatedRequest,

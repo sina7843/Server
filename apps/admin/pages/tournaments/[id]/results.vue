@@ -1,9 +1,6 @@
 <template>
   <div class="page">
-    <div class="page-header">
-      <NuxtLink :to="`/tournaments/${tournamentId}`" class="back-link">← جزئیات تورنمنت</NuxtLink>
-      <h1 class="page-title">مدیریت نتایج</h1>
-    </div>
+    <TournamentNavBar />
 
     <UnauthorizedState v-if="!accessToken" />
 
@@ -40,9 +37,9 @@
               <tr v-for="match in sortedMatches" :key="match.id" class="table-row">
                 <td class="td-round">{{ match.round }}</td>
                 <td class="td-num">{{ match.matchNumber }}</td>
-                <td class="td-id">{{ match.participant1Id ?? '—' }}</td>
-                <td class="td-id">{{ match.participant2Id ?? '—' }}</td>
-                <td class="td-id">{{ match.winnerId ?? '—' }}</td>
+                <td>{{ resolveParticipantName(match.participant1Id) }}</td>
+                <td>{{ resolveParticipantName(match.participant2Id) }}</td>
+                <td>{{ resolveParticipantName(match.winnerId) }}</td>
                 <td><MatchStatusBadge :status="match.status" /></td>
                 <td v-if="canManageResults" class="td-actions">
                   <button
@@ -105,10 +102,10 @@
             <select id="record-winner" v-model="resultForm.winnerId" class="field-input">
               <option value="">انتخاب کنید...</option>
               <option v-if="pendingMatch?.participant1Id" :value="pendingMatch.participant1Id">
-                شرکت‌کننده ۱: {{ pendingMatch.participant1Id }}
+                {{ resolveParticipantName(pendingMatch.participant1Id) }}
               </option>
               <option v-if="pendingMatch?.participant2Id" :value="pendingMatch.participant2Id">
-                شرکت‌کننده ۲: {{ pendingMatch.participant2Id }}
+                {{ resolveParticipantName(pendingMatch.participant2Id) }}
               </option>
             </select>
           </div>
@@ -181,10 +178,10 @@
             <select id="update-winner" v-model="resultForm.winnerId" class="field-input">
               <option value="">انتخاب کنید...</option>
               <option v-if="pendingMatch?.participant1Id" :value="pendingMatch.participant1Id">
-                شرکت‌کننده ۱: {{ pendingMatch.participant1Id }}
+                {{ resolveParticipantName(pendingMatch.participant1Id) }}
               </option>
               <option v-if="pendingMatch?.participant2Id" :value="pendingMatch.participant2Id">
-                شرکت‌کننده ۲: {{ pendingMatch.participant2Id }}
+                {{ resolveParticipantName(pendingMatch.participant2Id) }}
               </option>
             </select>
           </div>
@@ -280,6 +277,19 @@ const {
   clearActionState: clearResultActionState,
 } = useAdminTournamentResults();
 
+const { participants, loadParticipants } = useAdminTournamentParticipants();
+
+const participantMap = computed(() => {
+  const map = new Map<string, string>();
+  for (const p of participants.value) map.set(p.id, p.displayName);
+  return map;
+});
+
+function resolveParticipantName(id?: string | null): string {
+  if (!id) return '—';
+  return participantMap.value.get(id) ?? id;
+}
+
 const canManageResults = computed(() => hasPermission(Permissions.TOURNAMENT_RESULT_MANAGE));
 
 const voidDialogOpen = ref(false);
@@ -324,7 +334,10 @@ function canVoid(match: AdminTournamentMatchDto): boolean {
 async function load() {
   clearMatchActionState();
   clearResultActionState();
-  await loadMatches(tournamentId, { limit: 100 });
+  await Promise.all([
+    loadMatches(tournamentId, { limit: 100 }),
+    loadParticipants(tournamentId, { limit: 200 }),
+  ]);
 }
 
 function resetForm(match: AdminTournamentMatchDto) {
@@ -427,28 +440,6 @@ onMounted(() => {
   max-width: 1100px;
 }
 
-.page-header {
-  margin-block-end: 1.25rem;
-}
-
-.back-link {
-  font-size: 0.85rem;
-  color: #3b82f6;
-  text-decoration: none;
-  display: inline-block;
-  margin-block-end: 0.4rem;
-}
-
-.back-link:hover {
-  text-decoration: underline;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #1e293b;
-}
 
 .alert {
   padding: 0.6rem 0.85rem;

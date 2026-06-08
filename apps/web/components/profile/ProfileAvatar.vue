@@ -37,13 +37,14 @@ const initials = computed(() => {
 <style scoped>
 .profile-avatar {
   align-items: center;
-  border: 1px solid #d4d4d8;
+  border: 1px solid var(--glass-border-strong);
   border-radius: 999px;
   display: inline-flex;
   height: 4rem;
   justify-content: center;
   overflow: hidden;
   width: 4rem;
+  background: var(--surface-elevated);
 }
 
 .profile-avatar__img {

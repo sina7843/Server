@@ -1,9 +1,6 @@
 <template>
   <div class="page">
-    <div class="page-header">
-      <NuxtLink :to="`/tournaments/${tournamentId}`" class="back-link">← جزئیات تورنمنت</NuxtLink>
-      <h1 class="page-title">مدیریت مسابقات</h1>
-    </div>
+    <TournamentNavBar />
 
     <UnauthorizedState v-if="!accessToken" />
 
@@ -64,9 +61,9 @@
               <tbody>
                 <tr v-for="match in matchesByRound(round)" :key="match.id" class="table-row">
                   <td class="td-num">{{ match.matchNumber }}</td>
-                  <td class="td-id">{{ match.participant1Id ?? '—' }}</td>
-                  <td class="td-id">{{ match.participant2Id ?? '—' }}</td>
-                  <td class="td-id">{{ match.winnerId ?? '—' }}</td>
+                  <td>{{ resolveParticipantName(match.participant1Id) }}</td>
+                  <td>{{ resolveParticipantName(match.participant2Id) }}</td>
+                  <td>{{ resolveParticipantName(match.winnerId) }}</td>
                   <td><MatchStatusBadge :status="match.status" /></td>
                   <td class="td-date">
                     {{ match.scheduledAt ? formatDate(match.scheduledAt) : '—' }}
@@ -387,6 +384,17 @@ const rounds = computed(() => {
   return [...set].sort((a, b) => a - b);
 });
 
+const participantMap = computed(() => {
+  const map = new Map<string, string>();
+  for (const p of participants.value) map.set(p.id, p.displayName);
+  return map;
+});
+
+function resolveParticipantName(id?: string | null): string {
+  if (!id) return '—';
+  return participantMap.value.get(id) ?? id;
+}
+
 function matchesByRound(round: number): readonly AdminTournamentMatchDto[] {
   return matches.value
     .filter((m) => m.round === round)
@@ -515,28 +523,6 @@ onMounted(() => {
   max-width: 1100px;
 }
 
-.page-header {
-  margin-block-end: 1.25rem;
-}
-
-.back-link {
-  font-size: 0.85rem;
-  color: #3b82f6;
-  text-decoration: none;
-  display: inline-block;
-  margin-block-end: 0.4rem;
-}
-
-.back-link:hover {
-  text-decoration: underline;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #1e293b;
-}
 
 .alert {
   padding: 0.6rem 0.85rem;

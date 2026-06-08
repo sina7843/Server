@@ -5,6 +5,9 @@
     <ContentStateMessage v-else-if="!category" state="not-found" />
     <template v-else>
       <header class="content-page__header">
+        <NuxtLink to="/categories" class="content-page__back">
+          ← دسته‌بندی‌ها
+        </NuxtLink>
         <h1 class="content-page__title">{{ category.name }}</h1>
         <p v-if="category.description" class="content-page__description">
           {{ category.description }}
@@ -47,26 +50,42 @@ useHead(
 
 <style scoped>
 .content-page {
-  max-width: 56rem;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+  padding: 40px 24px 80px;
 }
 
 .content-page__header {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-10);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--glass-hairline);
 }
 
 .content-page__title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem;
-  color: #1e293b;
+  font-size: var(--text-h1-size);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--text-h1-tracking);
+  margin: 0;
+  color: var(--text-primary);
 }
 
 .content-page__description {
-  color: #475569;
+  font-size: var(--text-body-size);
+  color: var(--text-secondary);
   margin: 0;
+}
+
+.content-page__back {
+  font-size: var(--text-body-sm-size);
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color var(--motion-fast);
+}
+
+.content-page__back:hover {
+  color: var(--purple-300);
 }
 </style>

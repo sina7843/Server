@@ -46,7 +46,7 @@ describe('phase1 dev seed commands', () => {
     expect(code).toBe(0);
     expect(log).toHaveBeenCalledWith('Development seed completed.');
     expect(log).toHaveBeenCalledWith('   Email: superadmin@dragon.local');
-    expect(log).toHaveBeenCalledWith('   Phone: +15550001001');
+    expect(log).toHaveBeenCalledWith('   Phone: +989001000001');
     expect(log).toHaveBeenCalledWith(`   Password: ${PHASE1_DEV_SEED_PASSWORD}`);
   });
 

@@ -66,8 +66,8 @@ function handleSubmit() {
 
 .save-btn {
   padding: 0.55rem 1.5rem;
-  background: #2563eb;
-  color: #fff;
+  background: var(--action-primary);
+  color: var(--text-on-brand);
   border: none;
   border-radius: 0.375rem;
   cursor: pointer;
@@ -81,14 +81,14 @@ function handleSubmit() {
 }
 
 .save-btn:hover:not(:disabled) {
-  background: #1d4ed8;
+  background: var(--action-primary-hover);
 }
 
 .cancel-btn {
   padding: 0.55rem 1rem;
-  background: #fff;
-  color: #374151;
-  border: 1px solid #d1d5db;
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  border: 1px solid var(--glass-border-strong);
   border-radius: 0.375rem;
   cursor: pointer;
   font-weight: 500;
@@ -101,6 +101,6 @@ function handleSubmit() {
 }
 
 .cancel-btn:hover:not(:disabled) {
-  background: #f9fafb;
+  background: var(--surface-card);
 }
 </style>

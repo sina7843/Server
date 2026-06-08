@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument, SchemaTypes, Types } from 'mongoose';
 import type { BackupStatus, BackupTriggeredBy, BackupType } from '@dragon/types';
 
 export type BackupLogDocument = HydratedDocument<BackupLog>;
@@ -37,7 +37,7 @@ export class BackupLog {
   @Prop({ required: true, enum: BACKUP_TRIGGERED_BY_VALUES })
   triggeredBy!: BackupTriggeredBy;
 
-  @Prop({ type: Types.ObjectId })
+  @Prop({ type: SchemaTypes.ObjectId })
   actorId?: Types.ObjectId;
 
   @Prop()

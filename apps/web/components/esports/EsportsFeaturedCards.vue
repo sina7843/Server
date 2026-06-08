@@ -1,6 +1,11 @@
 <template>
   <section v-if="posts.length > 0" class="esports-featured" aria-label="مطالب ویژه">
-    <h2 class="esports-featured__heading t-h3">مطالب ویژه</h2>
+    <div class="esports-featured__header">
+      <div class="esports-featured__title-group">
+        <span class="dr-label">Featured</span>
+        <h2 class="esports-featured__heading">مطالب ویژه</h2>
+      </div>
+    </div>
     <div class="esports-featured__grid">
       <ContentCard
         v-for="post in posts"
@@ -37,8 +42,24 @@ function getBasePath(type: string): string {
   margin-bottom: var(--space-12);
 }
 
+.esports-featured__header {
+  margin-bottom: var(--space-6);
+}
+
+.esports-featured__title-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-right: var(--space-4);
+  border-right: 3px solid var(--purple-500);
+  width: fit-content;
+}
+
 .esports-featured__heading {
-  margin: 0 0 var(--space-6) 0;
+  font-size: var(--text-h2-size);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--text-h2-tracking);
+  margin: 0;
   color: var(--text-primary);
 }
 

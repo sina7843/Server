@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument, SchemaTypes, Types } from 'mongoose';
 import type { TournamentMatchStatus } from '@dragon/types';
 
 const MATCH_STATUSES: TournamentMatchStatus[] = [
@@ -13,7 +13,7 @@ const MATCH_STATUSES: TournamentMatchStatus[] = [
 export class TournamentMatch {
   declare _id: Types.ObjectId;
 
-  @Prop({ required: true, type: Types.ObjectId, index: true })
+  @Prop({ required: true, type: SchemaTypes.ObjectId, index: true })
   declare tournamentId: Types.ObjectId;
 
   @Prop({ required: true, type: Number, min: 1 })
@@ -27,14 +27,14 @@ export class TournamentMatch {
 
   // Participant IDs are registration (ObjectId) references.
   // A match may have 0, 1, or 2 participants (bye matches excluded — bye status is forbidden).
-  @Prop({ type: Types.ObjectId })
+  @Prop({ type: SchemaTypes.ObjectId })
   declare participant1Id?: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId })
+  @Prop({ type: SchemaTypes.ObjectId })
   declare participant2Id?: Types.ObjectId;
 
   // Set by result recording. winnerId must be participant1Id or participant2Id.
-  @Prop({ type: Types.ObjectId })
+  @Prop({ type: SchemaTypes.ObjectId })
   declare winnerId?: Types.ObjectId;
 
   @Prop()

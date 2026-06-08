@@ -80,7 +80,7 @@ const iconComponent = computed(() =>
 }
 
 .nav-item--active {
-  background: linear-gradient(90deg, rgba(124, 58, 237, 0.18), rgba(124, 58, 237, 0.06));
+  background: linear-gradient(270deg, rgba(109, 40, 217, 0.16), rgba(109, 40, 217, 0.04));
   color: var(--text-primary);
   box-shadow: inset 2px 0 0 var(--purple-400);
 }
@@ -95,7 +95,7 @@ const iconComponent = computed(() =>
 
 .nav-item--active .nav-icon {
   opacity: 1;
-  color: var(--purple-400);
+  color: var(--purple-300);
 }
 
 .nav-label {

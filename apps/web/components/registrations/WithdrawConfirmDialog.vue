@@ -40,12 +40,13 @@ defineEmits<{
 }
 
 .withdraw-confirm-dialog > * {
-  background: #fff;
+  background: var(--surface-card-solid);
+  border: 1px solid var(--glass-border-strong);
   max-width: 28rem;
   width: 100%;
   padding: 2rem;
   border-radius: 0.5rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
 .dialog-actions {
@@ -57,8 +58,8 @@ defineEmits<{
 
 .confirm-btn {
   padding: 0.45rem 1rem;
-  background: #dc2626;
-  color: #fff;
+  background: var(--action-danger);
+  color: var(--text-on-brand);
   border: none;
   border-radius: 0.375rem;
   cursor: pointer;
@@ -72,9 +73,9 @@ defineEmits<{
 
 .cancel-btn {
   padding: 0.45rem 1rem;
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  border: 1px solid var(--glass-border-strong);
   border-radius: 0.375rem;
   cursor: pointer;
 }

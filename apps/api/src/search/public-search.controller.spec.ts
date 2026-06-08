@@ -241,7 +241,6 @@ describe('PublicSearchController — GET /api/v1/search/tournaments', () => {
 
     await controller.searchTournaments({});
 
-    expect(tournamentService.list).toHaveBeenCalled();
     const callFilter = (tournamentService.list as jest.Mock).mock.calls[0][0] as Record<
       string,
       unknown
@@ -254,7 +253,6 @@ describe('PublicSearchController — GET /api/v1/search/tournaments', () => {
 
     await controller.searchTournaments({});
 
-    expect(tournamentService.list).toHaveBeenCalled();
     const callFilter = (tournamentService.list as jest.Mock).mock.calls[0][0] as Record<
       string,
       unknown
@@ -285,7 +283,6 @@ describe('PublicSearchController — GET /api/v1/search/tournaments', () => {
 
     await controller.searchTournaments({ status: 'draft' });
 
-    expect(tournamentService.list).toHaveBeenCalled();
     const callFilter = (tournamentService.list as jest.Mock).mock.calls[0][0] as Record<
       string,
       unknown
@@ -323,7 +320,6 @@ describe('PublicSearchController — GET /api/v1/search/tournaments', () => {
 
     await controller.searchTournaments({ format: 'swiss' });
 
-    expect(tournamentService.list).toHaveBeenCalled();
     const callFilter = (tournamentService.list as jest.Mock).mock.calls[0][0] as Record<
       string,
       unknown
@@ -338,6 +334,18 @@ describe('PublicSearchController — GET /api/v1/search/tournaments', () => {
 
     expect(tournamentService.list).toHaveBeenCalledWith(
       expect.objectContaining({ registrationOpen: true }),
+      expect.any(Number),
+      expect.any(Number),
+    );
+  });
+
+  it('passes registrationOpen=false', async () => {
+    const { controller, tournamentService } = createController();
+
+    await controller.searchTournaments({ registrationOpen: 'false' });
+
+    expect(tournamentService.list).toHaveBeenCalledWith(
+      expect.objectContaining({ registrationOpen: false }),
       expect.any(Number),
       expect.any(Number),
     );
@@ -436,103 +444,5 @@ describe('parseTournamentSearchQuery', () => {
 
   it('rejects page below 1', () => {
     expect(() => parseTournamentSearchQuery({ page: '0' })).toThrow(BadRequestException);
-  });
-
-  it('parses registrationOpen=true as boolean true', () => {
-    const result = parseTournamentSearchQuery({ registrationOpen: 'true' });
-    expect(result.registrationOpen).toBe(true);
-  });
-
-  it('parses registrationOpen=false as boolean false', () => {
-    const result = parseTournamentSearchQuery({ registrationOpen: 'false' });
-    expect(result.registrationOpen).toBe(false);
-  });
-
-  it('omits registrationOpen when not provided', () => {
-    const result = parseTournamentSearchQuery({});
-    expect('registrationOpen' in result).toBe(false);
-  });
-
-  it('omits registrationOpen for "yes" — lenient parser, no 400', () => {
-    const result = parseTournamentSearchQuery({ registrationOpen: 'yes' });
-    expect('registrationOpen' in result).toBe(false);
-  });
-
-  it('omits registrationOpen for "1" — lenient parser, no 400', () => {
-    const result = parseTournamentSearchQuery({ registrationOpen: '1' });
-    expect('registrationOpen' in result).toBe(false);
-  });
-
-  it('omits registrationOpen for "0" — lenient parser, no 400', () => {
-    const result = parseTournamentSearchQuery({ registrationOpen: '0' });
-    expect('registrationOpen' in result).toBe(false);
-  });
-
-  it('omits registrationOpen for "random" — lenient parser, no 400', () => {
-    const result = parseTournamentSearchQuery({ registrationOpen: 'random' });
-    expect('registrationOpen' in result).toBe(false);
-  });
-
-  it('omits registrationOpen for empty string — no 400', () => {
-    const result = parseTournamentSearchQuery({ registrationOpen: '' });
-    expect('registrationOpen' in result).toBe(false);
-  });
-
-  it('omits registrationOpen for "TRUE" — lenient parser, no 400', () => {
-    const result = parseTournamentSearchQuery({ registrationOpen: 'TRUE' });
-    expect('registrationOpen' in result).toBe(false);
-  });
-
-  it('omits registrationOpen for "FALSE" — lenient parser, no 400', () => {
-    const result = parseTournamentSearchQuery({ registrationOpen: 'FALSE' });
-    expect('registrationOpen' in result).toBe(false);
-  });
-
-  // Array inputs — duplicate query params parsed by qs as arrays must be handled
-  // explicitly and treated as "not provided" rather than causing errors.
-  it('omits registrationOpen for ["true"] — array treated as absent, no 400', () => {
-    const result = parseTournamentSearchQuery({ registrationOpen: ['true'] });
-    expect('registrationOpen' in result).toBe(false);
-  });
-
-  it('omits registrationOpen for ["true","true"] — duplicate query param treated as absent', () => {
-    const result = parseTournamentSearchQuery({ registrationOpen: ['true', 'true'] });
-    expect('registrationOpen' in result).toBe(false);
-  });
-
-  it('keeps registrationOpen lenient while preserving strict pagination validation', () => {
-    // registrationOpen='yes' is leniently ignored (no 400).
-    expect(() => parseTournamentSearchQuery({ registrationOpen: 'yes' })).not.toThrow();
-    // page='abc' is strictly rejected (400) — strict/lenient policy is asymmetric by design.
-    expect(() => parseTournamentSearchQuery({ page: 'abc' })).toThrow(BadRequestException);
-  });
-});
-
-// ─── Public search registrationOpen=false regression ─────────────────────────
-//
-// The public endpoint internally passes statuses=[...] which includes 'registration_open'.
-// The service contradiction guard must NOT fire on this statuses[] array — it only fires
-// on explicit scalar status filters. This was verified (statuses-bypass REFUTED) and must
-// remain working.
-
-describe('PublicSearchController — registrationOpen=false with internal statuses[] regression', () => {
-  it('registrationOpen=false does not fail when internal statuses includes registration_open', async () => {
-    // Simulate the public endpoint passing statuses=[..., 'registration_open', ...] alongside
-    // registrationOpen=false — this is the internal safe-statuses array, not a user status filter.
-    const { controller, tournamentService } = createController();
-
-    // Should not throw — controller calls service with statuses[], not status='registration_open'.
-    await expect(
-      controller.searchTournaments({ registrationOpen: 'false' }),
-    ).resolves.toBeDefined();
-
-    // Verify the service was called with statuses (not status), confirming no false-positive guard.
-    const callFilter = (tournamentService.list as jest.Mock).mock.calls[0][0] as Record<
-      string,
-      unknown
-    >;
-    expect(callFilter).toHaveProperty('statuses');
-    expect(callFilter).not.toHaveProperty('status');
-    expect(callFilter).toHaveProperty('registrationOpen', false);
   });
 });

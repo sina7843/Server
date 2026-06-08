@@ -1,67 +1,88 @@
 export interface Phase1DevSeedSafetyEnv {
-  readonly nodeEnv?: string | undefined;
-  readonly mongodbUri?: string | undefined;
-  readonly allowSeedReset?: string | undefined;
-  // CI flag — used by command runners to suppress credential printing.
-  // Not used by the safety assertion functions themselves.
-  readonly ci?: string | undefined;
+  readonly [key: string]: string | undefined;
+  readonly NODE_ENV?: string | undefined;
+  readonly MONGODB_URI?: string | undefined;
+  readonly DRAGON_ALLOW_SEED_RESET?: string | undefined;
 }
 
-export function readPhase1DevSeedSafetyEnv(
+const SAFE_NODE_ENVS = new Set(['development', 'test', 'local']);
+const PRODUCTION_URI_PATTERN = /(?:^|[-_.:/@])prod(?:uction)?(?:[-_.:/@]|$)/i;
+
+const LOCAL_TEST_AUTH_DEFAULTS: Readonly<Record<string, string>> = {
+  AUTH_ACCESS_TOKEN_TTL_SECONDS: '900',
+  AUTH_REFRESH_TOKEN_TTL_DAYS: '30',
+  AUTH_PASSWORD_MIN_LENGTH: '8',
+  AUTH_PASSWORD_RESET_TOKEN_TTL_SECONDS: '900',
+  AUTH_OTP_TTL_SECONDS: '300',
+  AUTH_OTP_MAX_ATTEMPTS: '5',
+  AUTH_OTP_RESEND_COOLDOWN_SECONDS: '60',
+  AUTH_OTP_DAILY_PHONE_LIMIT: '20',
+  AUTH_OTP_IP_LIMIT: '100',
+  AUTH_JWT_SECRET: 'phase1-dev-seed-local-jwt-secret-minimum-32-chars',
+  SMS_PROVIDER: 'mock',
+};
+
+export function applyPhase1DevSeedRuntimeDefaults(
   env: NodeJS.ProcessEnv = process.env,
-): Phase1DevSeedSafetyEnv {
-  return {
-    nodeEnv: env.NODE_ENV,
-    mongodbUri: env.MONGODB_URI,
-    allowSeedReset: env.DRAGON_ALLOW_SEED_RESET,
-    ci: env.CI,
-  };
+): void {
+  const nodeEnv = normalizeEnvName(env.NODE_ENV);
+
+  if (nodeEnv === 'production') {
+    return;
+  }
+
+  if (!env.NODE_ENV?.trim()) {
+    env.NODE_ENV = 'development';
+  }
+
+  for (const [key, value] of Object.entries(LOCAL_TEST_AUTH_DEFAULTS)) {
+    if (!env[key]?.trim()) {
+      env[key] = value;
+    }
+  }
 }
 
 export function assertSafeSeedEnvironment(
-  env: Phase1DevSeedSafetyEnv = readPhase1DevSeedSafetyEnv(),
+  env: Phase1DevSeedSafetyEnv = process.env,
 ): void {
-  const nodeEnv = normalizeEnvName(env.nodeEnv);
+  const nodeEnv = normalizeEnvName(env.NODE_ENV);
 
   if (nodeEnv === 'production') {
-    throw new Error(
-      'Refusing to run Phase 1 development seed because NODE_ENV=production.',
-    );
+    throw new Error('Refusing to run seed command because NODE_ENV=production.');
   }
 
   if (!isAllowedSeedEnvironment(nodeEnv)) {
     throw new Error(
-      'Refusing to run Phase 1 development seed. Allowed NODE_ENV values are development, test, and local.',
+      `Refusing to run seed command because NODE_ENV=${nodeEnv || '<empty>'}. Allowed values: development, test, local.`,
     );
   }
 
-  assertSafeDatabaseUri(env.mongodbUri, 'run Phase 1 development seed');
+  const mongoUri = env.MONGODB_URI?.trim();
+
+  if (!mongoUri) {
+    throw new Error('MONGODB_URI is required for local/test seed commands.');
+  }
+
+  if (
+    PRODUCTION_URI_PATTERN.test(mongoUri) ||
+    mongoUri.toLowerCase().includes('mongodb+srv://')
+  ) {
+    throw new Error(
+      'Refusing to run seed command because the database URI looks production-like.',
+    );
+  }
 }
 
 export function assertSafeSeedResetEnvironment(
-  env: Phase1DevSeedSafetyEnv = readPhase1DevSeedSafetyEnv(),
+  env: Phase1DevSeedSafetyEnv = process.env,
 ): void {
-  const nodeEnv = normalizeEnvName(env.nodeEnv);
+  assertSafeSeedEnvironment(env);
 
-  if (nodeEnv === 'production') {
+  if (env.DRAGON_ALLOW_SEED_RESET !== 'true') {
     throw new Error(
-      'Refusing to reset seed data because NODE_ENV=production. This command is allowed only in local/development/test environments.',
+      'Refusing to reset seed data without DRAGON_ALLOW_SEED_RESET=true.',
     );
   }
-
-  if (!isAllowedSeedEnvironment(nodeEnv)) {
-    throw new Error(
-      'Refusing to reset seed data. Allowed NODE_ENV values are development, test, and local.',
-    );
-  }
-
-  if (env.allowSeedReset !== 'true') {
-    throw new Error(
-      'Refusing to reset seed data. Set DRAGON_ALLOW_SEED_RESET=true to confirm this local/test cleanup.',
-    );
-  }
-
-  assertSafeDatabaseUri(env.mongodbUri, 'reset Phase 1 development seed data');
 }
 
 function normalizeEnvName(value: string | undefined): string {
@@ -69,71 +90,5 @@ function normalizeEnvName(value: string | undefined): string {
 }
 
 function isAllowedSeedEnvironment(nodeEnv: string): boolean {
-  return nodeEnv === 'development' || nodeEnv === 'test' || nodeEnv === 'local';
-}
-
-// Hosts recognized as local Docker/dev instances.
-// Remote/Atlas/staging hosts are not listed here and will be blocked.
-// To allow a non-local host, an explicit HQ-approved env such as
-// DRAGON_ALLOW_REMOTE_DEV_SEED=true would be required — not in scope for Phase 1.
-const ALLOWED_SEED_HOSTS = new Set<string>([
-  'localhost',
-  '127.0.0.1',
-  '0.0.0.0',
-  'mongo',
-  'mongodb',
-  'db',
-]);
-
-// Matches production/staging/prod as whole words (word-boundary aware).
-// Does NOT match "products", "reproduce", "protagonist" etc.
-// Uses dash/underscore as implicit word boundaries since MongoDB URIs use them as separators.
-const DANGEROUS_DB_NAME_PATTERN = /\b(production|staging|prod)\b/i;
-
-function assertSafeDatabaseUri(
-  mongodbUri: string | undefined,
-  actionLabel: string,
-): void {
-  const uri = (mongodbUri ?? '').trim();
-
-  if (!uri) {
-    throw new Error(
-      `Refusing to ${actionLabel} because MONGODB_URI is missing.`,
-    );
-  }
-
-  // mongodb+srv:// indicates a remote/Atlas cluster — blocked under Docker-local-only policy.
-  if (/^mongodb\+srv:\/\//i.test(uri)) {
-    throw new Error(
-      `Refusing to ${actionLabel} because MONGODB_URI uses mongodb+srv://, which indicates a remote or Atlas database. This command runs only against local Docker/dev instances.`,
-    );
-  }
-
-  // Extract and validate the host component.
-  const host = extractMongoHost(uri);
-  if (!ALLOWED_SEED_HOSTS.has(host)) {
-    throw new Error(
-      `Refusing to ${actionLabel} because MONGODB_URI host "${host}" is not a recognized local Docker/dev host. Allowed hosts: ${[...ALLOWED_SEED_HOSTS].join(', ')}.`,
-    );
-  }
-
-  // Block production/staging-looking database names (word-boundary check avoids false positives
-  // like "products" or "reproduce").
-  if (DANGEROUS_DB_NAME_PATTERN.test(uri)) {
-    throw new Error(
-      `Refusing to ${actionLabel} because MONGODB_URI looks like a production or staging database. This command runs only against local development databases.`,
-    );
-  }
-}
-
-function extractMongoHost(uri: string): string {
-  // Strip protocol prefix.
-  const withoutProtocol = uri.replace(/^mongodb:\/\//i, '');
-  // Strip credentials (user:pass@host → host).
-  const withoutCreds = withoutProtocol.includes('@')
-    ? withoutProtocol.slice(withoutProtocol.indexOf('@') + 1)
-    : withoutProtocol;
-  // Host is everything up to the first colon (port), slash (db), or query string.
-  const match = withoutCreds.match(/^([^/:?]+)/);
-  return (match?.[1] ?? '').toLowerCase();
+  return SAFE_NODE_ENVS.has(nodeEnv);
 }

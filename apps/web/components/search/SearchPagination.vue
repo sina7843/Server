@@ -45,17 +45,17 @@ const hasNextPage = computed(() => props.page * props.limit < props.total);
 
 .search-pagination__btn {
   padding: 0.45rem 1rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--glass-border-strong);
   border-radius: 0.4rem;
   font-size: 0.875rem;
-  background: #fff;
+  background: var(--surface-elevated);
   cursor: pointer;
-  color: #334155;
+  color: var(--text-secondary);
   transition: background 0.15s;
 }
 
 .search-pagination__btn:not(:disabled):hover {
-  background: #f1f5f9;
+  background: var(--surface-card);
 }
 
 .search-pagination__btn:disabled {
@@ -65,6 +65,6 @@ const hasNextPage = computed(() => props.page * props.limit < props.total);
 
 .search-pagination__info {
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 </style>

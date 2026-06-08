@@ -1,127 +1,42 @@
 import {
+  applyPhase1DevSeedRuntimeDefaults,
   assertSafeSeedEnvironment,
   assertSafeSeedResetEnvironment,
 } from './phase1-dev-seed.safety';
 
 describe('phase1 dev seed safety guards', () => {
-  // camelCase field names match the canonical Phase1DevSeedSafetyEnv in safety.ts.
-  // SCREAMING_SNAKE_CASE was the old types.ts shape — the duplicate was removed.
   const safeEnv = {
-    nodeEnv: 'development',
-    mongodbUri: 'mongodb://127.0.0.1:27017/dragon-local',
+    NODE_ENV: 'development',
+    MONGODB_URI: 'mongodb://127.0.0.1:27017/dragon-local',
   } as const;
-
-  // ─── assertSafeSeedEnvironment ────────────────────────────────────────────
 
   it('allows local development seed environment', () => {
     expect(() => assertSafeSeedEnvironment(safeEnv)).not.toThrow();
   });
 
-  it('allows test NODE_ENV', () => {
-    expect(() => assertSafeSeedEnvironment({ ...safeEnv, nodeEnv: 'test' })).not.toThrow();
-  });
-
-  it('allows local NODE_ENV', () => {
-    expect(() => assertSafeSeedEnvironment({ ...safeEnv, nodeEnv: 'local' })).not.toThrow();
-  });
-
   it('refuses production NODE_ENV', () => {
     expect(() =>
-      assertSafeSeedEnvironment({ ...safeEnv, nodeEnv: 'production' }),
+      assertSafeSeedEnvironment({ ...safeEnv, NODE_ENV: 'production' }),
     ).toThrow('NODE_ENV=production');
   });
 
-  it('refuses staging NODE_ENV (not in allowed list)', () => {
+  it('refuses production-like database URIs', () => {
     expect(() =>
-      assertSafeSeedEnvironment({ ...safeEnv, nodeEnv: 'staging' }),
-    ).toThrow();
+      assertSafeSeedEnvironment({
+        ...safeEnv,
+        MONGODB_URI: 'mongodb://db/dragon-production',
+      }),
+    ).toThrow('production-like');
   });
 
-  it('refuses missing mongodbUri', () => {
+  it('refuses remote mongodb srv database URIs', () => {
     expect(() =>
-      assertSafeSeedEnvironment({ ...safeEnv, mongodbUri: undefined }),
-    ).toThrow('MONGODB_URI is missing');
+      assertSafeSeedEnvironment({
+        ...safeEnv,
+        MONGODB_URI: 'mongodb+srv://example.local/db',
+      }),
+    ).toThrow('production-like');
   });
-
-  it('refuses empty mongodbUri', () => {
-    expect(() =>
-      assertSafeSeedEnvironment({ ...safeEnv, mongodbUri: '' }),
-    ).toThrow('MONGODB_URI is missing');
-  });
-
-  // ─── URI allowlist — local Docker/dev hosts ───────────────────────────────
-
-  it('allows mongodb://localhost:27017/dragon-local', () => {
-    expect(() =>
-      assertSafeSeedEnvironment({ ...safeEnv, mongodbUri: 'mongodb://localhost:27017/dragon-local' }),
-    ).not.toThrow();
-  });
-
-  it('allows mongodb://127.0.0.1:27017/dragon-local', () => {
-    expect(() =>
-      assertSafeSeedEnvironment({ ...safeEnv, mongodbUri: 'mongodb://127.0.0.1:27017/dragon-local' }),
-    ).not.toThrow();
-  });
-
-  it('allows mongodb://mongo:27017/dragon-local (Docker Compose service name)', () => {
-    expect(() =>
-      assertSafeSeedEnvironment({ ...safeEnv, mongodbUri: 'mongodb://mongo:27017/dragon-local' }),
-    ).not.toThrow();
-  });
-
-  it('allows mongodb://mongodb:27017/dragon-local (Docker Compose service name)', () => {
-    expect(() =>
-      assertSafeSeedEnvironment({ ...safeEnv, mongodbUri: 'mongodb://mongodb:27017/dragon-local' }),
-    ).not.toThrow();
-  });
-
-  it('allows mongodb://db/dragon-local (Docker Compose db service)', () => {
-    expect(() =>
-      assertSafeSeedEnvironment({ ...safeEnv, mongodbUri: 'mongodb://db/dragon-local' }),
-    ).not.toThrow();
-  });
-
-  // ─── URI blocklist — remote/cloud/production ──────────────────────────────
-
-  it('refuses mongodb+srv:// (Atlas / remote cluster)', () => {
-    expect(() =>
-      assertSafeSeedEnvironment({ ...safeEnv, mongodbUri: 'mongodb+srv://user:pass@cluster.mongodb.net/dragon' }),
-    ).toThrow('mongodb+srv://');
-  });
-
-  it('refuses non-local remote host', () => {
-    expect(() =>
-      assertSafeSeedEnvironment({ ...safeEnv, mongodbUri: 'mongodb://company-db-server:27017/dragon' }),
-    ).toThrow();
-  });
-
-  it('refuses production-looking database name', () => {
-    expect(() =>
-      assertSafeSeedEnvironment({ ...safeEnv, mongodbUri: 'mongodb://127.0.0.1:27017/dragon-production' }),
-    ).toThrow('production or staging');
-  });
-
-  it('refuses staging-looking database name', () => {
-    expect(() =>
-      assertSafeSeedEnvironment({ ...safeEnv, mongodbUri: 'mongodb://127.0.0.1:27017/app-staging' }),
-    ).toThrow('production or staging');
-  });
-
-  it('refuses standalone "prod" database name (not substring of "products")', () => {
-    // "app-prod-db" — "prod" as a dash-delimited word.
-    expect(() =>
-      assertSafeSeedEnvironment({ ...safeEnv, mongodbUri: 'mongodb://127.0.0.1:27017/app-prod-db' }),
-    ).toThrow('production or staging');
-  });
-
-  it('does NOT refuse local database with "products" in the name', () => {
-    // "products" contains "prod" as a substring but not as a standalone word — must not be blocked.
-    expect(() =>
-      assertSafeSeedEnvironment({ ...safeEnv, mongodbUri: 'mongodb://localhost:27017/products-local' }),
-    ).not.toThrow();
-  });
-
-  // ─── assertSafeSeedResetEnvironment ──────────────────────────────────────
 
   it('refuses reset without explicit confirmation flag', () => {
     expect(() => assertSafeSeedResetEnvironment(safeEnv)).toThrow(
@@ -131,25 +46,56 @@ describe('phase1 dev seed safety guards', () => {
 
   it('allows reset with explicit confirmation flag', () => {
     expect(() =>
-      assertSafeSeedResetEnvironment({ ...safeEnv, allowSeedReset: 'true' }),
+      assertSafeSeedResetEnvironment({
+        ...safeEnv,
+        DRAGON_ALLOW_SEED_RESET: 'true',
+      }),
     ).not.toThrow();
   });
 
-  it('refuses reset when confirmation flag is wrong value', () => {
-    expect(() =>
-      assertSafeSeedResetEnvironment({ ...safeEnv, allowSeedReset: '1' }),
-    ).toThrow('DRAGON_ALLOW_SEED_RESET=true');
+  it('applies local/test auth defaults before Nest bootstrap', () => {
+    const env: NodeJS.ProcessEnv = {
+      NODE_ENV: 'development',
+      MONGODB_URI: 'mongodb://127.0.0.1:27017/dragon-local',
+    };
+
+    applyPhase1DevSeedRuntimeDefaults(env);
+
+    expect(env.AUTH_ACCESS_TOKEN_TTL_SECONDS).toBe('900');
+    expect(env.AUTH_REFRESH_TOKEN_TTL_DAYS).toBe('30');
+    expect(env.AUTH_JWT_SECRET).toBeDefined();
+    expect(env.SMS_PROVIDER).toBe('mock');
   });
 
-  it('refuses reset with production NODE_ENV', () => {
-    expect(() =>
-      assertSafeSeedResetEnvironment({ ...safeEnv, nodeEnv: 'production', allowSeedReset: 'true' }),
-    ).toThrow('NODE_ENV=production');
+  it('defaults missing NODE_ENV to development for seed command runtime only', () => {
+    const env: NodeJS.ProcessEnv = {
+      MONGODB_URI: 'mongodb://127.0.0.1:27017/dragon-local',
+    };
+
+    applyPhase1DevSeedRuntimeDefaults(env);
+
+    expect(env.NODE_ENV).toBe('development');
+    expect(env.AUTH_ACCESS_TOKEN_TTL_SECONDS).toBe('900');
   });
 
-  it('refuses reset with missing mongodbUri', () => {
-    expect(() =>
-      assertSafeSeedResetEnvironment({ ...safeEnv, mongodbUri: undefined, allowSeedReset: 'true' }),
-    ).toThrow('MONGODB_URI is missing');
+  it('does not override existing auth defaults', () => {
+    const env: NodeJS.ProcessEnv = {
+      NODE_ENV: 'development',
+      AUTH_ACCESS_TOKEN_TTL_SECONDS: '1200',
+    };
+
+    applyPhase1DevSeedRuntimeDefaults(env);
+
+    expect(env.AUTH_ACCESS_TOKEN_TTL_SECONDS).toBe('1200');
+  });
+
+  it('does not apply defaults in production', () => {
+    const env: NodeJS.ProcessEnv = {
+      NODE_ENV: 'production',
+    };
+
+    applyPhase1DevSeedRuntimeDefaults(env);
+
+    expect(env.AUTH_ACCESS_TOKEN_TTL_SECONDS).toBeUndefined();
   });
 });

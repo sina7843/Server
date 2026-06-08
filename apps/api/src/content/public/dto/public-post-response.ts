@@ -1,7 +1,18 @@
 import type { PostDocument } from '../../posts/post.schema';
 import type { PublicPostDto, PublicPostListResponse, PublicPostResponse } from '@dragon/types';
 
-export function toPublicPostDto(post: PostDocument): PublicPostDto {
+export interface PostEnrichment {
+  authorName?: string;
+  coverImageUrl?: string;
+}
+
+export interface EnrichedPost {
+  post: PostDocument;
+  authorName?: string;
+  coverImageUrl?: string;
+}
+
+export function toPublicPostDto(post: PostDocument, enrichment: PostEnrichment = {}): PublicPostDto {
   return {
     id: String(post._id),
     type: post.type,
@@ -11,6 +22,9 @@ export function toPublicPostDto(post: PostDocument): PublicPostDto {
     bodyHtml: post.bodyHtml ?? '',
     categoryIds: (post.categoryIds ?? []).map(String),
     tagIds: (post.tagIds ?? []).map(String),
+    viewCount: post.viewCount ?? 0,
+    ...(enrichment.authorName ? { authorName: enrichment.authorName } : {}),
+    ...(enrichment.coverImageUrl ? { coverImageUrl: enrichment.coverImageUrl } : {}),
     seo: {
       ...(post.seo?.title ? { title: post.seo.title } : {}),
       ...(post.seo?.description ? { description: post.seo.description } : {}),
@@ -22,15 +36,25 @@ export function toPublicPostDto(post: PostDocument): PublicPostDto {
   };
 }
 
+export function toPublicPostResponse(enriched: EnrichedPost): PublicPostResponse {
+  return { post: toPublicPostDto(enriched.post, enriched) };
+}
+
 export function toPublicPostListResponse(
-  items: PostDocument[],
+  enriched: EnrichedPost[],
   total: number,
   page: number,
   limit: number,
 ): PublicPostListResponse {
-  return { items: items.map(toPublicPostDto), total, page, limit };
-}
-
-export function toPublicPostResponse(post: PostDocument): PublicPostResponse {
-  return { post: toPublicPostDto(post) };
+  return {
+    items: enriched.map(({ post, authorName, coverImageUrl }) =>
+      toPublicPostDto(post, {
+        ...(authorName !== undefined ? { authorName } : {}),
+        ...(coverImageUrl !== undefined ? { coverImageUrl } : {}),
+      }),
+    ),
+    total,
+    page,
+    limit,
+  };
 }

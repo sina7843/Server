@@ -34,6 +34,7 @@ describe('EsportsService', () => {
   let service: EsportsService;
   let postServiceMock: { list: jest.Mock; listTopPublished: jest.Mock };
   let tagRepositoryMock: { findBySlug: jest.Mock };
+  let tournamentRepositoryMock: { list: jest.Mock };
 
   beforeEach(() => {
     postServiceMock = {
@@ -43,7 +44,14 @@ describe('EsportsService', () => {
     tagRepositoryMock = {
       findBySlug: jest.fn().mockResolvedValue(null),
     };
-    service = new EsportsService(postServiceMock as never, tagRepositoryMock as never);
+    tournamentRepositoryMock = {
+      list: jest.fn().mockResolvedValue({ items: [], total: 0 }),
+    };
+    service = new EsportsService(
+      postServiceMock as never,
+      tagRepositoryMock as never,
+      tournamentRepositoryMock as never,
+    );
   });
 
   describe('getHome', () => {

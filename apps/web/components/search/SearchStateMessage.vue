@@ -22,15 +22,15 @@ defineProps<{
 .search-state {
   padding: 3rem 1rem;
   text-align: center;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.95rem;
 }
 
 .search-state--error {
-  color: #dc2626;
+  color: var(--danger-400);
 }
 
 .search-state--no-results strong {
-  color: #1e293b;
+  color: var(--text-primary);
 }
 </style>

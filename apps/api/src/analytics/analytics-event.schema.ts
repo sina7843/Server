@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument, SchemaTypes, Types } from 'mongoose';
 import { ANALYTICS_EVENT_TYPES, type AnalyticsEventType } from '@dragon/types';
 
 export type AnalyticsEventDocument = HydratedDocument<AnalyticsEvent>;
@@ -12,7 +12,7 @@ export class AnalyticsEvent {
   @Prop({ required: true, enum: ANALYTICS_EVENT_TYPES })
   type!: AnalyticsEventType;
 
-  @Prop({ type: Types.ObjectId })
+  @Prop({ type: SchemaTypes.ObjectId })
   userId?: Types.ObjectId;
 
   @Prop()

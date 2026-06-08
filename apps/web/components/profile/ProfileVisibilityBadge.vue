@@ -14,9 +14,10 @@ defineProps<{
 
 <style scoped>
 .profile-visibility-badge {
-  border: 1px solid #d4d4d8;
+  border: 1px solid var(--glass-border-strong);
   border-radius: 999px;
   font-size: 0.875rem;
   padding: 0.2rem 0.6rem;
+  color: var(--text-secondary);
 }
 </style>

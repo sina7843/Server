@@ -18,25 +18,25 @@ const LABELS: Record<GameStatus, string> = {
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.2rem 0.6rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .badge--active {
-  background: #dcfce7;
-  color: #166534;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success-400);
 }
 
 .badge--inactive {
-  background: #fef9c3;
-  color: #854d0e;
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warning-400);
 }
 
 .badge--archived {
-  background: #f1f5f9;
-  color: #475569;
+  background: var(--hover-overlay);
+  color: var(--text-muted);
 }
 </style>

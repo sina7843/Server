@@ -57,25 +57,27 @@ function onTypeChange(e: Event) {
   flex: 1;
   min-width: 200px;
   padding: 0.6rem 1rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--glass-border-strong);
   border-radius: 0.5rem;
+  background: var(--surface-elevated);
+  color: var(--text-primary);
   font-size: 1rem;
   outline: none;
   transition: border-color 0.15s;
 }
 
 .search-form__input:focus {
-  border-color: #3b82f6;
+  border-color: var(--purple-500);
 }
 
 .search-form__type {
   padding: 0.6rem 0.85rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--glass-border-strong);
   border-radius: 0.5rem;
   font-size: 0.9rem;
-  background: #fff;
+  background: var(--surface-elevated);
   outline: none;
   cursor: pointer;
-  color: #374151;
+  color: var(--text-secondary);
 }
 </style>

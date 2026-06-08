@@ -173,10 +173,10 @@ await loadProfile();
 .avatar-upload-btn {
   display: inline-block;
   padding: 0.45rem 1rem;
-  border: 1px solid #3b82f6;
+  border: 1px solid var(--glass-border-strong);
   border-radius: 0.375rem;
-  background: #fff;
-  color: #3b82f6;
+  background: transparent;
+  color: var(--purple-300);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -184,7 +184,7 @@ await loadProfile();
 }
 
 .avatar-upload-btn:hover:not(.avatar-upload-btn--loading) {
-  background: #eff6ff;
+  background: rgba(109, 40, 217, 0.1);
 }
 
 .avatar-upload-btn--loading {
@@ -194,16 +194,16 @@ await loadProfile();
 
 .avatar-remove-btn {
   padding: 0.45rem 1rem;
-  border: 1px solid #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 0.375rem;
-  background: #fff;
-  color: #dc2626;
+  background: transparent;
+  color: var(--danger-400);
   font-size: 0.875rem;
   cursor: pointer;
 }
 
 .avatar-remove-btn:hover:not(:disabled) {
-  background: #fee2e2;
+  background: rgba(239, 68, 68, 0.08);
 }
 
 .avatar-remove-btn:disabled {
@@ -213,7 +213,7 @@ await loadProfile();
 
 .avatar-error {
   font-size: 0.8rem;
-  color: #dc2626;
+  color: var(--danger-400);
   margin: 0;
   width: 100%;
 }

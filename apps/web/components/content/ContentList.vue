@@ -21,10 +21,23 @@ defineProps<{
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
 }
 
 .content-list__item {
   display: block;
+}
+
+@media (min-width: 640px) {
+  .content-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .content-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 </style>

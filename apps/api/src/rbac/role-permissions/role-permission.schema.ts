@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument, SchemaTypes, Types } from 'mongoose';
 
 @Schema({
   collection: 'role_permissions',
@@ -8,10 +8,10 @@ import { HydratedDocument, Types } from 'mongoose';
 export class RolePermission {
   declare _id: Types.ObjectId;
 
-  @Prop({ required: true, type: Types.ObjectId })
+  @Prop({ required: true, type: SchemaTypes.ObjectId })
   declare roleId: Types.ObjectId;
 
-  @Prop({ required: true, type: Types.ObjectId })
+  @Prop({ required: true, type: SchemaTypes.ObjectId })
   declare permissionId: Types.ObjectId;
 
   declare createdAt: Date;

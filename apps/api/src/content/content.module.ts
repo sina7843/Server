@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AnalyticsModule } from '../analytics/analytics.module';
+import { ProfileModule } from '../profiles/profile.module';
+import { MediaModule } from '../media/media.module';
 import { Category, CategorySchema } from './categories/category.schema';
 import { CategoryRepository } from './categories/category.repository';
 import { CategoryService } from './categories/category.service';
@@ -31,6 +33,8 @@ import { PublicTagsController } from './public/public-tags.controller';
 @Module({
   imports: [
     AnalyticsModule,
+    ProfileModule,
+    MediaModule,
     MongooseModule.forFeature([
       { name: Category.name, schema: CategorySchema },
       { name: Tag.name, schema: TagSchema },

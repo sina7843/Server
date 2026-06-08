@@ -114,6 +114,40 @@
           </span>
         </template>
       </div>
+
+      <!-- Sub-route tab nav -->
+      <nav class="tournament-detail-page__tabs" aria-label="بخش‌های تورنمنت">
+        <NuxtLink
+          :to="`/tournaments/${tournament.slug}/participants`"
+          class="tournament-detail-page__tab"
+        >
+          شرکت‌کنندگان
+        </NuxtLink>
+        <NuxtLink
+          :to="`/tournaments/${tournament.slug}/matches`"
+          class="tournament-detail-page__tab"
+        >
+          مسابقات
+        </NuxtLink>
+        <NuxtLink
+          :to="`/tournaments/${tournament.slug}/results`"
+          class="tournament-detail-page__tab"
+        >
+          نتایج
+        </NuxtLink>
+        <NuxtLink
+          :to="`/tournaments/${tournament.slug}/standings`"
+          class="tournament-detail-page__tab"
+        >
+          جدول رده‌بندی
+        </NuxtLink>
+        <NuxtLink
+          :to="`/tournaments/${tournament.slug}/bracket`"
+          class="tournament-detail-page__tab"
+        >
+          براکت
+        </NuxtLink>
+      </nav>
     </template>
   </main>
 </template>
@@ -468,6 +502,45 @@ useHead(
 }
 
 .tournament-detail-page__cta-label--cancelled {
-  color: var(--color-danger);
+  color: var(--danger-500);
+}
+
+/* ── Sub-route tabs ── */
+.tournament-detail-page__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-10);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--glass-hairline);
+}
+
+.tournament-detail-page__tab {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-body-sm-size);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  text-decoration: none;
+  border: 1px solid var(--glass-border);
+  background: var(--hover-overlay);
+  transition:
+    color var(--motion-fast) var(--ease-out),
+    background var(--motion-fast) var(--ease-out),
+    border-color var(--motion-fast) var(--ease-out);
+}
+
+.tournament-detail-page__tab:hover {
+  color: var(--text-primary);
+  background: var(--hover-overlay-strong);
+  border-color: var(--glass-border-strong);
+}
+
+.tournament-detail-page__tab.router-link-active {
+  color: var(--purple-300);
+  background: rgba(109, 40, 217, 0.1);
+  border-color: rgba(109, 40, 217, 0.3);
 }
 </style>

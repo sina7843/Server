@@ -31,7 +31,7 @@
   transform: translateX(-50%);
   width: 600px;
   height: 600px;
-  background: radial-gradient(ellipse at center, rgba(124, 58, 237, 0.3), transparent 65%);
+  background: radial-gradient(ellipse at 50% 0%, rgba(109, 40, 217, 0.22), transparent 70%);
   filter: blur(40px);
   pointer-events: none;
 }

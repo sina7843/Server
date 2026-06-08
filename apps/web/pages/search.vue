@@ -79,15 +79,15 @@ onMounted(() => {
 
 <style scoped>
 .search-page {
-  max-width: 52rem;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+  padding: 40px 24px 80px;
 }
 
 .search-page__title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0 0 1.5rem;
-  color: #1e293b;
+  font-size: var(--text-h2-size);
+  font-weight: var(--weight-bold);
+  margin: 0 0 var(--space-6);
+  color: var(--text-primary);
 }
 </style>

@@ -97,13 +97,15 @@ function submit() {
 .profile-edit-form input,
 .profile-edit-form select,
 .profile-edit-form textarea {
-  border: 1px solid #d4d4d8;
+  border: 1px solid var(--glass-border-strong);
   border-radius: 0.5rem;
   padding: 0.65rem;
+  background: var(--surface-elevated);
+  color: var(--text-primary);
 }
 
 .profile-edit-form span {
-  color: #b91c1c;
+  color: var(--danger-400);
   font-size: 0.875rem;
 }
 </style>

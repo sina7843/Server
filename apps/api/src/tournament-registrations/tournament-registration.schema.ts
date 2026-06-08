@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument, SchemaTypes, Types } from 'mongoose';
 import type { TournamentRegistrationStatus, TournamentRegistrationType } from '@dragon/types';
 
 const REGISTRATION_STATUSES: TournamentRegistrationStatus[] = [
@@ -32,7 +32,7 @@ export const RegistrationMemberSchema = SchemaFactory.createForClass(Registratio
 export class TournamentRegistration {
   declare _id: Types.ObjectId;
 
-  @Prop({ required: true, type: Types.ObjectId })
+  @Prop({ required: true, type: SchemaTypes.ObjectId })
   declare tournamentId: Types.ObjectId;
 
   @Prop({ required: true, trim: true })

@@ -315,8 +315,8 @@ onMounted(reload);
 }
 
 .badge--skipped {
-  background-color: #f5f3ff;
-  color: #7c3aed;
+  background-color: rgba(109, 40, 217, 0.15);
+  color: var(--purple-300);
 }
 
 .detail-link {

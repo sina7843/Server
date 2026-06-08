@@ -1,80 +1,81 @@
+import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { PHASE1_DEV_SEED_ACCOUNTS, PHASE1_DEV_SEED_PASSWORD } from './phase1-dev-seed.constants';
 import { Phase1DevSeedModule } from './phase1-dev-seed.module';
 import { Phase1DevSeedService } from './phase1-dev-seed.service';
+import { loadLocalEnv } from './load-local-env';
+import { DEV_TEST_ACCOUNTS, DEFAULT_DEV_SEED_PASSWORD } from './phase1-dev-seed.constants';
 
-interface SafeLogger {
-  readonly log: (message: string) => void;
-  readonly error: (message: string) => void;
+interface SeedServiceLike {
+  runSeed(): Promise<unknown>;
 }
-
-interface SeedCommandEnv {
-  readonly CI?: string;
-  readonly DRAGON_DEV_SEED_PASSWORD?: string;
-  readonly DRAGON_PRINT_SEED_CREDENTIALS?: string;
+interface ConsoleLike {
+  log(msg: string): void;
+  error(msg: string): void;
 }
 
 export async function runPhase1DevSeedCommand(
-  service: Pick<Phase1DevSeedService, 'runSeed'>,
-  logger: SafeLogger = console,
-  // process.env is compatible at runtime even though exactOptionalPropertyTypes
-  // prevents a direct structural assignment — we assert here for the default only.
-  env: SeedCommandEnv = process.env as SeedCommandEnv,
+  seedService: SeedServiceLike,
+  out: ConsoleLike,
+  env: Partial<Record<string, string>>,
 ): Promise<number> {
   try {
-    const result = await service.runSeed();
+    await seedService.runSeed();
+    out.log('Development seed completed.');
 
-    // Resolve effective password: env override takes precedence over compile-time default.
-    // This lets developers set DRAGON_DEV_SEED_PASSWORD without rebuilding the image.
-    const effectivePassword = env.DRAGON_DEV_SEED_PASSWORD ?? PHASE1_DEV_SEED_PASSWORD;
+    const password = env.DRAGON_DEV_SEED_PASSWORD ?? DEFAULT_DEV_SEED_PASSWORD;
+    const suppress = env.CI === 'true' && env.DRAGON_PRINT_SEED_CREDENTIALS !== 'true';
 
-    // In CI environments, suppress credential printing by default to avoid leaking test
-    // passwords into shared build logs. Set DRAGON_PRINT_SEED_CREDENTIALS=true to override.
-    const isCI = Boolean(env.CI);
-    const printCredentials = !isCI || env.DRAGON_PRINT_SEED_CREDENTIALS === 'true';
-
-    logger.log('Development seed completed.');
-    logger.log('');
-    logger.log('Test accounts:');
-
-    if (printCredentials) {
-      PHASE1_DEV_SEED_ACCOUNTS.forEach((account, index) => {
-        logger.log(`${index + 1}. ${account.label}`);
-        logger.log(`   Email: ${account.email}`);
-        logger.log(`   Phone: ${account.phone}`);
-        logger.log(`   Password: ${effectivePassword}`);
-        logger.log('');
-      });
+    if (suppress) {
+      out.log('Credentials suppressed in CI. Set DRAGON_PRINT_SEED_CREDENTIALS=true to print.');
     } else {
-      PHASE1_DEV_SEED_ACCOUNTS.forEach((account, index) => {
-        logger.log(`${index + 1}. ${account.label} — ${account.email} / ${account.phone}`);
-      });
-      logger.log('');
-      logger.log('Credential printing suppressed in CI. Set DRAGON_PRINT_SEED_CREDENTIALS=true to show passwords.');
-      logger.log('');
+      for (const account of DEV_TEST_ACCOUNTS) {
+        out.log(`   Email: ${account.email}`);
+        out.log(`   Phone: ${account.phone}`);
+        out.log(`   Password: ${password}`);
+      }
     }
-
-    logger.log('Seed summary:');
-    logger.log(JSON.stringify(result, null, 2));
     return 0;
-  } catch (error) {
-    logger.error(error instanceof Error ? error.message : 'Development seed failed.');
+  } catch (err) {
+    out.error(err instanceof Error ? err.message : String(err));
     return 1;
   }
 }
 
-async function bootstrap(): Promise<void> {
-  const appContext = await NestFactory.createApplicationContext(Phase1DevSeedModule, {
+async function main(): Promise<void> {
+  loadLocalEnv();
+
+  const logger = new Logger('Phase1DevSeed');
+  const app = await NestFactory.createApplicationContext(Phase1DevSeedModule, {
     logger: ['error', 'warn', 'log'],
   });
 
   try {
-    process.exitCode = await runPhase1DevSeedCommand(appContext.get(Phase1DevSeedService));
+    const service = app.get(Phase1DevSeedService);
+    const result = await service.runSeed();
+
+    logger.log(`Phase 1 dev seed completed. batch=${result.batch}`);
+    logger.log('Seeded collections:');
+    for (const [name, count] of Object.entries(result.counts)) {
+      logger.log(`- ${name}: ${count}`);
+    }
+
+    if (process.env.CI === 'true') {
+      logger.log('Local test credentials were not printed because CI=true.');
+    } else {
+      logger.log('Local test credentials:');
+      for (const credential of result.credentials) {
+        logger.log(
+          `- ${credential.purpose}: email=${credential.email} phone=${credential.phone} password=${credential.password} roles=${credential.roles.join(',')} status=${credential.status}`,
+        );
+      }
+    }
   } finally {
-    await appContext.close();
+    await app.close();
   }
 }
 
-if (require.main === module) {
-  void bootstrap();
-}
+void main().catch((error: unknown) => {
+  const logger = new Logger('Phase1DevSeed');
+  logger.error(error instanceof Error ? error.message : String(error));
+  process.exitCode = 1;
+});

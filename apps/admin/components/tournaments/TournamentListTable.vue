@@ -68,54 +68,67 @@ const emit = defineEmits<{
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-size: 13.5px;
 }
 
 .th {
-  padding: 0.6rem 0.85rem;
+  padding: 10px 14px;
   text-align: right;
+  font-size: 11px;
   font-weight: 600;
-  color: #374151;
-  border-bottom: 2px solid #e2e8f0;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-family: var(--font-sans-en);
+  border-bottom: 1px solid var(--border-default);
   white-space: nowrap;
+  background: var(--hover-overlay);
 }
 
 .th--actions {
   text-align: center;
 }
 
+.tr {
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background var(--motion-fast);
+}
+
+.tr:last-child {
+  border-bottom: 0;
+}
+
 .tr:hover {
-  background: #f8fafc;
+  background: var(--hover-overlay);
 }
 
 .td {
-  padding: 0.65rem 0.85rem;
-  border-bottom: 1px solid #e2e8f0;
-  color: #1e293b;
+  padding: 12px 14px;
+  color: var(--text-secondary);
   vertical-align: middle;
 }
 
 .td--title {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 2px;
 }
 
 .title-link {
   font-weight: 500;
-  color: #1e293b;
+  color: var(--text-primary);
   text-decoration: none;
+  transition: color var(--motion-fast);
 }
 
 .title-link:hover {
-  color: #3b82f6;
-  text-decoration: underline;
+  color: var(--purple-300);
 }
 
 .td--slug {
-  color: #64748b;
-  font-size: 0.75rem;
-  font-family: monospace;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: var(--font-mono);
 }
 
 .td--actions {
@@ -124,33 +137,43 @@ const emit = defineEmits<{
 }
 
 .action-btn {
-  padding: 0.3rem 0.7rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.375rem;
-  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-default);
+  background: var(--hover-overlay);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s;
-  background: #fff;
-  margin-inline-start: 0.3rem;
   text-decoration: none;
-  display: inline-block;
+  transition: all var(--motion-fast);
+  margin-inline-start: 4px;
+  color: var(--text-secondary);
 }
 
 .action-btn--edit {
-  color: #3b82f6;
+  color: var(--purple-400);
+  border-color: rgba(109, 40, 217, 0.3);
+  background: rgba(109, 40, 217, 0.08);
 }
 
 .action-btn--edit:hover {
-  background: #eff6ff;
-  border-color: #bfdbfe;
+  background: rgba(109, 40, 217, 0.18);
+  border-color: rgba(109, 40, 217, 0.5);
+  color: var(--purple-300);
 }
 
 .action-btn--delete {
-  color: #ef4444;
+  color: var(--danger-400);
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.06);
 }
 
 .action-btn--delete:hover {
-  background: #fef2f2;
-  border-color: #fecaca;
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.5);
 }
 </style>

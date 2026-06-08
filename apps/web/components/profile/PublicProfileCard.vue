@@ -27,7 +27,7 @@ defineProps<{
 
 <style scoped>
 .public-profile-card {
-  border: 1px solid #e4e4e7;
+  border: 1px solid var(--glass-border-strong);
   border-radius: 1rem;
   display: grid;
   gap: 1rem;
@@ -35,6 +35,7 @@ defineProps<{
   margin: 2rem auto;
   max-width: 48rem;
   padding: 1.5rem;
+  background: var(--surface-card);
 }
 
 .public-profile-card__header {
@@ -45,10 +46,11 @@ defineProps<{
 
 .public-profile-card__username,
 .public-profile-card__url {
-  color: #52525b;
+  color: var(--text-muted);
 }
 
 .public-profile-card__bio {
   line-height: 1.6;
+  color: var(--text-secondary);
 }
 </style>

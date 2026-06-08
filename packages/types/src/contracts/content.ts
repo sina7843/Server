@@ -39,6 +39,9 @@ export interface PublicPostDto {
   readonly bodyHtml: string;
   readonly categoryIds: readonly string[];
   readonly tagIds: readonly string[];
+  readonly viewCount: number;
+  readonly authorName?: string;
+  readonly coverImageUrl?: string;
   readonly seo: ContentSeoDto;
   readonly publishedAt: string;
   readonly createdAt: string;

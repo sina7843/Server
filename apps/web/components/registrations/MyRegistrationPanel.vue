@@ -65,8 +65,8 @@ const canEdit = computed(() => props.registration.type === 'team' && canWithdraw
   display: grid;
   gap: 1.25rem;
   padding: 1.5rem;
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-card);
+  border: 1px solid var(--glass-border-strong);
   border-radius: 0.5rem;
 }
 
@@ -92,7 +92,7 @@ const canEdit = computed(() => props.registration.type === 'team' && canWithdraw
 
 .registration-details dt {
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 0.875rem;
 }
 
@@ -115,30 +115,30 @@ const canEdit = computed(() => props.registration.type === 'team' && canWithdraw
 .edit-btn {
   align-self: start;
   padding: 0.45rem 1rem;
-  background: #fff;
-  color: #2563eb;
-  border: 1px solid #93c5fd;
+  background: transparent;
+  color: var(--purple-300);
+  border: 1px solid var(--glass-border-strong);
   border-radius: 0.375rem;
   cursor: pointer;
   font-weight: 500;
 }
 
 .edit-btn:hover {
-  background: #eff6ff;
+  background: rgba(109, 40, 217, 0.1);
 }
 
 .withdraw-btn {
   align-self: start;
   padding: 0.45rem 1rem;
-  background: #fff;
-  color: #dc2626;
-  border: 1px solid #fca5a5;
+  background: transparent;
+  color: var(--danger-400);
+  border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 0.375rem;
   cursor: pointer;
   font-weight: 500;
 }
 
 .withdraw-btn:hover {
-  background: #fee2e2;
+  background: rgba(239, 68, 68, 0.08);
 }
 </style>

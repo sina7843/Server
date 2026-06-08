@@ -1,13 +1,28 @@
 <template>
   <aside class="sidebar">
+    <!-- Brand -->
     <div class="sidebar-brand">
-      <div class="brand-mark">D</div>
+      <div class="brand-mark">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" />
+        </svg>
+      </div>
       <div class="brand-text">
         <span class="brand-name">DRAGON</span>
-        <span class="brand-sub">Admin Console</span>
+        <span class="brand-sub font-en">Admin Console</span>
       </div>
     </div>
 
+    <!-- Navigation -->
     <nav class="sidebar-nav" aria-label="ناوبری اصلی">
       <div v-for="section in navSections" :key="section.label" class="nav-section">
         <div class="nav-section-label">{{ section.label }}</div>
@@ -15,17 +30,18 @@
       </div>
     </nav>
 
+    <!-- User footer -->
     <div class="sidebar-foot">
       <div class="user-row">
-        <div class="dr-avatar dr-avatar-sm">{{ userInitial }}</div>
+        <div class="dr-avatar dr-avatar-sm user-avatar">{{ userInitial }}</div>
         <div class="user-info">
           <div class="user-name">{{ displayName || 'Admin' }}</div>
           <div class="user-role">مدیر سیستم</div>
         </div>
         <button class="logout-btn" type="button" aria-label="خروج" @click="handleLogout">
           <svg
-            width="16"
-            height="16"
+            width="15"
+            height="15"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -72,7 +88,10 @@ const navSections = computed(() => {
   const content = all.filter((i) => contentKeys.includes(i.key));
   const system = all.filter((i) => systemKeys.includes(i.key));
   const rest = all.filter(
-    (i) => !mainKeys.includes(i.key) && !contentKeys.includes(i.key) && !systemKeys.includes(i.key),
+    (i) =>
+      !mainKeys.includes(i.key) &&
+      !contentKeys.includes(i.key) &&
+      !systemKeys.includes(i.key),
   );
 
   const sections = [];
@@ -86,7 +105,7 @@ const navSections = computed(() => {
 
 <style scoped>
 .sidebar {
-  width: 280px;
+  width: 272px;
   min-height: 100vh;
   background: var(--glass-sidebar);
   backdrop-filter: blur(28px) saturate(160%);
@@ -100,12 +119,14 @@ const navSections = computed(() => {
   z-index: var(--z-sticky);
 }
 
+/* ── Brand ── */
 .sidebar-brand {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 20px 20px 18px;
-  border-bottom: 1px solid var(--glass-border);
+  padding: 20px 18px 18px;
+  border-bottom: 1px solid var(--glass-hairline);
+  background: linear-gradient(180deg, rgba(109, 40, 217, 0.08), transparent);
 }
 
 .brand-mark {
@@ -116,12 +137,21 @@ const navSections = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 16px;
   color: #fff;
-  box-shadow: var(--glow-primary);
+  box-shadow:
+    var(--glow-primary),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
   flex-shrink: 0;
+  transition:
+    box-shadow var(--motion-fast),
+    transform var(--motion-fast) var(--ease-spring);
+}
+
+.brand-mark:hover {
+  box-shadow:
+    var(--glow-primary-strong),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  transform: scale(1.04);
 }
 
 .brand-name {
@@ -129,56 +159,67 @@ const navSections = computed(() => {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 13px;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.04em;
   color: var(--text-primary);
 }
 
 .brand-sub {
   display: block;
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--text-muted);
-  font-family: var(--font-sans-en);
   margin-top: 1px;
+  letter-spacing: 0.02em;
 }
 
+/* ── Navigation ── */
 .sidebar-nav {
   flex: 1;
-  padding: 16px 12px;
+  padding: 14px 10px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
 }
 
 .nav-section {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .nav-section-label {
-  padding: 6px 12px;
-  font-size: 10px;
-  letter-spacing: 0.08em;
+  padding: 4px 12px 6px;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-disabled);
   font-family: var(--font-sans-en);
   font-weight: 600;
-  margin-bottom: 4px;
 }
 
+/* ── User footer ── */
 .sidebar-foot {
-  padding: 12px;
-  border-top: 1px solid var(--glass-border);
+  padding: 10px;
+  border-top: 1px solid var(--glass-hairline);
 }
 
 .user-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px;
-  border-radius: 10px;
-  background: var(--input-bg);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--hover-overlay);
+  border: 1px solid var(--glass-border);
+  transition: background var(--motion-fast);
+}
+
+.user-row:hover {
+  background: var(--hover-overlay-strong);
+}
+
+.user-avatar {
+  flex-shrink: 0;
 }
 
 .user-info {
@@ -202,25 +243,28 @@ const navSections = computed(() => {
 }
 
 .logout-btn {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: var(--radius-xs);
   border: 0;
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 120ms var(--ease-out);
+  transition:
+    background var(--motion-fast),
+    color var(--motion-fast);
   flex-shrink: 0;
 }
 
 .logout-btn:hover {
-  background: var(--hover-overlay);
+  background: rgba(239, 68, 68, 0.12);
   color: var(--danger-400);
 }
 
+/* ── Mobile ── */
 @media (max-width: 768px) {
   .sidebar {
     width: 100%;

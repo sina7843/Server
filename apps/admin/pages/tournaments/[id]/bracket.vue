@@ -1,9 +1,6 @@
 <template>
   <div class="page">
-    <div class="page-header">
-      <NuxtLink :to="`/tournaments/${tournamentId}`" class="back-link">← جزئیات تورنمنت</NuxtLink>
-      <h1 class="page-title">نمای درختی مسابقات</h1>
-    </div>
+    <TournamentNavBar />
 
     <UnauthorizedState v-if="!accessToken" />
 
@@ -114,28 +111,6 @@ onMounted(() => {
   max-width: 1200px;
 }
 
-.page-header {
-  margin-block-end: 1.25rem;
-}
-
-.back-link {
-  font-size: 0.85rem;
-  color: #3b82f6;
-  text-decoration: none;
-  display: inline-block;
-  margin-block-end: 0.4rem;
-}
-
-.back-link:hover {
-  text-decoration: underline;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #1e293b;
-}
 
 .meta-row {
   display: flex;

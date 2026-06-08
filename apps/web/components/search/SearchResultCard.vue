@@ -61,7 +61,7 @@ function formatDate(iso: string): string {
 
 <style scoped>
 .search-result-card {
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--glass-hairline);
   padding: 1.25rem 0;
 }
 
@@ -76,8 +76,8 @@ function formatDate(iso: string): string {
 .search-result-card__type {
   display: inline-block;
   padding: 0.15rem 0.55rem;
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: rgba(109, 40, 217, 0.15);
+  color: var(--purple-300);
   border-radius: 0.25rem;
   font-size: 0.75rem;
   font-weight: 600;
@@ -90,16 +90,16 @@ function formatDate(iso: string): string {
 }
 
 .search-result-card__link {
-  color: #1e293b;
+  color: var(--text-primary);
   text-decoration: none;
 }
 
 .search-result-card__link:hover {
-  color: #2563eb;
+  color: var(--purple-300);
 }
 
 .search-result-card__excerpt {
-  color: #475569;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   margin: 0 0 0.4rem;
   line-height: 1.6;
@@ -111,6 +111,6 @@ function formatDate(iso: string): string {
 
 .search-result-card__date {
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 </style>

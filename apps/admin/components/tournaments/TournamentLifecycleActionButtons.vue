@@ -156,52 +156,60 @@ const emit = defineEmits<{
 .lifecycle-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .action-btn {
-  padding: 0.45rem 1rem;
-  border: none;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    opacity 0.15s,
-    background 0.15s;
   display: inline-flex;
   align-items: center;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--motion-fast);
 }
 
 .action-btn:disabled {
-  opacity: 0.55;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
 .action-btn--primary {
-  background: #3b82f6;
+  background: var(--purple-500);
   color: #fff;
+  box-shadow:
+    0 6px 20px -6px rgba(109, 40, 217, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .action-btn--primary:not(:disabled):hover {
-  background: #2563eb;
+  background: var(--purple-400);
 }
 
 .action-btn--warning {
-  background: #ef4444;
+  background: var(--danger-500);
   color: #fff;
+  box-shadow:
+    0 6px 18px -6px rgba(239, 68, 68, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .action-btn--warning:not(:disabled):hover {
-  background: #dc2626;
+  background: var(--danger-400);
 }
 
 .action-btn--neutral {
-  background: #64748b;
-  color: #fff;
+  background: var(--hover-overlay);
+  color: var(--text-secondary);
+  border-color: var(--border-default);
 }
 
 .action-btn--neutral:not(:disabled):hover {
-  background: #475569;
+  background: var(--hover-overlay-strong);
+  color: var(--text-primary);
 }
 </style>

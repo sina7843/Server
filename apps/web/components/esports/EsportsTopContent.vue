@@ -1,8 +1,10 @@
 <template>
   <section v-if="posts.length > 0" class="esports-top" aria-label="محتوای برتر">
     <div class="esports-top__header">
-      <span class="dr-label">Top</span>
-      <h2 class="esports-top__heading">محتوای برتر</h2>
+      <div class="esports-top__title-group">
+        <span class="dr-label">Top</span>
+        <h2 class="esports-top__heading">محتوای برتر</h2>
+      </div>
     </div>
     <div class="esports-top__grid">
       <ContentCard
@@ -41,10 +43,16 @@ function getBasePath(type: string): string {
 }
 
 .esports-top__header {
+  margin-bottom: var(--space-6);
+}
+
+.esports-top__title-group {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  margin-bottom: var(--space-6);
+  padding-right: var(--space-4);
+  border-right: 3px solid rgba(245, 158, 11, 0.7);
+  width: fit-content;
 }
 
 .esports-top__heading {

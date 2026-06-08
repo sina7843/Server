@@ -16,7 +16,7 @@ export class PublicNewsController {
 
   @Get(':slug')
   async getNewsPost(@Param('slug') slug: string): Promise<PublicPostResponse> {
-    const post = await this.service.getPublished('news', slug);
-    return toPublicPostResponse(post);
+    const enriched = await this.service.getPublished('news', slug);
+    return toPublicPostResponse(enriched);
   }
 }

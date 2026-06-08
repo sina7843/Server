@@ -1,1 +1,4 @@
 apps/api/src/dev-seeds/phase1-dev-seed.safety.ts
+apps/api/src/dev-seeds/run-phase1-dev-seed.ts
+apps/api/src/dev-seeds/run-phase1-dev-seed-reset.ts
+apps/api/src/dev-seeds/phase1-dev-seed.safety.spec.ts

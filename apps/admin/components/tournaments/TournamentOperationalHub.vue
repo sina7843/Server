@@ -1,20 +1,5 @@
 <template>
   <div class="hub">
-    <!-- Header -->
-    <div class="hub-header">
-      <div class="hub-title-row">
-        <h1 class="hub-title">{{ tournament.title }}</h1>
-        <TournamentStatusBadge :status="tournament.status" />
-      </div>
-      <div class="hub-meta-row">
-        <TournamentFormatBadge :format="tournament.format" />
-        <span class="meta-cap">ظرفیت: {{ tournament.capacity }}</span>
-        <span v-if="tournament.startsAt" class="meta-date">
-          شروع: {{ formatDate(tournament.startsAt) }}
-        </span>
-      </div>
-    </div>
-
     <!-- Action error -->
     <div v-if="actionError" class="action-error" role="alert">
       {{ actionError }}
@@ -79,55 +64,6 @@
           <dd class="detail-value">{{ formatDate(tournament.updatedAt) }}</dd>
         </div>
       </dl>
-    </div>
-
-    <!-- Operation routes -->
-    <div class="hub-section">
-      <h2 class="section-title">عملیات تورنمنت</h2>
-      <div class="op-grid">
-        <NuxtLink
-          v-if="canReadRegistrations"
-          :to="`/tournaments/${tournament.id}/registrations`"
-          class="op-link"
-        >
-          ثبت‌نام‌ها
-        </NuxtLink>
-        <NuxtLink
-          v-if="canReadParticipants"
-          :to="`/tournaments/${tournament.id}/participants`"
-          class="op-link"
-        >
-          شرکت‌کنندگان
-        </NuxtLink>
-        <NuxtLink
-          v-if="canReadMatches"
-          :to="`/tournaments/${tournament.id}/matches`"
-          class="op-link"
-        >
-          مسابقات
-        </NuxtLink>
-        <NuxtLink
-          v-if="canReadMatches"
-          :to="`/tournaments/${tournament.id}/results`"
-          class="op-link"
-        >
-          نتایج
-        </NuxtLink>
-        <NuxtLink
-          v-if="canReadMatches"
-          :to="`/tournaments/${tournament.id}/standings`"
-          class="op-link"
-        >
-          جدول امتیازات
-        </NuxtLink>
-        <NuxtLink
-          v-if="canReadMatches"
-          :to="`/tournaments/${tournament.id}/bracket`"
-          class="op-link"
-        >
-          نمای درختی
-        </NuxtLink>
-      </div>
     </div>
 
     <!-- Management actions -->
@@ -207,11 +143,6 @@ const canCancel = computed(() => hasPermission(Permissions.TOURNAMENT_CANCEL));
 const canArchive = computed(() => hasPermission(Permissions.TOURNAMENT_ARCHIVE));
 const canUpdate = computed(() => hasPermission(Permissions.TOURNAMENT_UPDATE));
 const canDelete = computed(() => hasPermission(Permissions.TOURNAMENT_ARCHIVE));
-const canReadRegistrations = computed(() =>
-  hasPermission(Permissions.TOURNAMENT_REGISTRATION_READ),
-);
-const canReadParticipants = computed(() => hasPermission(Permissions.TOURNAMENT_PARTICIPANT_READ));
-const canReadMatches = computed(() => hasPermission(Permissions.TOURNAMENT_MATCH_READ));
 
 const deleteDialogOpen = ref(false);
 const pendingAction = ref<LifecycleAction | null>(null);
@@ -289,177 +220,131 @@ function formatDate(iso: string): string {
 .hub {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-}
-
-.hub-header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.hub-title-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.hub-title {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.hub-meta-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.meta-cap,
-.meta-date {
-  font-size: 0.85rem;
-  color: #64748b;
+  gap: 20px;
 }
 
 .action-error {
-  font-size: 0.875rem;
-  color: #dc2626;
-  background: #fee2e2;
-  padding: 0.6rem 0.85rem;
-  border-radius: 0.4rem;
+  font-size: 13.5px;
+  color: var(--danger-400);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
 }
 
 .hub-section {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: #f8fafc;
-  border-radius: 0.5rem;
-  border: 1px solid #e2e8f0;
+  gap: 12px;
+  padding: 18px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
 }
 
 .section-title {
   margin: 0;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #374151;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
+  font-family: var(--font-sans-en);
 }
 
 .terminal-note {
   margin: 0;
-  font-size: 0.85rem;
-  color: #64748b;
+  font-size: 13px;
+  color: var(--text-muted);
   font-style: italic;
 }
 
 .detail-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0;
   margin: 0;
   padding: 0;
 }
 
 .detail-row {
   display: flex;
-  gap: 0.5rem;
-  font-size: 0.875rem;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 13.5px;
+}
+
+.detail-row:last-child {
+  border-bottom: 0;
 }
 
 .detail-label {
   font-weight: 600;
-  color: #374151;
+  color: var(--text-secondary);
   min-width: 120px;
   flex-shrink: 0;
+  font-size: 13px;
 }
 
 .detail-value {
-  color: #475569;
+  color: var(--text-primary);
 }
 
 .detail-value--mono {
-  font-family: monospace;
-  color: #64748b;
-  font-size: 0.8rem;
-}
-
-.op-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.op-link {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.4rem 0.9rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-decoration: none;
-  background: #f0f9ff;
-  color: #0369a1;
-  border: 1px solid #bae6fd;
-  transition:
-    background 0.15s,
-    color 0.15s;
-}
-
-.op-link:hover {
-  background: #e0f2fe;
-  color: #0c4a6e;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .hub-management {
   flex-direction: row;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .mgmt-btn {
-  padding: 0.45rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    opacity 0.15s;
-  text-decoration: none;
   display: inline-flex;
   align-items: center;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--motion-fast);
+  text-decoration: none;
   border: 1px solid transparent;
+  font-family: inherit;
 }
 
 .mgmt-btn:disabled {
-  opacity: 0.55;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
 .mgmt-btn--edit {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border-color: #bfdbfe;
+  background: rgba(109, 40, 217, 0.1);
+  color: var(--purple-300);
+  border-color: rgba(109, 40, 217, 0.3);
 }
 
 .mgmt-btn--edit:hover {
-  background: #dbeafe;
+  background: rgba(109, 40, 217, 0.2);
+  border-color: rgba(109, 40, 217, 0.5);
 }
 
 .mgmt-btn--delete {
-  background: #fef2f2;
-  color: #991b1b;
-  border-color: #fecaca;
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--danger-400);
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
 .mgmt-btn--delete:not(:disabled):hover {
-  background: #fee2e2;
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.5);
 }
 </style>

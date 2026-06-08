@@ -49,99 +49,105 @@ const titleId = useId();
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(11, 8, 21, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-modal);
+  padding: 20px;
 }
 
 .dialog {
-  background: #fff;
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  max-width: 420px;
-  width: calc(100% - 2rem);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  background: var(--surface-card-solid);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: 26px;
+  max-width: 460px;
+  width: 100%;
+  box-shadow:
+    var(--shadow-xl),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .dialog-title {
-  margin: 0 0 0.5rem;
-  font-size: 1.05rem;
+  margin: 0 0 8px;
+  font-size: 17px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .dialog-desc {
-  margin: 0 0 1.25rem;
-  font-size: 0.9rem;
-  color: #475569;
+  margin: 0 0 22px;
+  font-size: 14px;
+  color: var(--text-secondary);
   line-height: 1.6;
 }
 
 .dialog-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 10px;
   justify-content: flex-end;
 }
 
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 1.1rem;
-  border: none;
-  border-radius: 0.5rem;
-  font-size: 0.9rem;
+  gap: 6px;
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
   font-weight: 600;
+  font-family: inherit;
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition: all var(--motion-fast);
 }
 
 .btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .btn-cancel {
-  background: #f1f5f9;
-  color: #475569;
+  background: var(--hover-overlay);
+  border-color: var(--border-default);
+  color: var(--text-secondary);
 }
 
 .btn-cancel:not(:disabled):hover {
-  background: #e2e8f0;
+  background: var(--hover-overlay-strong);
+  color: var(--text-primary);
 }
 
 .btn-confirm {
-  background: #3b82f6;
+  background: var(--purple-500);
   color: #fff;
+  box-shadow: 0 6px 20px -6px rgba(109, 40, 217, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .btn-confirm:not(:disabled):hover {
-  background: #2563eb;
+  background: var(--purple-400);
 }
 
 .btn-destructive {
-  background: #ef4444;
+  background: var(--danger-500);
   color: #fff;
+  box-shadow: var(--glow-danger);
 }
 
 .btn-destructive:not(:disabled):hover {
-  background: #dc2626;
+  background: var(--danger-400);
 }
 
 .btn-spinner {
-  width: 0.85rem;
-  height: 0.85rem;
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
   border-top-color: #fff;
   border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  animation: dr-spin 0.7s linear infinite;
 }
 </style>

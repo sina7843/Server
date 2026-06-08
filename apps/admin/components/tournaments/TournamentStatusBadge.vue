@@ -23,50 +23,52 @@ const LABELS: Record<TournamentStatus, string> = {
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.2rem 0.6rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .badge--draft {
-  background: #f1f5f9;
-  color: #475569;
+  background: var(--hover-overlay);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
 }
 
 .badge--published {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--info-400);
 }
 
 .badge--registration_open {
-  background: #dcfce7;
-  color: #166534;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success-400);
 }
 
 .badge--registration_closed {
-  background: #fef9c3;
-  color: #854d0e;
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warning-400);
 }
 
 .badge--in_progress {
-  background: #ede9fe;
-  color: #5b21b6;
+  background: rgba(109, 40, 217, 0.18);
+  color: var(--purple-300);
 }
 
 .badge--completed {
-  background: #d1fae5;
-  color: #065f46;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success-400);
 }
 
 .badge--cancelled {
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger-400);
 }
 
 .badge--archived {
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--hover-overlay);
+  color: var(--text-muted);
 }
 </style>

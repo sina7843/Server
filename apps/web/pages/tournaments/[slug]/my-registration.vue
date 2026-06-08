@@ -44,7 +44,7 @@
 import type { MyTournamentRegistrationDto, TeamRegistrationMemberDto } from '@dragon/types';
 import type { MyRegistrationPageState } from '../../../features/registrations/registration.types';
 
-definePageMeta({});
+definePageMeta({ ssr: false });
 
 useHead({
   title: 'My Registration',
@@ -129,13 +129,13 @@ await load();
 .my-registration-page {
   display: grid;
   gap: 1.5rem;
-  margin: 2rem auto;
+  margin: 0 auto;
   max-width: 40rem;
-  padding: 0 1rem;
+  padding: 40px 24px 80px;
 }
 
 .page-loading {
-  color: #6b7280;
+  color: var(--text-muted);
   text-align: center;
   padding: 2rem;
 }
@@ -144,21 +144,21 @@ await load();
 .withdrawn-message {
   padding: 1.5rem;
   text-align: center;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-elevated);
+  border: 1px solid var(--glass-border-strong);
   border-radius: 0.5rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .not-found-message a {
   display: block;
   margin-top: 0.75rem;
-  color: #2563eb;
+  color: var(--purple-300);
   font-weight: 500;
 }
 
 .page-error {
-  color: #dc2626;
+  color: var(--danger-400);
   text-align: center;
 }
 </style>

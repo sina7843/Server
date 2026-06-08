@@ -1,14 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument, SchemaTypes, Types } from 'mongoose';
 
 @Schema({ collection: 'user_roles', timestamps: true })
 export class UserRole {
   declare _id: Types.ObjectId;
 
-  @Prop({ required: true, type: Types.ObjectId })
+  @Prop({ required: true, type: SchemaTypes.ObjectId })
   declare userId: Types.ObjectId;
 
-  @Prop({ required: true, type: Types.ObjectId })
+  @Prop({ required: true, type: SchemaTypes.ObjectId })
   declare roleId: Types.ObjectId;
 
   @Prop({ trim: true })
@@ -17,7 +17,7 @@ export class UserRole {
   @Prop({ trim: true })
   declare scopeId?: string;
 
-  @Prop({ type: Types.ObjectId })
+  @Prop({ type: SchemaTypes.ObjectId })
   declare assignedBy?: Types.ObjectId;
 
   @Prop({ required: true, default: Date.now })

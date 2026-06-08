@@ -18,6 +18,11 @@ export class MediaAssetRepository {
     return this.model.findById(id).exec();
   }
 
+  findManyByIds(ids: Types.ObjectId[]): Promise<MediaAssetDocument[]> {
+    if (!ids.length) return Promise.resolve([]);
+    return this.model.find({ _id: { $in: ids } }).exec();
+  }
+
   async create(input: CreateMediaAssetInput): Promise<MediaAssetDocument> {
     const doc = new this.model({
       originalName: input.originalName,

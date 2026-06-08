@@ -4,7 +4,7 @@
       <div class="page-meta">
         <nav class="breadcrumb" aria-label="مسیر">
           <NuxtLink to="/dashboard" class="crumb-link">داشبورد</NuxtLink>
-          <span class="crumb-sep">
+          <span class="crumb-sep" aria-hidden="true">
             <svg
               width="12"
               height="12"
@@ -25,28 +25,47 @@
     </div>
 
     <div class="topbar-end">
-      <div class="search-box" role="button" tabindex="0" @click="$emit('search')">
+      <!-- Search -->
+      <div
+        class="search-box"
+        role="button"
+        tabindex="0"
+        aria-label="جستجو در سیستم"
+        @click="$emit('search')"
+        @keydown.enter="$emit('search')"
+        @keydown.space.prevent="$emit('search')"
+      >
         <svg
           class="search-icon"
-          width="16"
-          height="16"
+          width="15"
+          height="15"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
+          aria-hidden="true"
         >
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
         <span class="search-placeholder">جستجو در سیستم…</span>
+        <kbd class="search-kbd">⌘K</kbd>
       </div>
 
-      <button class="icon-btn" aria-label="اعلان‌ها" type="button">
+      <!-- Theme toggle -->
+      <button
+        class="icon-btn"
+        :aria-label="theme === 'dark' ? 'تغییر به حالت روشن' : 'تغییر به حالت تاریک'"
+        type="button"
+        @click="toggleTheme"
+      >
+        <!-- Sun — shown in dark mode -->
         <svg
-          width="18"
-          height="18"
+          v-if="theme === 'dark'"
+          width="17"
+          height="17"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -54,14 +73,35 @@
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          <circle cx="12" cy="12" r="5" />
+          <line x1="12" y1="1" x2="12" y2="3" />
+          <line x1="12" y1="21" x2="12" y2="23" />
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+          <line x1="1" y1="12" x2="3" y2="12" />
+          <line x1="21" y1="12" x2="23" y2="12" />
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
         </svg>
-        <span class="notif-dot" />
+        <!-- Moon — shown in light mode -->
+        <svg
+          v-else
+          width="17"
+          height="17"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
       </button>
 
-      <div class="topbar-divider" />
+      <div class="topbar-divider" aria-hidden="true" />
 
+      <!-- User chip -->
       <div class="user-chip">
         <div class="dr-avatar dr-avatar-sm">{{ userInitial }}</div>
         <span class="user-chip-name">{{ displayName }}</span>
@@ -74,10 +114,12 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAdminAuth } from '~/composables/useAdminAuth';
+import { useTheme } from '~/composables/useTheme';
 
 defineEmits<{ search: [] }>();
 
 const { displayName } = useAdminAuth();
+const { theme, toggleTheme } = useTheme();
 const route = useRoute();
 
 const userInitial = computed(() =>
@@ -114,19 +156,14 @@ const pageTitle = computed(
   backdrop-filter: blur(28px) saturate(160%);
   -webkit-backdrop-filter: blur(28px) saturate(160%);
   border-bottom: 1px solid var(--glass-hairline);
-  padding: 0 32px;
+  padding: 0 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 20px;
 }
 
-.topbar-start {
-}
-
-.page-meta {
-}
-
+/* ── Page meta ── */
 .breadcrumb {
   display: flex;
   align-items: center;
@@ -139,8 +176,9 @@ const pageTitle = computed(
 .crumb-link {
   color: var(--text-muted);
   text-decoration: none;
-  transition: color 120ms;
+  transition: color var(--motion-fast);
 }
+
 .crumb-link:hover {
   color: var(--text-secondary);
 }
@@ -152,44 +190,48 @@ const pageTitle = computed(
 }
 
 .crumb-current {
-  color: var(--text-primary);
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .page-title {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
 }
 
+/* ── Right side ── */
 .topbar-end {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .search-box {
   height: 36px;
-  width: 240px;
-  padding: 0 12px;
+  width: 220px;
+  padding: 0 10px 0 12px;
   background: var(--input-bg);
   border: 1px solid var(--glass-border);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   cursor: pointer;
   transition:
-    border-color 120ms var(--ease-out),
-    box-shadow 120ms;
+    border-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast);
 }
+
 .search-box:hover {
   border-color: var(--glass-border-strong);
 }
-.search-box:focus {
+
+.search-box:focus-visible {
   outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
 }
 
 .search-icon {
@@ -200,8 +242,18 @@ const pageTitle = computed(
 .search-placeholder {
   font-size: 13px;
   color: var(--text-muted);
-  font-family: inherit;
   flex: 1;
+}
+
+.search-kbd {
+  font-size: 11px;
+  color: var(--text-disabled);
+  background: var(--hover-overlay);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
 }
 
 .icon-btn {
@@ -210,53 +262,57 @@ const pageTitle = computed(
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  border: 0;
-  background: transparent;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background: var(--hover-overlay);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 120ms var(--ease-out);
-  position: relative;
-}
-.icon-btn:hover {
-  background: var(--hover-overlay);
-  color: var(--text-primary);
+  transition:
+    background var(--motion-fast),
+    color var(--motion-fast),
+    border-color var(--motion-fast),
+    transform var(--motion-fast) var(--ease-spring);
 }
 
-.notif-dot {
-  position: absolute;
-  top: 7px;
-  right: 7px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #ef4444;
-  box-shadow: 0 0 6px #ef4444;
-  border: 2px solid var(--surface-page);
+.icon-btn:hover {
+  background: var(--hover-overlay-strong);
+  color: var(--text-primary);
+  border-color: var(--glass-border-strong);
+  transform: scale(1.05);
+}
+
+.icon-btn:active {
+  transform: scale(0.95);
 }
 
 .topbar-divider {
   width: 1px;
-  height: 24px;
+  height: 22px;
   background: var(--glass-border-strong);
-  margin: 0 4px;
+  margin: 0 2px;
 }
 
 .user-chip {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 10px 4px 4px;
-  border-radius: 999px;
-  background: var(--input-bg);
+  padding: 4px 12px 4px 4px;
+  border-radius: var(--radius-pill);
+  background: var(--hover-overlay);
   border: 1px solid var(--glass-border);
+  transition: background var(--motion-fast), border-color var(--motion-fast);
+}
+
+.user-chip:hover {
+  background: var(--hover-overlay-strong);
+  border-color: var(--glass-border-strong);
 }
 
 .user-chip-name {
   font-size: 13px;
   font-weight: 500;
   color: var(--text-primary);
-  max-width: 120px;
+  max-width: 110px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

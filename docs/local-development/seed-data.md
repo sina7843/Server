@@ -1,144 +1,267 @@
-# Phase 1 Local/Test Seed Data
+# Phase 1 Local Development Seed Data
 
-This seed is for local development and automated test environments only. It creates deterministic accounts and sample Phase 1 esports data so developers can test Auth, RBAC, profiles, tournament search, registration, bracket/match, standings, and transactional notification log flows immediately after starting the project.
+This seed is local/dev/test only. It creates deterministic Phase 1 data so the web app, admin app, and API can be tested after local infrastructure is running.
 
-These credentials are intentionally known for local testing. **Never use them in production or commit them to a real environment.**
+## Start local infrastructure and apps
 
-## Commands
+```bash
+pnpm dev:local
+```
 
-From the repository root:
+This starts the Docker-based local infrastructure and the API, worker, web, and admin apps using the existing project scripts.
+
+## Run the seed
+
+In another terminal from the repository root:
 
 ```bash
 pnpm seed:dev
 ```
 
-To delete only records created by this seed system:
+The root command builds `@dragon/api` and then runs:
+
+```bash
+pnpm --filter @dragon/api seed:dev
+```
+
+The seed loads local env values from:
+
+1. root `.env.example`
+2. `apps/api/.env.example`
+3. `apps/api/.env`
+4. `apps/api/.env.local`
+
+Existing shell environment variables are not overridden.
+
+## Reset seeded data
+
+Reset is intentionally guarded. From the repository root:
 
 ```bash
 DRAGON_ALLOW_SEED_RESET=true pnpm seed:reset
 ```
 
-On Windows PowerShell:
+The reset deletes only deterministic records created by the Phase 1 dev seed. It does not delete manual local data outside the seed keys.
 
-```powershell
-$env:DRAGON_ALLOW_SEED_RESET="true"; pnpm seed:reset
+Running reset twice is safe.
+
+## Test accounts
+
+Default local password:
+
+```text
+DragonTest@12345
 ```
 
-The root scripts build `@dragon/api` first and then run the compiled seed runner.
-
-## Seed password
-
-The default seed password is `DragonTest@12345`. This is a **local/dev-only credential** — do not reuse it anywhere real.
-
-To override the password without rebuilding, set `DRAGON_DEV_SEED_PASSWORD` before running:
+Override locally with:
 
 ```bash
-DRAGON_DEV_SEED_PASSWORD='MyLocalPass@1' pnpm seed:dev
+DRAGON_DEV_SEED_PASSWORD='YourLocalPassword@12345' pnpm seed:dev
 ```
 
-Credential printing behavior:
+The API login endpoint currently uses phone + password. Emails are still seeded for admin/user search and account identification.
 
-| Environment | Default behavior |
-|---|---|
-| Local (CI not set) | Prints email, phone, and password for all accounts |
-| CI (`CI=true`) | Suppresses password printing to avoid leaking into build logs |
-| CI with override | Set `DRAGON_PRINT_SEED_CREDENTIALS=true` to force-print credentials in CI |
+| Purpose | Email | Phone | Password | Roles | Status |
+|---|---|---:|---|---|---|
+| Super Admin / Platform Owner | superadmin@dragon.local | +989001000001 | DragonTest@12345 | super_admin | active |
+| Admin / Operations Manager | admin@dragon.local | +989001000002 | DragonTest@12345 | admin | active |
+| Tournament Manager / Organizer | organizer@dragon.local | +989001000003 | DragonTest@12345 | tournament_manager | active |
+| Content Manager / Editor | editor@dragon.local | +989001000004 | DragonTest@12345 | content_manager | active |
+| Player 1 | player1@dragon.local | +989001000101 | DragonTest@12345 | user | active |
+| Player 2 | player2@dragon.local | +989001000102 | DragonTest@12345 | user | active |
+| Player 3 | player3@dragon.local | +989001000103 | DragonTest@12345 | user | active |
+| Player 4 | player4@dragon.local | +989001000104 | DragonTest@12345 | user | active |
+| Player 5 | player5@dragon.local | +989001000105 | DragonTest@12345 | user | active |
+| Player 6 | player6@dragon.local | +989001000106 | DragonTest@12345 | user | active |
+| Disabled / Suspended Sample User | disabled@dragon.local | +989001000199 | DragonTest@12345 | user | suspended |
 
-## Required environment
+Credentials are printed during local seed runs. They are not printed when `CI=true`.
 
-The seed runners use the existing API database configuration and require `MONGODB_URI`.
+## What the seed creates
 
-Allowed `NODE_ENV` values:
+The seed inspects and uses only implemented Phase 1 schemas/entities. It creates deterministic local records for:
 
-- `development`
-- `test`
-- `local`
+- users
+- user profiles
+- permissions, roles, role permissions
+- user role mappings
+- content categories and tags
+- content posts and pages
+- media asset metadata
+- games
+- tournaments
+- tournament registrations
+- tournament matches
+- notification templates and notification logs
+- audit logs
+- analytics events
+- job logs
+- backup logs
 
-The seed and reset commands refuse to run when:
+## Covered UI/API states
+
+### Games
+
+Seeded games:
+
+- Valorant
+- EA FC
+- Dota 2
+- Counter-Strike 2
+- League of Legends
+- Mobile Legends
+
+Coverage includes active games, an inactive game, games with tournaments, and games without currently public open-registration tournaments.
+
+### Tournaments
+
+Supported Phase 1 formats only:
+
+- `single_elimination`
+- `round_robin`
+- `manual`
+
+Seeded tournament statuses:
+
+- `draft`
+- `published`
+- `registration_open`
+- `registration_closed`
+- `in_progress`
+- `completed`
+- `cancelled`
+- `archived`
+
+Seeded timing cases:
+
+- registration not started yet
+- registration currently open
+- registration already closed
+- upcoming tournament
+- in-progress tournament
+- completed tournament
+- cancelled tournament
+- archived tournament
+- full-capacity tournament
+
+The public endpoint has meaningful local data for:
+
+```http
+GET /api/v1/search/tournaments
+```
+
+Useful local checks:
+
+```bash
+curl 'http://localhost:4000/api/v1/search/tournaments?q=Valorant'
+curl 'http://localhost:4000/api/v1/search/tournaments?registrationOpen=true'
+curl 'http://localhost:4000/api/v1/search/tournaments?registrationOpen=false'
+curl 'http://localhost:4000/api/v1/search/tournaments?format=round_robin'
+curl 'http://localhost:4000/api/v1/search/tournaments?page=1&limit=5'
+```
+
+### Registrations
+
+Seeded registration states:
+
+- `submitted`
+- `approved`
+- `rejected`
+- `waitlisted`
+- `withdrawn`
+- `cancelled`
+
+Coverage includes already registered users, approved players, rejected players, waitlisted players, a withdrawn registration, a cancelled registration, full capacity, and participant projection states such as removed and disqualified.
+
+### Matches / bracket / standings data
+
+The codebase uses tournament matches as the source for bracket and standings projections. The seed creates:
+
+- scheduled matches
+- in-progress matches
+- completed matches with scores and winners
+- cancelled matches
+- single-elimination sample bracket inputs
+- round-robin standings inputs
+- manual tournament match data
+
+No unsupported future bracket formats are seeded.
+
+### Notifications
+
+Only Phase 1 transactional SMS templates/logs are seeded:
+
+- registration submitted
+- registration approved
+- registration rejected
+- tournament cancelled
+
+The seed does not call any real external SMS/email provider. Notification records use local-only masked/hash values.
+
+## Safety restrictions
+
+The seed refuses to run when:
 
 - `NODE_ENV=production`
-- `MONGODB_URI` is missing
-- the database URI looks production-like
-- reset is called without `DRAGON_ALLOW_SEED_RESET=true`
+- `APP_ENV=production`
+- `APP_ENV=staging`
+- `MONGODB_URI` uses `mongodb+srv://`
+- MongoDB host is not one of:
+  - `localhost`
+  - `127.0.0.1`
+  - `mongo`
+  - `mongodb`
+- database name looks production/staging-like
+- reset is requested without `DRAGON_ALLOW_SEED_RESET=true`
 
-## Test Accounts
+Allowed examples:
 
-Current Auth login is phone-first. Email fields are still populated for admin display and local identification, but login uses the phone value plus the password below.
+```text
+mongodb://localhost:27017/dragon_local
+mongodb://127.0.0.1:27017/dragon_local
+mongodb://mongodb:27017/dragon_local
+mongodb://mongo:27017/dragon_local
+```
 
-| Role | Email | Phone | Password |
-|---|---|---|---|
-| Super Admin | superadmin@dragon.local | +15550001001 | DragonTest@12345 |
-| Admin | admin@dragon.local | +15550001002 | DragonTest@12345 |
-| Organizer | organizer@dragon.local | +15550001003 | DragonTest@12345 |
-| Editor | editor@dragon.local | +15550001004 | DragonTest@12345 |
-| Player 1 | player1@dragon.local | +15550001011 | DragonTest@12345 |
-| Player 2 | player2@dragon.local | +15550001012 | DragonTest@12345 |
-| Player 3 | player3@dragon.local | +15550001013 | DragonTest@12345 |
-| Player 4 | player4@dragon.local | +15550001014 | DragonTest@12345 |
+Blocked by default:
 
-## Role mapping
+```text
+mongodb+srv://...
+mongodb://prod-db.example.com:27017/dragon_prod
+mongodb://localhost:27017/dragon_staging
+```
 
-| Account | Existing role key |
-|---|---|
-| Super Admin | `super_admin` |
-| Admin | `admin` |
-| Organizer | `tournament_manager` |
-| Editor | `content_manager` |
-| Players | `user` |
+## Reset strategy
 
-The seed runs the existing RBAC seed first so roles and permissions exist before user-role assignments are attached.
+Most existing schemas do not expose a generic `seedSource` field. Reset therefore uses deterministic local identifiers:
 
-## Seeded data
+- users by `emailNormalized` and `metadata.registrationSource=phase1-dev-seed`
+- profiles by seeded user IDs/usernames
+- games by seeded slugs
+- tournaments by seeded slugs
+- registrations and matches by seeded tournament/user IDs
+- notifications by deterministic request IDs/template keys
+- content by seeded slugs
+- media/job/backup/audit/analytics records by deterministic local seed prefixes
 
-Approximate records created on a fresh local database:
+System permissions and roles are upserted from the project registry and are not removed by reset because they are foundational RBAC data. Seeded user-role mappings are removed.
 
-- 8 active verified users
-- 8 profiles
-- 8 user-role assignments
-- 4 games: Valorant, EA FC, Dota 2, Counter-Strike 2
-- 7 tournaments covering draft, published, registration-open, registration-closed, full-capacity, cancelled, and completed states
-- 13 registrations covering submitted, approved, rejected, withdrawn, and cancelled states
-- 4 matches including scheduled and completed matches with sample scores
-- 4 local/test notification log records for transactional tournament SMS purposes
+## Troubleshooting local MongoDB / Compass
 
-Seeded tournament slugs are prefixed with `phase1-dev-` so public search can be tested safely.
+The default API env example uses:
 
-Example public search checks:
+```text
+mongodb://dragon_local:dragon_local_password@localhost:27017/dragon_local?authSource=admin
+```
+
+In MongoDB Compass, use the same URI. If the API runs inside Docker and you connect from another container, use `mongodb` or `mongo` depending on the Docker Compose service name. If you connect from the host machine, use `localhost`.
+
+If seed refuses the database target, check:
 
 ```bash
-GET /api/v1/search/tournaments?q=Valorant
-GET /api/v1/search/tournaments?registrationOpen=true
-GET /api/v1/search/tournaments?format=single_elimination
-GET /api/v1/search/tournaments?status=completed
+echo $NODE_ENV
+echo $APP_ENV
+echo $MONGODB_URI
 ```
 
-## Seed marker and reset behavior
-
-Seeded records use:
-
-```text
-seedSource = phase1-dev-seed
-seedBatch = phase1-dev-seed-v1
-```
-
-For users, the existing metadata field is also used:
-
-```text
-metadata.registrationSource = phase1-dev-seed
-```
-
-Reset deletes only seed-owned data and dependent seed data. It does not delete unmarked manual data.
-
-## Notifications
-
-Seeded notification logs are local/test records only. The seed does not call SMS, email, push, campaign, or external provider APIs.
-
-## Troubleshooting
-
-If reset refuses to run, confirm:
-
-- `NODE_ENV` is not `production`
-- `MONGODB_URI` points to a local/test database
-- `DRAGON_ALLOW_SEED_RESET=true` is set for reset only
-
-If seed refuses to overwrite a record, a manual/non-seed record likely uses the same deterministic local slug, username, or phone. Rename or remove that manual local record before seeding.
+Then make sure you are using an approved local MongoDB target.

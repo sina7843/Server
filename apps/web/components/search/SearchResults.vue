@@ -17,7 +17,7 @@ defineProps<{
 <style scoped>
 .search-results__count {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--text-muted);
   margin-block-end: 0.5rem;
 }
 </style>

@@ -18,25 +18,25 @@ const LABELS: Record<TournamentFormat, string> = {
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.2rem 0.6rem;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
+  padding: 3px 9px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
   font-weight: 500;
   white-space: nowrap;
 }
 
 .badge--single_elimination {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warning-400);
 }
 
 .badge--round_robin {
-  background: #e0f2fe;
-  color: #0c4a6e;
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--info-400);
 }
 
 .badge--manual {
-  background: #f3e8ff;
-  color: #5b21b6;
+  background: rgba(109, 40, 217, 0.15);
+  color: var(--purple-300);
 }
 </style>

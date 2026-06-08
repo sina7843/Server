@@ -12,12 +12,12 @@ const props = defineProps<{
 }>();
 
 const STATUS_LABELS: Record<TournamentRegistrationStatus, string> = {
-  submitted: 'Submitted',
-  approved: 'Approved',
-  rejected: 'Rejected',
-  waitlisted: 'Waitlisted',
-  withdrawn: 'Withdrawn',
-  cancelled: 'Cancelled',
+  submitted: 'ثبت شده',
+  approved: 'تأیید شده',
+  rejected: 'رد شده',
+  waitlisted: 'در صف انتظار',
+  withdrawn: 'انصراف داده',
+  cancelled: 'لغو شده',
 };
 
 const label = computed(() => STATUS_LABELS[props.status] ?? props.status);
@@ -35,28 +35,28 @@ const label = computed(() => STATUS_LABELS[props.status] ?? props.status);
 }
 
 .registration-status-badge--submitted {
-  background: #dbeafe;
-  color: #1e40af;
+  background: rgba(109, 40, 217, 0.15);
+  color: var(--purple-300);
 }
 
 .registration-status-badge--approved {
-  background: #dcfce7;
-  color: #166534;
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success-400);
 }
 
 .registration-status-badge--rejected {
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--danger-400);
 }
 
 .registration-status-badge--waitlisted {
-  background: #fef9c3;
-  color: #854d0e;
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--warning-400);
 }
 
 .registration-status-badge--withdrawn,
 .registration-status-badge--cancelled {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--surface-elevated);
+  color: var(--text-muted);
 }
 </style>

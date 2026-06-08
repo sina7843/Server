@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument, SchemaTypes, Types } from 'mongoose';
 import {
   AUDIT_ACTOR_TYPES,
   AUDIT_SEVERITIES,
@@ -14,7 +14,7 @@ export type AuditLogDocument = HydratedDocument<AuditLog>;
   timestamps: { createdAt: true, updatedAt: false },
 })
 export class AuditLog {
-  @Prop({ type: Types.ObjectId })
+  @Prop({ type: SchemaTypes.ObjectId })
   actorId?: Types.ObjectId;
 
   @Prop({ required: true, enum: AUDIT_ACTOR_TYPES })

@@ -122,22 +122,18 @@
 
 <script setup lang="ts">
 import type { TournamentStatus, TournamentFormat, PublicGameDto } from '@dragon/types';
-import { createGamesDiscoveryApi } from '~/features/tournaments/tournaments-api';
+import {
+  createGamesDiscoveryApi,
+  createTournamentsDiscoveryApi,
+  createTournamentSearchApi,
+} from '~/features/tournaments/tournaments-api';
+
+const PAGE_LIMIT = 20;
+const DEBOUNCE_MS = 350;
 
 const runtimeConfig = useRuntimeConfig();
 const route = useRoute();
 const router = useRouter();
-
-const {
-  loading,
-  error,
-  items,
-  total,
-  page,
-  limit,
-  fetch: fetchTournaments,
-  debounceFetch,
-} = usePublicTournaments();
 
 const q = ref(typeof route.query['q'] === 'string' ? route.query['q'] : '');
 const selectedStatus = ref(typeof route.query['status'] === 'string' ? route.query['status'] : '');
@@ -152,7 +148,7 @@ const currentPage = ref(
 
 const games = ref<readonly PublicGameDto[]>([]);
 
-const totalPages = computed(() => (total.value > 0 ? Math.ceil(total.value / limit.value) : 1));
+const baseUrl = runtimeConfig.public?.apiBaseUrl as string | undefined;
 
 function buildFilter() {
   return {
@@ -162,9 +158,31 @@ function buildFilter() {
     ...(selectedGameId.value ? { gameId: selectedGameId.value } : {}),
     ...(registrationOpen.value ? { registrationOpen: true } : {}),
     page: currentPage.value,
-    limit: limit.value,
+    limit: PAGE_LIMIT,
   };
 }
+
+// useAsyncData manages data in Nuxt's payload system — survives SSR → client hydration.
+// Template reads from `data` directly via computed properties; no local ref sync needed.
+const {
+  data,
+  pending: loading,
+  error: fetchError,
+  refresh,
+} = await useAsyncData('public-tournaments-index', () => {
+  const filter = buildFilter();
+  if (filter.q) {
+    return createTournamentSearchApi({ baseUrl }).tournaments(filter);
+  }
+  return createTournamentsDiscoveryApi({ baseUrl }).list(filter);
+});
+
+const items = computed(() => data.value?.items ?? []);
+const total = computed(() => data.value?.total ?? 0);
+const error = computed(() => fetchError.value?.message ?? null);
+const totalPages = computed(() => (total.value > 0 ? Math.ceil(total.value / PAGE_LIMIT) : 1));
+
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 function updateUrl() {
   const query: Record<string, string> = {};
@@ -178,25 +196,26 @@ function updateUrl() {
 }
 
 function loadTournaments() {
-  void fetchTournaments(buildFilter());
+  void refresh();
 }
 
 function onQueryInput() {
   currentPage.value = 1;
   updateUrl();
-  debounceFetch(buildFilter());
+  if (debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => void refresh(), DEBOUNCE_MS);
 }
 
 function onFilterChange() {
   currentPage.value = 1;
   updateUrl();
-  loadTournaments();
+  void refresh();
 }
 
 function goToPage(p: number) {
   currentPage.value = p;
   updateUrl();
-  loadTournaments();
+  void refresh();
 }
 
 function clearFilters() {
@@ -207,7 +226,7 @@ function clearFilters() {
   registrationOpen.value = false;
   currentPage.value = 1;
   updateUrl();
-  loadTournaments();
+  void refresh();
 }
 
 const siteName = (runtimeConfig.public?.siteName as string | undefined) ?? 'Dragon';
@@ -225,8 +244,6 @@ useHead({
 });
 
 onMounted(async () => {
-  loadTournaments();
-
   try {
     const gamesApi = createGamesDiscoveryApi({
       baseUrl: runtimeConfig.public?.apiBaseUrl as string | undefined,
@@ -234,7 +251,7 @@ onMounted(async () => {
     const res = await gamesApi.list({ limit: 100 });
     games.value = res.items;
   } catch {
-    // games filter is optional; silently skip on error
+    // games filter is optional
   }
 });
 </script>

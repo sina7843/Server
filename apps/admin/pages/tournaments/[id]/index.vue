@@ -1,9 +1,6 @@
 <template>
   <div class="page">
-    <div class="page-header">
-      <NuxtLink to="/tournaments" class="back-link">← تورنمنت‌ها</NuxtLink>
-      <h1 class="page-title">جزئیات تورنمنت</h1>
-    </div>
+    <TournamentNavBar />
 
     <ForbiddenState v-if="!hasPermission(Permissions.TOURNAMENT_READ)" />
 
@@ -115,29 +112,6 @@ onMounted(() => {
 
 <style scoped>
 .page {
-  max-width: 720px;
-}
-
-.page-header {
-  margin-block-end: 1.25rem;
-}
-
-.back-link {
-  font-size: 0.85rem;
-  color: #3b82f6;
-  text-decoration: none;
-  display: inline-block;
-  margin-block-end: 0.4rem;
-}
-
-.back-link:hover {
-  text-decoration: underline;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #1e293b;
+  max-width: 900px;
 }
 </style>

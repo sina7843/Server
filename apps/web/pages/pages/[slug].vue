@@ -45,28 +45,28 @@ useHead(
 
 <style scoped>
 .content-page {
-  max-width: 56rem;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  max-width: var(--layout-prose-max);
+  margin: 0 auto;
+  padding: 40px 24px 80px;
 }
 
 .content-article__header {
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--glass-hairline);
 }
 
 .content-article__title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  line-height: 1.3;
+  font-size: var(--text-h1-size);
+  font-weight: var(--weight-bold);
+  line-height: var(--text-h1-lh);
   margin: 0;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .content-article__body {
-  font-size: 1rem;
+  font-size: var(--text-body-size);
   line-height: 1.8;
-  color: #1e293b;
+  color: var(--text-secondary);
 }
 </style>

@@ -6,8 +6,8 @@ import { PostService } from '../posts/post.service';
 import { PostRepository } from '../posts/post.repository';
 import { AnalyticsService } from '../../analytics/analytics.service';
 import type { PostDocument } from '../posts/post.schema';
-import type { UserProfileRepository } from '../../profiles/profile.repository';
-import type { MediaAssetRepository } from '../../media/media-asset.repository';
+import { UserProfileRepository } from '../../profiles/profile.repository';
+import { MediaAssetRepository } from '../../media/media-asset.repository';
 import { STORAGE_SERVICE, type StorageService } from '../../storage/storage.service';
 import type { EnrichedPost } from './dto/public-post-response';
 
@@ -26,8 +26,8 @@ export class PublicPostsService {
     private readonly postService: PostService,
     private readonly postRepository: PostRepository,
     @Optional() private readonly analyticsService?: AnalyticsService,
-    @Optional() private readonly profileRepository?: UserProfileRepository,
-    @Optional() private readonly mediaAssetRepository?: MediaAssetRepository,
+    @Optional() @Inject(UserProfileRepository) private readonly profileRepository?: UserProfileRepository,
+    @Optional() @Inject(MediaAssetRepository) private readonly mediaAssetRepository?: MediaAssetRepository,
     @Optional() @Inject(STORAGE_SERVICE) private readonly storageService?: StorageService,
   ) {}
 

@@ -91,9 +91,15 @@
 
         <!-- Logged-in state -->
         <template v-if="hasToken">
-          <NuxtLink to="/account" class="user-chip" aria-label="پروفایل">
-            <div class="dr-avatar dr-avatar-sm">{{ userInitial }}</div>
-          </NuxtLink>
+          <a v-if="adminUrl" :href="adminUrl" class="admin-btn" target="_blank" rel="noopener" aria-label="پنل مدیریت">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+            Admin
+          </a>
           <button class="icon-btn" aria-label="خروج" type="button" :disabled="loggingOut" @click="handleLogout">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -160,7 +166,7 @@
         <NuxtLink to="/search" class="mobile-nav__link" @click="mobileMenuOpen = false">جستجو</NuxtLink>
         <div class="mobile-nav__divider" />
         <template v-if="hasToken">
-          <NuxtLink to="/account" class="mobile-nav__link" @click="mobileMenuOpen = false">حساب کاربری</NuxtLink>
+          <a v-if="adminUrl" :href="adminUrl" class="mobile-nav__link mobile-nav__link--admin" target="_blank" rel="noopener" @click="mobileMenuOpen = false">پنل مدیریت</a>
           <button class="mobile-nav__link mobile-nav__link--logout" @click="handleLogout; mobileMenuOpen = false">خروج از حساب</button>
         </template>
         <NuxtLink v-else to="/login" class="mobile-nav__link mobile-nav__link--login" @click="mobileMenuOpen = false">ورود</NuxtLink>
@@ -184,7 +190,7 @@ import { webLogout } from '~/features/auth/auth-api';
 const { hasToken, token, clearToken } = useAuthToken();
 const { theme, toggleTheme } = useTheme();
 const {
-  public: { apiBaseUrl },
+  public: { apiBaseUrl, adminUrl },
 } = useRuntimeConfig();
 const userInitial = computed(() => 'D');
 const mobileMenuOpen = ref(false);
@@ -355,6 +361,40 @@ async function handleLogout() {
 
 .user-chip:hover {
   opacity: 0.8;
+}
+
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(109, 40, 217, 0.12);
+  border: 1px solid rgba(109, 40, 217, 0.3);
+  color: var(--purple-300);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition:
+    background var(--motion-fast) var(--ease-out),
+    border-color var(--motion-fast) var(--ease-out),
+    color var(--motion-fast) var(--ease-out),
+    transform var(--motion-fast) var(--ease-spring);
+}
+
+.admin-btn:hover {
+  background: rgba(109, 40, 217, 0.22);
+  border-color: rgba(109, 40, 217, 0.55);
+  color: var(--purple-200);
+  transform: translateY(-1px);
+}
+
+.mobile-nav__link--admin {
+  color: var(--purple-300);
+  font-weight: 600;
 }
 
 .login-btn-header {

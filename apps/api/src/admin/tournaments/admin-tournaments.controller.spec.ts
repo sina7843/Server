@@ -8,10 +8,16 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { AdminTournamentsController } from './admin-tournaments.controller';
 import { TournamentService } from '../../tournaments/tournament.service';
+import { TournamentEnrichmentService } from '../../tournaments/tournament-enrichment.service';
 import { Permissions } from '../../rbac/registry/permission-keys';
 import { PERMISSION_METADATA_KEY } from '../../rbac/decorators/permission-metadata';
 import type { TournamentDocument } from '../../tournaments/tournament.schema';
 import type { PermissionMetadata } from '../../rbac/decorators/permission-metadata';
+
+const noopEnrichmentService = {
+  enrichMany: jest.fn().mockResolvedValue(new Map()),
+  enrichOne: jest.fn().mockResolvedValue({}),
+} as unknown as TournamentEnrichmentService;
 
 function makeTournament(overrides: Partial<Record<string, unknown>> = {}): TournamentDocument {
   return {
@@ -110,7 +116,7 @@ describe('AdminTournamentsController — listTournaments', () => {
 
   beforeEach(() => {
     tournamentService = { list: jest.fn().mockResolvedValue({ items: [], total: 0 }) };
-    controller = new AdminTournamentsController(tournamentService as unknown as TournamentService);
+    controller = new AdminTournamentsController(tournamentService as unknown as TournamentService, noopEnrichmentService);
   });
 
   it('returns paginated list with correct shape', async () => {
@@ -241,7 +247,7 @@ describe('AdminTournamentsController — getTournament', () => {
 
   beforeEach(() => {
     tournamentService = { findById: jest.fn().mockResolvedValue(null) };
-    controller = new AdminTournamentsController(tournamentService as unknown as TournamentService);
+    controller = new AdminTournamentsController(tournamentService as unknown as TournamentService, noopEnrichmentService);
   });
 
   it('returns TournamentDto for an existing tournament', async () => {
@@ -327,6 +333,7 @@ describe('AdminTournamentsController — createTournament', () => {
     auditMock = { log: jest.fn() };
     controller = new AdminTournamentsController(
       tournamentService as unknown as TournamentService,
+      noopEnrichmentService,
       auditMock as never,
     );
   });
@@ -462,6 +469,7 @@ describe('AdminTournamentsController — updateTournament', () => {
     auditMock = { log: jest.fn() };
     controller = new AdminTournamentsController(
       tournamentService as unknown as TournamentService,
+      noopEnrichmentService,
       auditMock as never,
     );
   });
@@ -580,6 +588,7 @@ describe('AdminTournamentsController — deleteTournament', () => {
     auditMock = { log: jest.fn() };
     controller = new AdminTournamentsController(
       tournamentService as unknown as TournamentService,
+      noopEnrichmentService,
       auditMock as never,
     );
   });
@@ -639,6 +648,7 @@ describe('AdminTournamentsController — lifecycle: publish', () => {
     auditMock = { log: jest.fn() };
     controller = new AdminTournamentsController(
       tournamentService as unknown as TournamentService,
+      noopEnrichmentService,
       auditMock as never,
     );
   });
@@ -695,7 +705,7 @@ describe('AdminTournamentsController — lifecycle: openRegistration', () => {
     tournamentService = {
       transition: jest.fn().mockResolvedValue(makeTournament({ status: 'registration_open' })),
     };
-    controller = new AdminTournamentsController(tournamentService as unknown as TournamentService);
+    controller = new AdminTournamentsController(tournamentService as unknown as TournamentService, noopEnrichmentService);
   });
 
   it('calls transition with "registration_open"', async () => {
@@ -723,7 +733,7 @@ describe('AdminTournamentsController — lifecycle: closeRegistration', () => {
     tournamentService = {
       transition: jest.fn().mockResolvedValue(makeTournament({ status: 'registration_closed' })),
     };
-    controller = new AdminTournamentsController(tournamentService as unknown as TournamentService);
+    controller = new AdminTournamentsController(tournamentService as unknown as TournamentService, noopEnrichmentService);
   });
 
   it('calls transition with "registration_closed"', async () => {
@@ -746,7 +756,7 @@ describe('AdminTournamentsController — lifecycle: start', () => {
     tournamentService = {
       transition: jest.fn().mockResolvedValue(makeTournament({ status: 'in_progress' })),
     };
-    controller = new AdminTournamentsController(tournamentService as unknown as TournamentService);
+    controller = new AdminTournamentsController(tournamentService as unknown as TournamentService, noopEnrichmentService);
   });
 
   it('calls transition with "in_progress"', async () => {
@@ -769,7 +779,7 @@ describe('AdminTournamentsController — lifecycle: complete', () => {
     tournamentService = {
       transition: jest.fn().mockResolvedValue(makeTournament({ status: 'completed' })),
     };
-    controller = new AdminTournamentsController(tournamentService as unknown as TournamentService);
+    controller = new AdminTournamentsController(tournamentService as unknown as TournamentService, noopEnrichmentService);
   });
 
   it('calls transition with "completed"', async () => {
@@ -796,6 +806,7 @@ describe('AdminTournamentsController — lifecycle: cancel', () => {
     auditMock = { log: jest.fn() };
     controller = new AdminTournamentsController(
       tournamentService as unknown as TournamentService,
+      noopEnrichmentService,
       auditMock as never,
     );
   });
@@ -837,7 +848,7 @@ describe('AdminTournamentsController — lifecycle: archive', () => {
     tournamentService = {
       transition: jest.fn().mockResolvedValue(makeTournament({ status: 'archived' })),
     };
-    controller = new AdminTournamentsController(tournamentService as unknown as TournamentService);
+    controller = new AdminTournamentsController(tournamentService as unknown as TournamentService, noopEnrichmentService);
   });
 
   it('calls transition with "archived"', async () => {

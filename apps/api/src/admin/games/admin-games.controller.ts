@@ -22,6 +22,7 @@ import { PermissionGuard } from '../../rbac/guards/permission.guard';
 import { Permissions } from '../../rbac/registry/permission-keys';
 import { validateObjectId } from '../../rbac/dto/rbac-validation';
 import { GameService } from '../../games/game.service';
+import { GameEnrichmentService } from '../../games/game-enrichment.service';
 import { parseAdminCreateGameBody, parseAdminUpdateGameBody } from './dto/admin-game-body';
 import { toAdminGameListResponse, toAdminGameResponse } from './dto/admin-game-response';
 
@@ -35,6 +36,7 @@ const VALID_STATUSES = new Set(['active', 'inactive', 'archived']);
 export class AdminGamesController {
   constructor(
     private readonly gameService: GameService,
+    private readonly enrichmentService: GameEnrichmentService,
     @Optional() private readonly auditService?: AuditService,
   ) {}
 
@@ -63,7 +65,8 @@ export class AdminGamesController {
       limit,
     );
 
-    return toAdminGameListResponse(items, total, page, limit);
+    const enrichmentMap = await this.enrichmentService.enrichMany(items);
+    return toAdminGameListResponse(items, total, page, limit, enrichmentMap);
   }
 
   @Get(':id')
@@ -72,7 +75,8 @@ export class AdminGamesController {
     const id = validateObjectId(rawId, 'id');
     const game = await this.gameService.findById(id);
     if (!game) throw new NotFoundException('Game not found.');
-    return toAdminGameResponse(game);
+    const enrichment = await this.enrichmentService.enrichOne(game);
+    return toAdminGameResponse(game, enrichment);
   }
 
   @Post()
@@ -89,7 +93,8 @@ export class AdminGamesController {
       after: { name: game.name, slug: game.slug, status: game.status },
       severity: 'info',
     });
-    return toAdminGameResponse(game);
+    const enrichment = await this.enrichmentService.enrichOne(game);
+    return toAdminGameResponse(game, enrichment);
   }
 
   @Patch(':id')
@@ -111,7 +116,8 @@ export class AdminGamesController {
       after: { name: game.name, slug: game.slug, status: game.status },
       severity: 'info',
     });
-    return toAdminGameResponse(game);
+    const enrichment = await this.enrichmentService.enrichOne(game);
+    return toAdminGameResponse(game, enrichment);
   }
 
   @Delete(':id')

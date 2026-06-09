@@ -134,6 +134,14 @@ const FALLBACK_GRADIENTS = [
 ];
 
 const coverStyle = computed(() => {
+  const imageUrl = props.tournament.coverImageUrl ?? props.tournament.gameCoverImageUrl;
+  if (imageUrl) {
+    return {
+      backgroundImage: `url(${imageUrl})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    };
+  }
   const gradient =
     STATUS_GRADIENTS[props.tournament.status] ??
     FALLBACK_GRADIENTS[hashGameId(props.tournament.gameId) % FALLBACK_GRADIENTS.length];

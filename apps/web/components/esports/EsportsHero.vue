@@ -131,6 +131,22 @@ function formatViewCount(n: number): string {
   overflow: hidden;
   border: 1px solid var(--glass-border-strong);
   box-shadow: var(--shadow-lg);
+  animation: dr-fade-up 0.9s var(--ease-out) both;
+}
+
+.esports-hero__card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 70%
+  );
+  z-index: 5;
+  pointer-events: none;
+  animation: dr-shine 1.1s var(--ease-out) 0.7s both;
 }
 
 /* ── Layer order: bg(z0) → cover-img(z1) → overlay+orbs(z2) → content(z3) ── */
@@ -162,9 +178,10 @@ function formatViewCount(n: number): string {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: fill;
   opacity: 0.3;
   z-index: 1;
+  animation: dr-img-scale 1.6s var(--ease-out) both;
 }
 
 .esports-hero__overlay {
@@ -224,12 +241,13 @@ function formatViewCount(n: number): string {
   width: 100%;
 }
 
-/* ── Meta row ── */
+/* ── Content entry cascade ── */
 .esports-hero__meta {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   flex-wrap: wrap;
+  animation: dr-hero-enter 0.7s var(--ease-out) 0.2s both;
 }
 
 .esports-hero__type-badge {
@@ -279,6 +297,7 @@ function formatViewCount(n: number): string {
   line-height: var(--text-h1-lh);
   letter-spacing: var(--text-h1-tracking);
   margin: 0;
+  animation: dr-hero-enter 0.8s var(--ease-out) 0.35s both;
 }
 
 .esports-hero__link {
@@ -301,6 +320,11 @@ function formatViewCount(n: number): string {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  animation: dr-hero-enter 0.7s var(--ease-out) 0.5s both;
+}
+
+.esports-hero__actions {
+  animation: dr-hero-enter 0.6s var(--ease-out) 0.65s both;
 }
 
 .esports-hero__cta {

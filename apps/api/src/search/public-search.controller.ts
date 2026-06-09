@@ -9,6 +9,7 @@ import { parsePublicContentSearchQuery } from './dto/public-search-query';
 import { parseTournamentSearchQuery } from './dto/tournament-search-query';
 import { toSearchResultResponse } from './dto/search-response';
 import { TournamentService } from '../tournaments/tournament.service';
+import { TournamentEnrichmentService } from '../tournaments/tournament-enrichment.service';
 import { toPublicTournamentListResponse } from '../tournaments/tournament-projection';
 
 // Public-safe tournament statuses — draft and archived are never exposed.
@@ -26,6 +27,7 @@ export class PublicSearchController {
   constructor(
     private readonly searchService: SearchService,
     private readonly tournamentService: TournamentService,
+    private readonly enrichmentService: TournamentEnrichmentService,
   ) {}
 
   @Get('content')
@@ -61,6 +63,7 @@ export class PublicSearchController {
       parsed.limit,
     );
 
-    return toPublicTournamentListResponse(items, total, parsed.page, parsed.limit);
+    const enrichmentMap = await this.enrichmentService.enrichMany(items);
+    return toPublicTournamentListResponse(items, total, parsed.page, parsed.limit, enrichmentMap);
   }
 }

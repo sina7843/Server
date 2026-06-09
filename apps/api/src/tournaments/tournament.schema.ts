@@ -61,6 +61,9 @@ export class Tournament {
   @Prop({ trim: true })
   declare rules?: string;
 
+  @Prop({ trim: true })
+  declare coverMediaId?: string;
+
   @Prop()
   declare publishedAt?: Date;
 

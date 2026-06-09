@@ -1,10 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import type { EsportsHomeDto, TournamentListItemDto } from '@dragon/types';
+import type { Types } from 'mongoose';
 import { PostService } from '../content/posts/post.service';
 import { TagRepository } from '../content/tags/tag.repository';
 import { toPublicPostDto } from '../content/public/dto/public-post-response';
 import { TournamentRepository } from '../tournaments/tournament.repository';
 import type { TournamentDocument } from '../tournaments/tournament.schema';
+import { MediaAssetRepository } from '../media/media-asset.repository';
+import { STORAGE_SERVICE, type StorageService } from '../storage/storage.service';
+import type { PostDocument } from '../content/posts/post.schema';
 
 const HOME_FEATURED_LIMIT = 5;
 const HOME_NEWS_LIMIT = 5;
@@ -32,6 +36,8 @@ export class EsportsService {
     private readonly postService: PostService,
     private readonly tagRepository: TagRepository,
     private readonly tournamentRepository: TournamentRepository,
+    @Optional() @Inject(MediaAssetRepository) private readonly mediaAssetRepository?: MediaAssetRepository,
+    @Optional() @Inject(STORAGE_SERVICE) private readonly storageService?: StorageService,
   ) {}
 
   async getHome(): Promise<EsportsHomeDto> {
@@ -64,12 +70,43 @@ export class EsportsService {
         ),
       ]);
 
+    const allPosts = [
+      ...featuredResult.items,
+      ...latestNewsResult.items,
+      ...topPostDocs,
+    ];
+
+    const coverMap = await this.resolveCoverUrls(allPosts);
+
     return {
-      featuredPosts: featuredResult.items.map((p) => toPublicPostDto(p)),
-      latestNews: latestNewsResult.items.map((p) => toPublicPostDto(p)),
+      featuredPosts: featuredResult.items.map((p) => toPublicPostDto(p, { coverImageUrl: coverMap.get(String(p._id)) })),
+      latestNews: latestNewsResult.items.map((p) => toPublicPostDto(p, { coverImageUrl: coverMap.get(String(p._id)) })),
       activeTournaments: activeTournamentsResult.items.map(toTournamentListItemDto),
       upcomingTournaments: upcomingTournamentsResult.items.map(toTournamentListItemDto),
-      topContent: topPostDocs.map((p) => toPublicPostDto(p)),
+      topContent: topPostDocs.map((p) => toPublicPostDto(p, { coverImageUrl: coverMap.get(String(p._id)) })),
     };
+  }
+
+  private async resolveCoverUrls(posts: PostDocument[]): Promise<Map<string, string>> {
+    const empty = new Map<string, string>();
+    if (!this.mediaAssetRepository || !this.storageService) return empty;
+
+    const coverIds = posts
+      .filter((p) => p.coverMediaId)
+      .map((p) => p.coverMediaId as Types.ObjectId);
+
+    if (!coverIds.length) return empty;
+
+    const assets = await this.mediaAssetRepository.findManyByIds(coverIds).catch(() => []);
+    const assetById = new Map(assets.map((a) => [String(a._id), this.storageService!.getPublicUrl(a.objectKey)]));
+
+    const postCoverMap = new Map<string, string>();
+    for (const post of posts) {
+      if (post.coverMediaId) {
+        const url = assetById.get(String(post.coverMediaId));
+        if (url) postCoverMap.set(String(post._id), url);
+      }
+    }
+    return postCoverMap;
   }
 }

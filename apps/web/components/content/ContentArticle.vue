@@ -65,7 +65,7 @@
 
     <!-- Taxonomy footer -->
     <footer
-      v-if="resolvedCategories.length || resolvedTags.length"
+      v-if="!hideTaxonomy && (resolvedCategories.length || resolvedTags.length)"
       class="content-article__taxonomy"
     >
       <div v-if="resolvedCategories.length" class="content-article__taxonomy-group">
@@ -106,6 +106,7 @@ const props = defineProps<{
   post: PublicPostDto;
   categories?: readonly PublicCategoryDto[];
   tags?: readonly PublicTagDto[];
+  hideTaxonomy?: boolean;
 }>();
 
 const TYPE_LABELS: Record<string, string> = {
@@ -213,7 +214,7 @@ function formatViewCount(n: number): string {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: fill;
   opacity: 0.25;
   z-index: 0;
 }

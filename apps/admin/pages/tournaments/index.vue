@@ -26,12 +26,16 @@
           <option value="cancelled">لغوشده</option>
           <option value="archived">بایگانی</option>
         </select>
-        <select v-model="formatFilter" class="filter-select" @change="onFilterChange">
-          <option value="">همه فرمت‌ها</option>
-          <option value="single_elimination">حذفی ساده</option>
-          <option value="round_robin">دوره‌ای</option>
-          <option value="manual">دستی</option>
-        </select>
+        <div class="filter-pills">
+          <button
+            v-for="opt in formatOptions"
+            :key="opt.value"
+            class="pill"
+            :class="{ 'pill--active': formatFilter === opt.value }"
+            type="button"
+            @click="setFormat(opt.value)"
+          >{{ opt.label }}</button>
+        </div>
       </div>
 
       <LoadingState v-if="tournamentsLoading" />
@@ -110,6 +114,13 @@ const formatFilter = ref('');
 const deleteDialogOpen = ref(false);
 const pendingDeleteTournament = ref<TournamentListItemDto | null>(null);
 
+const formatOptions = [
+  { value: '', label: 'همه فرمت‌ها' },
+  { value: 'single_elimination', label: 'حذفی ساده' },
+  { value: 'round_robin', label: 'دوره‌ای' },
+  { value: 'manual', label: 'دستی' },
+];
+
 function buildParams(page = 1) {
   return {
     page,
@@ -124,6 +135,11 @@ async function load(page = 1) {
 }
 
 function onFilterChange() {
+  void load(1);
+}
+
+function setFormat(val: string) {
+  formatFilter.value = val;
   void load(1);
 }
 
@@ -202,22 +218,23 @@ onMounted(() => {
 
 .filters {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
   margin-block-end: 16px;
   flex-wrap: wrap;
 }
 
 .filter-select {
-  height: 36px;
+  height: 32px;
   padding: 0 12px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   border: 1px solid var(--border-default);
   background: var(--input-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  color: var(--text-primary);
+  color: var(--text-secondary);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 12.5px;
   outline: none;
   cursor: pointer;
   transition: border-color var(--motion-fast);
@@ -227,6 +244,38 @@ onMounted(() => {
 .filter-select:focus {
   border-color: var(--purple-400);
   box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.18);
+}
+
+.filter-pills {
+  display: flex;
+  gap: 6px;
+}
+
+.pill {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--motion-fast);
+}
+
+.pill:hover {
+  background: var(--hover-overlay);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.pill--active {
+  background: rgba(109, 40, 217, 0.15);
+  color: var(--purple-300);
+  border-color: rgba(109, 40, 217, 0.4);
+  font-weight: 600;
 }
 
 .pagination {

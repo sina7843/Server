@@ -179,7 +179,7 @@ onMounted(async () => {
 
 .back-link {
   font-size: 0.85rem;
-  color: #3b82f6;
+  color: var(--purple-400);
   text-decoration: none;
   display: inline-block;
   margin-block-end: 0.4rem;
@@ -193,12 +193,12 @@ onMounted(async () => {
   margin: 0;
   font-size: 1.4rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .card {
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
   overflow: hidden;
   margin-block-end: 1rem;
 }
@@ -208,7 +208,7 @@ onMounted(async () => {
   align-items: center;
   gap: 1rem;
   padding: 0.75rem 1.25rem;
-  border-block-end: 1px solid #f1f5f9;
+  border-block-end: 1px solid var(--border-subtle);
 }
 
 .card-row:last-child {
@@ -219,12 +219,12 @@ onMounted(async () => {
   min-width: 120px;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .value {
   font-size: 0.9rem;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .ltr {
@@ -236,19 +236,22 @@ onMounted(async () => {
 }
 
 .edit-btn {
-  display: inline-block;
-  padding: 0.5rem 1.1rem;
-  background: #3b82f6;
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 16px;
+  background: var(--purple-500);
   color: #fff;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
   font-weight: 600;
   text-decoration: none;
-  transition: background 0.15s;
+  box-shadow: 0 6px 20px -6px rgba(109, 40, 217, 0.5);
+  transition: all var(--motion-fast);
 }
 
 .edit-btn:hover {
-  background: #2563eb;
+  background: var(--purple-400);
 }
 
 .sessions-section {
@@ -259,13 +262,13 @@ onMounted(async () => {
   margin: 0 0 0.75rem;
   font-size: 1.05rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .table-wrap {
   overflow-x: auto;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
 }
 
 .table {
@@ -274,13 +277,15 @@ onMounted(async () => {
 }
 
 .th {
-  padding: 0.65rem 1rem;
+  padding: 10px 14px;
   text-align: start;
-  font-size: 0.8rem;
+  font-size: 11px;
   font-weight: 600;
-  color: #64748b;
-  background: #f8fafc;
-  border-block-end: 1px solid #e2e8f0;
+  color: var(--text-muted);
+  background: var(--hover-overlay);
+  border-block-end: 1px solid var(--border-default);
   white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 </style>

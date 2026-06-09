@@ -1,12 +1,16 @@
 import type { TournamentDto, TournamentListResponseDto } from '@dragon/types';
 import {
   toAdminTournamentDto,
-  toPublicTournamentSummary,
+  toAdminTournamentListResponse as projectionAdminList,
+  type TournamentEnrichment,
 } from '../../../tournaments/tournament-projection';
 import type { TournamentDocument } from '../../../tournaments/tournament.schema';
 
-export function toAdminTournamentResponse(doc: TournamentDocument): TournamentDto {
-  return toAdminTournamentDto(doc);
+export function toAdminTournamentResponse(
+  doc: TournamentDocument,
+  enrichment: TournamentEnrichment = {},
+): TournamentDto {
+  return toAdminTournamentDto(doc, enrichment);
 }
 
 export function toAdminTournamentListResponse(
@@ -14,6 +18,7 @@ export function toAdminTournamentListResponse(
   total: number,
   page: number,
   limit: number,
+  enrichmentMap: Map<string, TournamentEnrichment> = new Map(),
 ): TournamentListResponseDto {
-  return { items: items.map(toPublicTournamentSummary), total, page, limit };
+  return projectionAdminList(items, total, page, limit, enrichmentMap);
 }

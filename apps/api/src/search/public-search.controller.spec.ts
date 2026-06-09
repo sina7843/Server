@@ -3,7 +3,13 @@ import { PublicSearchController } from './public-search.controller';
 import { parsePublicContentSearchQuery } from './dto/public-search-query';
 import { parseTournamentSearchQuery } from './dto/tournament-search-query';
 import type { TournamentService } from '../tournaments/tournament.service';
+import type { TournamentEnrichmentService } from '../tournaments/tournament-enrichment.service';
 import type { TournamentDocument } from '../tournaments/tournament.schema';
+
+const noopEnrichmentService = {
+  enrichMany: jest.fn().mockResolvedValue(new Map()),
+  enrichOne: jest.fn().mockResolvedValue({}),
+} as unknown as TournamentEnrichmentService;
 
 const mockResult = {
   items: [
@@ -58,6 +64,7 @@ function createController(
     controller: new PublicSearchController(
       service as never,
       tournamentService as unknown as TournamentService,
+      noopEnrichmentService,
     ),
   };
 }

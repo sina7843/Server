@@ -47,13 +47,13 @@ async function onUploaded(asset: AdminMediaAssetDto) {
 .page-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
   margin: 0.25rem 0 0;
 }
 
 .back-link {
   font-size: 0.85rem;
-  color: #3b82f6;
+  color: var(--purple-400);
   text-decoration: none;
   display: inline-block;
   margin-block-end: 0.4rem;
@@ -64,22 +64,27 @@ async function onUploaded(asset: AdminMediaAssetDto) {
 }
 
 .upload-container {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
   padding: 1.5rem;
 }
 
 .cancel-link {
-  padding: 0.45rem 1rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  color: #374151;
+  height: 34px;
+  padding: 0 1rem;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
   font-size: 0.875rem;
   text-decoration: none;
+  transition: all var(--motion-fast);
 }
 
 .cancel-link:hover {
-  background: #f3f4f6;
+  background: var(--hover-overlay);
+  color: var(--text-primary);
 }
 </style>

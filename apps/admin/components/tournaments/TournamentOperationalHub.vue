@@ -30,6 +30,17 @@
     <!-- Details -->
     <div class="hub-section">
       <h2 class="section-title">جزئیات</h2>
+
+      <!-- Poster preview -->
+      <div v-if="tournament.coverImageUrl || tournament.gameCoverImageUrl" class="poster-preview">
+        <img
+          :src="tournament.coverImageUrl ?? tournament.gameCoverImageUrl"
+          :alt="tournament.title"
+          class="poster-img"
+        />
+        <span v-if="!tournament.coverImageUrl" class="poster-fallback-label">تصویر بازی (پوستر اختصاصی ندارد)</span>
+      </div>
+
       <dl class="detail-list">
         <div class="detail-row">
           <dt class="detail-label">شناسه بازی</dt>
@@ -346,5 +357,25 @@ function formatDate(iso: string): string {
 .mgmt-btn--delete:not(:disabled):hover {
   background: rgba(239, 68, 68, 0.16);
   border-color: rgba(239, 68, 68, 0.5);
+}
+
+.poster-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.poster-img {
+  width: 100%;
+  max-height: 160px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.poster-fallback-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
 }
 </style>

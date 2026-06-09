@@ -4,7 +4,13 @@ import { readFileSync } from 'fs';
 import { NotFoundException } from '@nestjs/common';
 import { PublicTournamentsController } from './public-tournaments.controller';
 import type { TournamentService } from '../tournaments/tournament.service';
+import type { TournamentEnrichmentService } from '../tournaments/tournament-enrichment.service';
 import type { TournamentDocument } from '../tournaments/tournament.schema';
+
+const noopEnrichmentService = {
+  enrichMany: jest.fn().mockResolvedValue(new Map()),
+  enrichOne: jest.fn().mockResolvedValue({}),
+} as unknown as TournamentEnrichmentService;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -42,14 +48,14 @@ function makeMockService(
 
 describe('PublicTournamentsController — list', () => {
   it('GET /api/v1/tournaments exists (controller defines the list method)', () => {
-    const ctrl = new PublicTournamentsController(makeMockService() as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(makeMockService() as unknown as TournamentService, noopEnrichmentService);
     expect(typeof ctrl.list).toBe('function');
   });
 
   it('returns TournamentListResponseDto-compatible shape', async () => {
     const doc = makeDoc();
     const svc = makeMockService({ list: jest.fn().mockResolvedValue({ items: [doc], total: 1 }) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     const result = await ctrl.list();
 
@@ -63,7 +69,7 @@ describe('PublicTournamentsController — list', () => {
   it('list items include public summary fields', async () => {
     const doc = makeDoc({ publishedAt: new Date('2026-01-10T00:00:00Z') });
     const svc = makeMockService({ list: jest.fn().mockResolvedValue({ items: [doc], total: 1 }) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     const result = await ctrl.list();
     const item = result.items[0];
@@ -80,7 +86,7 @@ describe('PublicTournamentsController — list', () => {
   it('list items exclude internal/admin fields', async () => {
     const doc = makeDoc({ cancelledAt: new Date(), archivedAt: new Date(), deletedAt: new Date() });
     const svc = makeMockService({ list: jest.fn().mockResolvedValue({ items: [doc], total: 1 }) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     const result = await ctrl.list();
     const item = result.items[0] as unknown as Record<string, unknown>;
@@ -95,7 +101,7 @@ describe('PublicTournamentsController — list', () => {
   it('list items exclude description (summary only)', async () => {
     const doc = makeDoc({ description: 'A big cup' });
     const svc = makeMockService({ list: jest.fn().mockResolvedValue({ items: [doc], total: 1 }) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     const result = await ctrl.list();
     const item = result.items[0] as unknown as Record<string, unknown>;
@@ -105,7 +111,7 @@ describe('PublicTournamentsController — list', () => {
 
   it('passes gameId filter to service', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list(undefined, undefined, 'game-abc');
 
@@ -118,7 +124,7 @@ describe('PublicTournamentsController — list', () => {
 
   it('passes format filter to service', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list(undefined, undefined, undefined, undefined, 'single_elimination');
 
@@ -131,7 +137,7 @@ describe('PublicTournamentsController — list', () => {
 
   it('ignores unknown format values (silently drops)', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list(undefined, undefined, undefined, undefined, 'unknown_format');
 
@@ -141,7 +147,7 @@ describe('PublicTournamentsController — list', () => {
 
   it('passes public-safe status filter (published)', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list(undefined, undefined, undefined, 'published');
 
@@ -154,7 +160,7 @@ describe('PublicTournamentsController — list', () => {
 
   it('passes public-safe status filter (cancelled)', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list(undefined, undefined, undefined, 'cancelled');
 
@@ -167,7 +173,7 @@ describe('PublicTournamentsController — list', () => {
 
   it('silently ignores draft as status filter (not public-safe)', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list(undefined, undefined, undefined, 'draft');
 
@@ -180,7 +186,7 @@ describe('PublicTournamentsController — list', () => {
 
   it('silently ignores archived as status filter (not public-safe)', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list(undefined, undefined, undefined, 'archived');
 
@@ -191,7 +197,7 @@ describe('PublicTournamentsController — list', () => {
 
   it('uses statuses array restriction when no explicit status filter is given', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list();
 
@@ -207,7 +213,7 @@ describe('PublicTournamentsController — list', () => {
 
   it('passes registrationOpen: true when filter is "true"', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list(undefined, undefined, undefined, undefined, undefined, 'true');
 
@@ -220,7 +226,7 @@ describe('PublicTournamentsController — list', () => {
 
   it('passes registrationOpen: false when filter is "false"', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list(undefined, undefined, undefined, undefined, undefined, 'false');
 
@@ -233,7 +239,7 @@ describe('PublicTournamentsController — list', () => {
 
   it('uses default pagination when not provided', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list();
 
@@ -242,7 +248,7 @@ describe('PublicTournamentsController — list', () => {
 
   it('passes custom page and limit', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list('3', '50');
 
@@ -261,7 +267,7 @@ describe('PublicTournamentsController — list', () => {
 
 describe('PublicTournamentsController — getBySlug', () => {
   it('GET /api/v1/tournaments/:slug exists (controller defines the getBySlug method)', () => {
-    const ctrl = new PublicTournamentsController(makeMockService() as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(makeMockService() as unknown as TournamentService, noopEnrichmentService);
     expect(typeof ctrl.getBySlug).toBe('function');
   });
 
@@ -271,7 +277,7 @@ describe('PublicTournamentsController — getBySlug', () => {
       registrationOpenAt: new Date('2026-02-01T00:00:00Z'),
     });
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     const result = await ctrl.getBySlug('dragon-cup-2026');
 
@@ -290,7 +296,7 @@ describe('PublicTournamentsController — getBySlug', () => {
   it('detail excludes cancelledAt (admin-only field)', async () => {
     const doc = makeDoc({ cancelledAt: new Date() });
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     const result = (await ctrl.getBySlug('dragon-cup-2026')) as unknown as Record<string, unknown>;
 
@@ -300,7 +306,7 @@ describe('PublicTournamentsController — getBySlug', () => {
   it('detail excludes deletedAt', async () => {
     const doc = makeDoc({ status: 'published', deletedAt: undefined });
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     const result = (await ctrl.getBySlug('dragon-cup-2026')) as unknown as Record<string, unknown>;
 
@@ -310,7 +316,7 @@ describe('PublicTournamentsController — getBySlug', () => {
   it('detail excludes archivedAt', async () => {
     const doc = makeDoc();
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     const result = (await ctrl.getBySlug('dragon-cup-2026')) as unknown as Record<string, unknown>;
 
@@ -320,7 +326,7 @@ describe('PublicTournamentsController — getBySlug', () => {
   it('detail excludes slugNormalized', async () => {
     const doc = makeDoc();
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     const result = (await ctrl.getBySlug('dragon-cup-2026')) as unknown as Record<string, unknown>;
 
@@ -330,7 +336,7 @@ describe('PublicTournamentsController — getBySlug', () => {
   it('detail includes participantType when set (public detail exposes it — task 8.3)', async () => {
     const doc = makeDoc({ participantType: 'team' });
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     const result = (await ctrl.getBySlug('dragon-cup-2026')) as unknown as Record<string, unknown>;
 
@@ -340,7 +346,7 @@ describe('PublicTournamentsController — getBySlug', () => {
   it('detail omits participantType when not set', async () => {
     const doc = makeDoc({ participantType: undefined });
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     const result = (await ctrl.getBySlug('dragon-cup-2026')) as unknown as Record<string, unknown>;
 
@@ -349,14 +355,14 @@ describe('PublicTournamentsController — getBySlug', () => {
 
   it('throws NotFoundException for non-existent tournament (safe 404)', async () => {
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(null) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await expect(ctrl.getBySlug('no-such-slug')).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('404 message does not leak internal state', async () => {
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(null) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     const error = await ctrl.getBySlug('no-such-slug').catch((e: unknown) => e);
     expect(error).toBeInstanceOf(NotFoundException);
@@ -367,7 +373,7 @@ describe('PublicTournamentsController — getBySlug', () => {
   it('throws NotFoundException for draft tournament (no state leak)', async () => {
     const doc = makeDoc({ status: 'draft' });
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await expect(ctrl.getBySlug('dragon-cup-2026')).rejects.toBeInstanceOf(NotFoundException);
   });
@@ -375,7 +381,7 @@ describe('PublicTournamentsController — getBySlug', () => {
   it('throws NotFoundException for archived tournament (no state leak)', async () => {
     const doc = makeDoc({ status: 'archived', archivedAt: new Date() });
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await expect(ctrl.getBySlug('dragon-cup-2026')).rejects.toBeInstanceOf(NotFoundException);
   });
@@ -383,7 +389,7 @@ describe('PublicTournamentsController — getBySlug', () => {
   it('throws NotFoundException for soft-deleted tournament', async () => {
     const doc = makeDoc({ status: 'published', deletedAt: new Date() });
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await expect(ctrl.getBySlug('dragon-cup-2026')).rejects.toBeInstanceOf(NotFoundException);
   });
@@ -393,7 +399,7 @@ describe('PublicTournamentsController — getBySlug', () => {
   it('returns detail for cancelled tournament (transparency policy)', async () => {
     const doc = makeDoc({ status: 'cancelled', cancelledAt: new Date() });
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     const result = await ctrl.getBySlug('dragon-cup-2026');
 
@@ -404,7 +410,7 @@ describe('PublicTournamentsController — getBySlug', () => {
   it('throws NotFoundException for cancelled+deleted tournament', async () => {
     const doc = makeDoc({ status: 'cancelled', deletedAt: new Date() });
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await expect(ctrl.getBySlug('dragon-cup-2026')).rejects.toBeInstanceOf(NotFoundException);
   });
@@ -414,7 +420,7 @@ describe('PublicTournamentsController — getBySlug', () => {
   it('PERMANENT — throws NotFoundException for soft-archived tournament (published+archivedAt)', async () => {
     const doc = makeDoc({ status: 'published', archivedAt: new Date() });
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await expect(ctrl.getBySlug('dragon-cup-2026')).rejects.toBeInstanceOf(NotFoundException);
   });
@@ -422,7 +428,7 @@ describe('PublicTournamentsController — getBySlug', () => {
   it('PERMANENT — throws NotFoundException for soft-archived tournament (registration_open+archivedAt)', async () => {
     const doc = makeDoc({ status: 'registration_open', archivedAt: new Date() });
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await expect(ctrl.getBySlug('dragon-cup-2026')).rejects.toBeInstanceOf(NotFoundException);
   });
@@ -434,7 +440,7 @@ describe('PublicTournamentsController — detail does not include operational fi
   it('detail response has no participants list', async () => {
     const doc = makeDoc();
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     const result = (await ctrl.getBySlug('dragon-cup-2026')) as unknown as Record<string, unknown>;
 
@@ -445,7 +451,7 @@ describe('PublicTournamentsController — detail does not include operational fi
   it('detail response has no match list', async () => {
     const doc = makeDoc();
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     const result = (await ctrl.getBySlug('dragon-cup-2026')) as unknown as Record<string, unknown>;
 
@@ -455,7 +461,7 @@ describe('PublicTournamentsController — detail does not include operational fi
   it('detail response has no standings or bracket', async () => {
     const doc = makeDoc();
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     const result = (await ctrl.getBySlug('dragon-cup-2026')) as unknown as Record<string, unknown>;
 
@@ -524,7 +530,7 @@ describe('PublicTournamentsController — scope guardrails', () => {
 describe('registrationOpen filter semantics', () => {
   it('registrationOpen=true passes registrationOpen flag to service', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list(undefined, undefined, undefined, undefined, undefined, 'true');
 
@@ -534,7 +540,7 @@ describe('registrationOpen filter semantics', () => {
 
   it('registrationOpen=false passes registrationOpen: false to service', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list(undefined, undefined, undefined, undefined, undefined, 'false');
 
@@ -547,7 +553,7 @@ describe('registrationOpen filter semantics', () => {
 
   it('registrationOpen=yes omits filter — lenient parser, no 400', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list(undefined, undefined, undefined, undefined, undefined, 'yes');
 
@@ -557,7 +563,7 @@ describe('registrationOpen filter semantics', () => {
 
   it('registrationOpen=1 omits filter — lenient parser, no 400', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list(undefined, undefined, undefined, undefined, undefined, '1');
 
@@ -567,7 +573,7 @@ describe('registrationOpen filter semantics', () => {
 
   it('registrationOpen absent does not pass registrationOpen to service', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list();
 
@@ -604,7 +610,7 @@ describe('list / search separation', () => {
 describe('PERMANENT — forbidden format values are never exposed or accepted', () => {
   it('silently drops swiss format filter (swiss is unsupported in Phase 1)', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list(undefined, undefined, undefined, undefined, 'swiss');
 
@@ -614,7 +620,7 @@ describe('PERMANENT — forbidden format values are never exposed or accepted', 
 
   it('silently drops double_elimination format filter (unsupported in Phase 1)', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list(undefined, undefined, undefined, undefined, 'double_elimination');
 
@@ -624,7 +630,7 @@ describe('PERMANENT — forbidden format values are never exposed or accepted', 
 
   it('silently drops advanced_bracket_editor format filter (unsupported in Phase 1)', async () => {
     const svc = makeMockService();
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     await ctrl.list(undefined, undefined, undefined, undefined, 'advanced_bracket_editor');
 
@@ -657,7 +663,7 @@ describe('PERMANENT — cancelled visibility policy (never remove)', () => {
     const svc = makeMockService({
       list: jest.fn().mockResolvedValue({ items: [doc], total: 1 }),
     });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     // When status='cancelled' filter is explicit, service is called with it
     await ctrl.list(undefined, undefined, undefined, 'cancelled');
@@ -678,7 +684,7 @@ describe('PERMANENT — cancelled visibility policy (never remove)', () => {
   it('cancelled detail is returned (not 404) when tournament is cancelled but not deleted', async () => {
     const doc = makeDoc({ status: 'cancelled', cancelledAt: new Date() });
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     const result = await ctrl.getBySlug('dragon-cup-2026');
     expect(result.status).toBe('cancelled');
@@ -687,7 +693,7 @@ describe('PERMANENT — cancelled visibility policy (never remove)', () => {
   it('cancelled detail does not expose cancelledAt timestamp', async () => {
     const doc = makeDoc({ status: 'cancelled', cancelledAt: new Date() });
     const svc = makeMockService({ findBySlug: jest.fn().mockResolvedValue(doc) });
-    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService);
+    const ctrl = new PublicTournamentsController(svc as unknown as TournamentService, noopEnrichmentService);
 
     const result = (await ctrl.getBySlug('dragon-cup-2026')) as unknown as Record<string, unknown>;
     expect(result).not.toHaveProperty('cancelledAt');

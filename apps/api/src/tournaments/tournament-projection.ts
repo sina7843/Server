@@ -1,6 +1,11 @@
 import type { TournamentSummaryDto, TournamentDetailDto, TournamentDto } from '@dragon/types';
 import type { TournamentDocument } from './tournament.schema';
 
+export interface TournamentEnrichment {
+  readonly coverImageUrl?: string;
+  readonly gameCoverImageUrl?: string;
+}
+
 // ─── Public visibility ────────────────────────────────────────────────────────
 
 // Statuses that are safe to surface on public endpoints.
@@ -26,7 +31,10 @@ export function isPubliclyVisible(doc: TournamentDocument): boolean {
 
 // Maps to TournamentSummaryDto (= TournamentListItemDto).
 // Excludes: cancelledAt, deletedAt, slugNormalized, participantType, description, rules.
-export function toPublicTournamentSummary(doc: TournamentDocument): TournamentSummaryDto {
+export function toPublicTournamentSummary(
+  doc: TournamentDocument,
+  enrichment: TournamentEnrichment = {},
+): TournamentSummaryDto {
   return {
     id: String(doc._id),
     gameId: doc.gameId,
@@ -37,13 +45,18 @@ export function toPublicTournamentSummary(doc: TournamentDocument): TournamentSu
     capacity: doc.capacity,
     ...(doc.startsAt != null ? { startsAt: doc.startsAt.toISOString() } : {}),
     ...(doc.publishedAt != null ? { publishedAt: doc.publishedAt.toISOString() } : {}),
+    ...(enrichment.coverImageUrl !== undefined ? { coverImageUrl: enrichment.coverImageUrl } : {}),
+    ...(enrichment.gameCoverImageUrl !== undefined ? { gameCoverImageUrl: enrichment.gameCoverImageUrl } : {}),
   };
 }
 
 // Maps to TournamentDetailDto (= PublicTournamentDto).
 // Excludes: cancelledAt, deletedAt, slugNormalized.
 // Includes participantType for public consumption (task 8.3 — detail page renders participant type).
-export function toPublicTournamentDetail(doc: TournamentDocument): TournamentDetailDto {
+export function toPublicTournamentDetail(
+  doc: TournamentDocument,
+  enrichment: TournamentEnrichment = {},
+): TournamentDetailDto {
   return {
     id: String(doc._id),
     gameId: doc.gameId,
@@ -66,6 +79,8 @@ export function toPublicTournamentDetail(doc: TournamentDocument): TournamentDet
     ...(doc.publishedAt != null ? { publishedAt: doc.publishedAt.toISOString() } : {}),
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),
+    ...(enrichment.coverImageUrl !== undefined ? { coverImageUrl: enrichment.coverImageUrl } : {}),
+    ...(enrichment.gameCoverImageUrl !== undefined ? { gameCoverImageUrl: enrichment.gameCoverImageUrl } : {}),
   };
 }
 
@@ -74,7 +89,10 @@ export function toPublicTournamentDetail(doc: TournamentDocument): TournamentDet
 // Maps to TournamentDto (admin-safe full DTO).
 // Adds cancelledAt and participantType vs public. Still excludes deletedAt and slugNormalized.
 // Audit emission for admin actions is deferred to Slice 5 (admin controller layer).
-export function toAdminTournamentDto(doc: TournamentDocument): TournamentDto {
+export function toAdminTournamentDto(
+  doc: TournamentDocument,
+  enrichment: TournamentEnrichment = {},
+): TournamentDto {
   return {
     id: String(doc._id),
     gameId: doc.gameId,
@@ -99,6 +117,9 @@ export function toAdminTournamentDto(doc: TournamentDocument): TournamentDto {
     ...(doc.archivedAt != null ? { archivedAt: doc.archivedAt.toISOString() } : {}),
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),
+    ...(doc.coverMediaId != null ? { coverMediaId: doc.coverMediaId } : {}),
+    ...(enrichment.coverImageUrl !== undefined ? { coverImageUrl: enrichment.coverImageUrl } : {}),
+    ...(enrichment.gameCoverImageUrl !== undefined ? { gameCoverImageUrl: enrichment.gameCoverImageUrl } : {}),
   };
 }
 
@@ -109,8 +130,14 @@ export function toPublicTournamentListResponse(
   total: number,
   page: number,
   limit: number,
+  enrichmentMap: Map<string, TournamentEnrichment> = new Map(),
 ): { items: TournamentSummaryDto[]; total: number; page: number; limit: number } {
-  return { items: items.map(toPublicTournamentSummary), total, page, limit };
+  return {
+    items: items.map((doc) => toPublicTournamentSummary(doc, enrichmentMap.get(String(doc._id)))),
+    total,
+    page,
+    limit,
+  };
 }
 
 export function toAdminTournamentListResponse(
@@ -118,6 +145,12 @@ export function toAdminTournamentListResponse(
   total: number,
   page: number,
   limit: number,
+  enrichmentMap: Map<string, TournamentEnrichment> = new Map(),
 ): { items: TournamentDto[]; total: number; page: number; limit: number } {
-  return { items: items.map(toAdminTournamentDto), total, page, limit };
+  return {
+    items: items.map((doc) => toAdminTournamentDto(doc, enrichmentMap.get(String(doc._id)))),
+    total,
+    page,
+    limit,
+  };
 }

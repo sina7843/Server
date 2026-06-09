@@ -1,6 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import type { GamePublicListResponseDto } from '@dragon/types';
 import { GameService } from '../game.service';
+import { GameEnrichmentService } from '../game-enrichment.service';
 import { toPublicGameListResponse } from './dto/public-game-response';
 
 const DEFAULT_PAGE = 1;
@@ -9,7 +10,10 @@ const MAX_LIMIT = 100;
 
 @Controller('api/v1/games')
 export class PublicGamesController {
-  constructor(private readonly gameService: GameService) {}
+  constructor(
+    private readonly gameService: GameService,
+    private readonly enrichmentService: GameEnrichmentService,
+  ) {}
 
   @Get()
   async listGames(
@@ -29,6 +33,7 @@ export class PublicGamesController {
       limit,
     );
 
-    return toPublicGameListResponse(items, total, page, limit);
+    const enrichmentMap = await this.enrichmentService.enrichMany(items);
+    return toPublicGameListResponse(items, total, page, limit, enrichmentMap);
   }
 }

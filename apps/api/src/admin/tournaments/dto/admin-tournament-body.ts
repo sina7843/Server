@@ -29,6 +29,7 @@ const KNOWN_CREATE_FIELDS = new Set([
   'startsAt',
   'endsAt',
   'rules',
+  'coverMediaId',
 ]);
 
 // status, publishedAt, cancelledAt, archivedAt, deletedAt are NOT allowed on PATCH —
@@ -46,6 +47,7 @@ const KNOWN_UPDATE_FIELDS = new Set([
   'startsAt',
   'endsAt',
   'rules',
+  'coverMediaId',
 ]);
 
 const LIFECYCLE_BLOCKED_FIELDS = new Set([
@@ -156,6 +158,18 @@ export function parseAdminCreateTournamentBody(raw: unknown): CreateTournamentIn
   const startsAt = parseOptionalDate(body.startsAt, 'startsAt');
   const endsAt = parseOptionalDate(body.endsAt, 'endsAt');
 
+  let coverMediaId: string | null | undefined;
+  if (body.coverMediaId !== undefined) {
+    if (body.coverMediaId === null) {
+      coverMediaId = null;
+    } else if (typeof body.coverMediaId !== 'string') {
+      throw new BadRequestException('coverMediaId must be a string or null.');
+    } else {
+      const trimmed = body.coverMediaId.trim();
+      coverMediaId = trimmed.length > 0 ? trimmed : null;
+    }
+  }
+
   return {
     gameId: body.gameId.trim(),
     title: body.title.trim(),
@@ -169,6 +183,7 @@ export function parseAdminCreateTournamentBody(raw: unknown): CreateTournamentIn
     ...(registrationCloseAt !== undefined ? { registrationCloseAt } : {}),
     ...(startsAt !== undefined ? { startsAt } : {}),
     ...(endsAt !== undefined ? { endsAt } : {}),
+    ...(coverMediaId !== undefined ? { coverMediaId } : {}),
   };
 }
 
@@ -278,6 +293,16 @@ export function parseAdminUpdateTournamentBody(raw: unknown): UpdateTournamentIn
   if (registrationCloseAt !== undefined) result.registrationCloseAt = registrationCloseAt;
   if (startsAt !== undefined) result.startsAt = startsAt;
   if (endsAt !== undefined) result.endsAt = endsAt;
+
+  if (body.coverMediaId !== undefined) {
+    if (body.coverMediaId === null) {
+      result.coverMediaId = null;
+    } else if (typeof body.coverMediaId !== 'string') {
+      throw new BadRequestException('coverMediaId must be a string or null.');
+    } else {
+      result.coverMediaId = body.coverMediaId.trim() || null;
+    }
+  }
 
   return result as UpdateTournamentInput;
 }

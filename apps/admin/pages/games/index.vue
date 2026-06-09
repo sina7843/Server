@@ -15,12 +15,16 @@
 
     <template v-else>
       <div class="filters">
-        <select v-model="statusFilter" class="filter-select" @change="onFilterChange">
-          <option value="">همه وضعیت‌ها</option>
-          <option value="active">فعال</option>
-          <option value="inactive">غیرفعال</option>
-          <option value="archived">بایگانی</option>
-        </select>
+        <div class="filter-pills">
+          <button
+            v-for="opt in statusOptions"
+            :key="opt.value"
+            class="pill"
+            :class="{ 'pill--active': statusFilter === opt.value }"
+            type="button"
+            @click="setStatus(opt.value)"
+          >{{ opt.label }}</button>
+        </div>
       </div>
 
       <LoadingState v-if="gamesLoading" />
@@ -100,6 +104,13 @@ const statusFilter = ref('');
 const deleteDialogOpen = ref(false);
 const pendingDeleteGame = ref<GameDto | null>(null);
 
+const statusOptions = [
+  { value: '', label: 'همه' },
+  { value: 'active', label: 'فعال' },
+  { value: 'inactive', label: 'غیرفعال' },
+  { value: 'archived', label: 'بایگانی' },
+];
+
 function buildParams(page = 1) {
   return {
     page,
@@ -112,7 +123,8 @@ async function load(page = 1) {
   await loadGames(buildParams(page));
 }
 
-function onFilterChange() {
+function setStatus(val: string) {
+  statusFilter.value = val;
   void load(1);
 }
 
@@ -197,26 +209,37 @@ onMounted(() => {
   margin-block-end: 16px;
 }
 
-.filter-select {
-  height: 36px;
-  padding: 0 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-default);
-  background: var(--input-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  color: var(--text-primary);
-  font-family: inherit;
-  font-size: 13px;
-  outline: none;
-  cursor: pointer;
-  transition: border-color var(--motion-fast);
-  appearance: none;
+.filter-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
-.filter-select:focus {
-  border-color: var(--purple-400);
-  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.18);
+.pill {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--motion-fast);
+}
+
+.pill:hover {
+  background: var(--hover-overlay);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.pill--active {
+  background: rgba(109, 40, 217, 0.15);
+  color: var(--purple-300);
+  border-color: rgba(109, 40, 217, 0.4);
+  font-weight: 600;
 }
 
 .pagination {

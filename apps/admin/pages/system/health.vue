@@ -162,7 +162,7 @@ onMounted(() => {
 
 .back-link {
   font-size: 0.85rem;
-  color: #3b82f6;
+  color: var(--purple-400);
   text-decoration: none;
   display: inline-block;
   margin-block-end: 0.4rem;
@@ -176,7 +176,7 @@ onMounted(() => {
   margin: 0;
   font-size: 1.4rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .section {
@@ -187,13 +187,13 @@ onMounted(() => {
   margin: 0 0 0.75rem;
   font-size: 0.95rem;
   font-weight: 700;
-  color: #475569;
+  color: var(--text-secondary);
   padding: 0.75rem 1.25rem 0;
 }
 
 .card {
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -202,7 +202,7 @@ onMounted(() => {
   align-items: center;
   gap: 1rem;
   padding: 0.75rem 1.25rem;
-  border-block-end: 1px solid #f1f5f9;
+  border-block-end: 1px solid var(--border-subtle);
 }
 
 .card-row:last-child {
@@ -213,25 +213,26 @@ onMounted(() => {
   min-width: 110px;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .value {
   font-size: 0.9rem;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .value-mono {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.85rem;
-  background: #f1f5f9;
+  background: var(--hover-overlay);
   padding: 0.1rem 0.4rem;
-  border-radius: 0.25rem;
+  border-radius: var(--radius-xs);
+  color: var(--text-primary);
 }
 
 .value-time {
   font-size: 0.85rem;
-  color: #475569;
+  color: var(--text-secondary);
 }
 
 .dep-grid {
@@ -242,8 +243,8 @@ onMounted(() => {
 }
 
 .dep-panel {
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
   padding: 0.75rem 1rem;
   display: flex;
   flex-direction: column;
@@ -253,7 +254,7 @@ onMounted(() => {
 .dep-name {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .dep-badge {
@@ -266,28 +267,32 @@ onMounted(() => {
 }
 
 .dep-badge--ok {
-  background: #dcfce7;
-  color: #166534;
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success-400);
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .dep-badge--degraded {
-  background: #fef9c3;
-  color: #854d0e;
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning-400);
+  border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
 .dep-badge--down {
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger-400);
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 .dep-badge--unknown {
-  background: #f1f5f9;
-  color: #64748b;
+  background: var(--hover-overlay);
+  color: var(--text-muted);
+  border: 1px solid var(--border-default);
 }
 
 .dep-latency {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .badge-ok {
@@ -296,8 +301,9 @@ onMounted(() => {
   border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 600;
-  background: #dcfce7;
-  color: #166534;
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success-400);
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .badge-degraded {
@@ -306,8 +312,9 @@ onMounted(() => {
   border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 600;
-  background: #fef9c3;
-  color: #854d0e;
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning-400);
+  border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
 .badge-unavailable {
@@ -316,7 +323,8 @@ onMounted(() => {
   border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 600;
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger-400);
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 </style>

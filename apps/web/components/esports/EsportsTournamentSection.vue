@@ -1,6 +1,6 @@
 <template>
-  <section class="esports-tournaments" aria-label="تورنومنت‌ها">
-    <div class="esports-tournaments__header">
+  <section ref="containerRef" class="esports-tournaments" aria-label="تورنومنت‌ها">
+    <div class="esports-tournaments__header" data-sr>
       <div class="esports-tournaments__title-group">
         <span class="dr-label font-en">Tournaments</span>
         <h2 class="esports-tournaments__heading">تورنومنت‌ها</h2>
@@ -20,7 +20,7 @@
         در حال برگزاری
       </h3>
       <ul class="esports-tournaments__list" role="list">
-        <li v-for="t in active" :key="t.id">
+        <li v-for="t in active" :key="t.id" data-sr>
           <NuxtLink :to="`/tournaments/${t.slug}`" class="tournament-card tournament-card--live">
             <div class="tournament-card__glow" aria-hidden="true" />
             <div class="tournament-card__body">
@@ -53,7 +53,7 @@
         آینده
       </h3>
       <ul class="esports-tournaments__list" role="list">
-        <li v-for="t in upcoming" :key="t.id">
+        <li v-for="t in upcoming" :key="t.id" data-sr>
           <NuxtLink :to="`/tournaments/${t.slug}`" class="tournament-card tournament-card--upcoming">
             <div class="tournament-card__body">
               <span class="tournament-card__name">{{ t.title }}</span>
@@ -88,6 +88,8 @@ defineProps<{
   active: readonly TournamentListItemDto[];
   upcoming: readonly TournamentListItemDto[];
 }>();
+
+const { containerRef } = useScrollReveal({ staggerMs: 70 });
 </script>
 
 <style scoped>

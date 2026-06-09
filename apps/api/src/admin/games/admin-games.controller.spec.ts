@@ -1,12 +1,18 @@
 import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { AdminGamesController } from './admin-games.controller';
 import { GameService } from '../../games/game.service';
+import { GameEnrichmentService } from '../../games/game-enrichment.service';
 import { Permissions } from '../../rbac/registry/permission-keys';
 import { PERMISSION_METADATA_KEY } from '../../rbac/decorators/permission-metadata';
 import type { GameDocument } from '../../games/game.schema';
 import type { PermissionMetadata } from '../../rbac/decorators/permission-metadata';
 import * as path from 'path';
 import * as fs from 'fs';
+
+const noopEnrichmentService = {
+  enrichMany: jest.fn().mockResolvedValue(new Map()),
+  enrichOne: jest.fn().mockResolvedValue({}),
+} as unknown as GameEnrichmentService;
 
 function makeGame(overrides: Partial<Record<string, unknown>> = {}): GameDocument {
   return {
@@ -62,7 +68,7 @@ describe('AdminGamesController — listGames', () => {
 
   beforeEach(() => {
     gameService = { list: jest.fn().mockResolvedValue({ items: [], total: 0 }) };
-    controller = new AdminGamesController(gameService as unknown as GameService);
+    controller = new AdminGamesController(gameService as unknown as GameService, noopEnrichmentService);
   });
 
   it('returns paginated list with correct shape', async () => {
@@ -122,7 +128,7 @@ describe('AdminGamesController — getGame', () => {
 
   beforeEach(() => {
     gameService = { findById: jest.fn().mockResolvedValue(null) };
-    controller = new AdminGamesController(gameService as unknown as GameService);
+    controller = new AdminGamesController(gameService as unknown as GameService, noopEnrichmentService);
   });
 
   it('returns a GameDto for an existing game', async () => {
@@ -169,6 +175,7 @@ describe('AdminGamesController — createGame', () => {
     auditMock = { log: jest.fn() };
     controller = new AdminGamesController(
       gameService as unknown as GameService,
+      noopEnrichmentService,
       auditMock as never,
     );
   });
@@ -250,6 +257,7 @@ describe('AdminGamesController — updateGame', () => {
     auditMock = { log: jest.fn() };
     controller = new AdminGamesController(
       gameService as unknown as GameService,
+      noopEnrichmentService,
       auditMock as never,
     );
   });
@@ -311,6 +319,7 @@ describe('AdminGamesController — deleteGame', () => {
     auditMock = { log: jest.fn() };
     controller = new AdminGamesController(
       gameService as unknown as GameService,
+      noopEnrichmentService,
       auditMock as never,
     );
   });
@@ -360,7 +369,7 @@ describe('AdminGamesController — public GameDto shape', () => {
 
   beforeEach(() => {
     gameService = { findById: jest.fn() };
-    controller = new AdminGamesController(gameService as unknown as GameService);
+    controller = new AdminGamesController(gameService as unknown as GameService, noopEnrichmentService);
   });
 
   it('GameDto includes status field (admin-only field)', async () => {

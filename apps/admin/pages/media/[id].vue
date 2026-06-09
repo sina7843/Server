@@ -54,13 +54,13 @@ async function onDeleted() {
 .page-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
   margin: 0.25rem 0 0;
 }
 
 .back-link {
   font-size: 0.85rem;
-  color: #3b82f6;
+  color: var(--purple-400);
   text-decoration: none;
   display: inline-block;
   margin-block-end: 0.4rem;

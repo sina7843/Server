@@ -178,7 +178,7 @@ onMounted(reload);
 
 .back-link {
   font-size: 0.85rem;
-  color: #3b82f6;
+  color: var(--purple-400);
   text-decoration: none;
   display: inline-block;
   margin-block-end: 0.4rem;
@@ -192,21 +192,21 @@ onMounted(reload);
   margin: 0;
   font-size: 1.4rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .system-notice {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 0.5rem;
+  background: rgba(109, 40, 217, 0.08);
+  border: 1px solid rgba(109, 40, 217, 0.2);
+  border-radius: var(--radius-sm);
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
-  color: #1e40af;
+  color: var(--purple-300);
 }
 
 .card {
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
   overflow: hidden;
   margin-block-end: 1.25rem;
 }
@@ -221,21 +221,22 @@ onMounted(reload);
 .label {
   font-size: 0.82rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-muted);
   min-width: 90px;
 }
 
 .value-mono {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.85rem;
-  background: #f1f5f9;
+  background: var(--hover-overlay);
+  color: var(--text-primary);
   padding: 0.1rem 0.4rem;
-  border-radius: 0.25rem;
+  border-radius: var(--radius-xs);
 }
 
 .immutable-note {
   font-size: 0.78rem;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .form {
@@ -253,12 +254,12 @@ onMounted(reload);
 .field-label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-secondary);
 }
 
 .field-hint {
   font-weight: 400;
-  color: #9ca3af;
+  color: var(--text-muted);
   margin-inline-start: 0.3rem;
   font-size: 0.8rem;
 }
@@ -266,17 +267,20 @@ onMounted(reload);
 .field-input,
 .field-textarea {
   padding: 0.5rem 0.85rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
+  background: var(--input-bg);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
+  color: var(--text-primary);
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color var(--motion-fast);
   font-family: inherit;
 }
 
 .field-input:focus,
 .field-textarea:focus {
-  border-color: #3b82f6;
+  border-color: var(--purple-400);
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.15);
 }
 
 .field-textarea {
@@ -293,7 +297,7 @@ onMounted(reload);
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
-  color: #374151;
+  color: var(--text-secondary);
   cursor: pointer;
 }
 
@@ -305,15 +309,16 @@ onMounted(reload);
 
 .deactivate-warning {
   font-size: 0.8rem;
-  color: #b45309;
+  color: var(--warning-400);
 }
 
 .form-error {
   font-size: 0.85rem;
-  color: #dc2626;
-  background: #fee2e2;
+  color: var(--danger-400);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
   padding: 0.5rem 0.85rem;
-  border-radius: 0.4rem;
+  border-radius: var(--radius-xs);
 }
 
 .form-actions {
@@ -326,7 +331,7 @@ onMounted(reload);
 
 .cancel-btn {
   font-size: 0.9rem;
-  color: #475569;
+  color: var(--text-muted);
   text-decoration: none;
 }
 
@@ -338,19 +343,22 @@ onMounted(reload);
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.5rem 1.25rem;
-  background: #3b82f6;
+  height: 36px;
+  padding: 0 1.25rem;
+  background: var(--purple-500);
   color: #fff;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  box-shadow: 0 0 0 0 rgba(109, 40, 217, 0);
+  transition: all var(--motion-fast);
 }
 
 .submit-btn:not(:disabled):hover {
-  background: #2563eb;
+  background: var(--purple-400);
+  box-shadow: 0 0 16px rgba(109, 40, 217, 0.35);
 }
 
 .submit-btn:disabled {

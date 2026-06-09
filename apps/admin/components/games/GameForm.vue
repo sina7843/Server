@@ -56,6 +56,66 @@
       />
     </div>
 
+    <div class="field">
+      <label class="field-label">
+        تصویر کاور
+        <span class="field-hint">(اختیاری)</span>
+      </label>
+      <div class="cover-row">
+        <img v-if="coverAssetUrl" :src="coverAssetUrl" alt="تصویر کاور" class="cover-thumb" />
+        <span v-else-if="form.coverMediaId" class="cover-id">شناسه: {{ form.coverMediaId }}</span>
+        <span v-else class="cover-empty">انتخاب نشده</span>
+        <div class="cover-btns">
+          <button type="button" class="cover-btn" @click="coverPickerOpen = true">
+            {{ form.coverMediaId ? 'تغییر' : 'انتخاب' }}
+          </button>
+          <button
+            v-if="form.coverMediaId"
+            type="button"
+            class="cover-btn cover-btn--clear"
+            @click="form.coverMediaId = null; coverAssetUrl = null;"
+          >
+            حذف
+          </button>
+        </div>
+      </div>
+      <MediaPickerDialog
+        :open="coverPickerOpen"
+        @select="(a) => { form.coverMediaId = a.id; coverAssetUrl = a.url ?? null; coverPickerOpen = false; }"
+        @cancel="coverPickerOpen = false"
+      />
+    </div>
+
+    <div class="field">
+      <label class="field-label">
+        آیکون بازی
+        <span class="field-hint">(اختیاری)</span>
+      </label>
+      <div class="cover-row">
+        <img v-if="iconAssetUrl" :src="iconAssetUrl" alt="آیکون بازی" class="cover-thumb cover-thumb--icon" />
+        <span v-else-if="form.iconMediaId" class="cover-id">شناسه: {{ form.iconMediaId }}</span>
+        <span v-else class="cover-empty">انتخاب نشده</span>
+        <div class="cover-btns">
+          <button type="button" class="cover-btn" @click="iconPickerOpen = true">
+            {{ form.iconMediaId ? 'تغییر' : 'انتخاب' }}
+          </button>
+          <button
+            v-if="form.iconMediaId"
+            type="button"
+            class="cover-btn cover-btn--clear"
+            @click="form.iconMediaId = null; iconAssetUrl = null;"
+          >
+            حذف
+          </button>
+        </div>
+      </div>
+      <MediaPickerDialog
+        :open="iconPickerOpen"
+        @select="(a) => { form.iconMediaId = a.id; iconAssetUrl = a.url ?? null; iconPickerOpen = false; }"
+        @cancel="iconPickerOpen = false"
+      />
+    </div>
+
     <div v-if="actionError" class="form-error" role="alert">{{ actionError }}</div>
 
     <div class="form-actions">
@@ -89,7 +149,16 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  submit: [data: { name: string; slug: string; status: GameStatus; description?: string }];
+  submit: [
+    data: {
+      name: string;
+      slug: string;
+      status: GameStatus;
+      description?: string;
+      coverMediaId?: string | null;
+      iconMediaId?: string | null;
+    },
+  ];
 }>();
 
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
@@ -99,7 +168,14 @@ const form = reactive({
   slug: props.initial?.slug ?? '',
   status: (props.initial?.status ?? 'active') as GameStatus,
   description: props.initial?.description ?? '',
+  coverMediaId: (props.initial?.coverMediaId ?? null) as string | null,
+  iconMediaId: (props.initial?.iconMediaId ?? null) as string | null,
 });
+
+const coverPickerOpen = ref(false);
+const iconPickerOpen = ref(false);
+const coverAssetUrl = ref<string | null>(props.initial?.coverImageUrl ?? null);
+const iconAssetUrl = ref<string | null>(props.initial?.iconImageUrl ?? null);
 
 const errors = reactive({ name: '', slug: '' });
 
@@ -135,6 +211,8 @@ function onSubmit() {
     slug: form.slug,
     status: form.status,
     ...(form.description.trim() ? { description: form.description.trim() } : {}),
+    coverMediaId: form.coverMediaId,
+    iconMediaId: form.iconMediaId,
   });
 }
 </script>
@@ -263,5 +341,60 @@ function onSubmit() {
   to {
     transform: rotate(360deg);
   }
+}
+
+.cover-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.cover-thumb {
+  width: 80px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 0.25rem;
+  border: 1px solid #e5e7eb;
+}
+
+.cover-thumb--icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 0.375rem;
+}
+
+.cover-empty,
+.cover-id {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.cover-btns {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.cover-btn {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background: #fff;
+  color: #374151;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.cover-btn:hover {
+  background: #f3f4f6;
+}
+
+.cover-btn--clear {
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+.cover-btn--clear:hover {
+  background: #fee2e2;
 }
 </style>

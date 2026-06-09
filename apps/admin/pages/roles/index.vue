@@ -102,29 +102,33 @@ onMounted(loadRoles);
   margin: 0;
   font-size: 1.4rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .create-btn {
-  display: inline-block;
-  padding: 0.45rem 1rem;
-  background: #3b82f6;
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 1rem;
+  background: var(--purple-500);
   color: #fff;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   font-size: 0.875rem;
   font-weight: 600;
   text-decoration: none;
-  transition: background 0.15s;
+  box-shadow: 0 0 0 0 rgba(109, 40, 217, 0);
+  transition: all var(--motion-fast);
 }
 
 .create-btn:hover {
-  background: #2563eb;
+  background: var(--purple-400);
+  box-shadow: 0 0 16px rgba(109, 40, 217, 0.35);
 }
 
 .table-wrap {
   overflow-x: auto;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
 }
 
 .table {
@@ -137,9 +141,11 @@ onMounted(loadRoles);
   text-align: start;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #64748b;
-  background: #f8fafc;
-  border-block-end: 1px solid #e2e8f0;
+  color: var(--text-muted);
+  background: var(--hover-overlay);
+  border-block-end: 1px solid var(--border-default);
   white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 </style>

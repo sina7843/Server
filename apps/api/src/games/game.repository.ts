@@ -16,6 +16,11 @@ export class GameRepository {
     return this.gameModel.findOne({ _id: id, deletedAt: { $exists: false } }).exec();
   }
 
+  findManyByIds(ids: string[]): Promise<GameDocument[]> {
+    if (!ids.length) return Promise.resolve([]);
+    return this.gameModel.find({ _id: { $in: ids }, deletedAt: { $exists: false } }).exec();
+  }
+
   findBySlug(slugNormalized: string): Promise<GameDocument | null> {
     return this.gameModel.findOne({ slugNormalized, deletedAt: { $exists: false } }).exec();
   }

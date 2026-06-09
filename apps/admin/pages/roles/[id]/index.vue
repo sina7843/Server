@@ -265,7 +265,7 @@ onMounted(async () => {
 
 .back-link {
   font-size: 0.85rem;
-  color: #3b82f6;
+  color: var(--purple-400);
   text-decoration: none;
   display: inline-block;
   margin-block-end: 0.4rem;
@@ -279,12 +279,12 @@ onMounted(async () => {
   margin: 0;
   font-size: 1.4rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .card {
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
   overflow: hidden;
   margin-block-end: 1rem;
 }
@@ -294,7 +294,7 @@ onMounted(async () => {
   align-items: center;
   gap: 1rem;
   padding: 0.75rem 1.25rem;
-  border-block-end: 1px solid #f1f5f9;
+  border-block-end: 1px solid var(--border-subtle);
 }
 
 .card-row:last-child {
@@ -305,20 +305,20 @@ onMounted(async () => {
   min-width: 100px;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .value {
   font-size: 0.9rem;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .value-mono {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.85rem;
-  background: #f1f5f9;
+  background: var(--hover-overlay);
   padding: 0.1rem 0.4rem;
-  border-radius: 0.25rem;
+  border-radius: var(--radius-xs);
 }
 
 .badge-active {
@@ -327,8 +327,9 @@ onMounted(async () => {
   border-radius: 999px;
   font-size: 0.72rem;
   font-weight: 600;
-  background: #dcfce7;
-  color: #166534;
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success-400);
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .badge-inactive {
@@ -337,8 +338,9 @@ onMounted(async () => {
   border-radius: 999px;
   font-size: 0.72rem;
   font-weight: 600;
-  background: #f1f5f9;
-  color: #475569;
+  background: var(--hover-overlay);
+  color: var(--text-muted);
+  border: 1px solid var(--border-default);
 }
 
 .badge-custom {
@@ -347,17 +349,18 @@ onMounted(async () => {
   border-radius: 999px;
   font-size: 0.72rem;
   font-weight: 600;
-  background: #f0fdf4;
-  color: #166534;
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success-400);
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .system-notice {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 0.5rem;
+  background: rgba(109, 40, 217, 0.08);
+  border: 1px solid rgba(109, 40, 217, 0.2);
+  border-radius: var(--radius-sm);
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
-  color: #1e40af;
+  color: var(--purple-300);
   margin-block-end: 1rem;
 }
 
@@ -368,35 +371,42 @@ onMounted(async () => {
 }
 
 .edit-btn {
-  display: inline-block;
-  padding: 0.5rem 1.1rem;
-  background: #3b82f6;
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 1.1rem;
+  background: var(--purple-500);
   color: #fff;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
   font-weight: 600;
   text-decoration: none;
-  transition: background 0.15s;
+  box-shadow: 0 0 0 0 rgba(109, 40, 217, 0);
+  transition: all var(--motion-fast);
 }
 
 .edit-btn:hover {
-  background: #2563eb;
+  background: var(--purple-400);
+  box-shadow: 0 0 16px rgba(109, 40, 217, 0.35);
 }
 
 .deactivate-btn {
-  padding: 0.5rem 1.1rem;
-  background: none;
-  color: #ef4444;
-  border: 1px solid #fca5a5;
-  border-radius: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 1.1rem;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger-400);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background var(--motion-fast);
 }
 
 .deactivate-btn:hover {
-  background: #fee2e2;
+  background: rgba(239, 68, 68, 0.18);
 }
 
 .permissions-section {
@@ -414,22 +424,22 @@ onMounted(async () => {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .attach-btn {
   font-size: 0.82rem;
-  color: #3b82f6;
+  color: var(--purple-400);
   background: none;
-  border: 1px solid #93c5fd;
-  border-radius: 0.4rem;
+  border: 1px solid rgba(109, 40, 217, 0.3);
+  border-radius: var(--radius-xs);
   padding: 0.25rem 0.65rem;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background var(--motion-fast);
 }
 
 .attach-btn:hover {
-  background: #eff6ff;
+  background: rgba(109, 40, 217, 0.08);
 }
 
 .attach-panel {
@@ -441,27 +451,29 @@ onMounted(async () => {
 .perm-select {
   flex: 1;
   padding: 0.45rem 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
+  background: var(--input-bg);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
   font-size: 0.875rem;
-  background: #fff;
+  color: var(--text-primary);
   outline: none;
 }
 
 .confirm-attach-btn {
-  padding: 0.45rem 0.9rem;
-  background: #3b82f6;
+  height: 36px;
+  padding: 0 0.9rem;
+  background: var(--purple-500);
   color: #fff;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background var(--motion-fast);
 }
 
 .confirm-attach-btn:not(:disabled):hover {
-  background: #2563eb;
+  background: var(--purple-400);
 }
 
 .confirm-attach-btn:disabled {
@@ -471,8 +483,8 @@ onMounted(async () => {
 
 .table-wrap {
   overflow-x: auto;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
 }
 
 .table {
@@ -485,9 +497,11 @@ onMounted(async () => {
   text-align: start;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #64748b;
-  background: #f8fafc;
-  border-block-end: 1px solid #e2e8f0;
+  color: var(--text-muted);
+  background: var(--hover-overlay);
+  border-block-end: 1px solid var(--border-default);
   white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <article class="content-card">
     <NuxtLink :to="`${basePath}/${item.slug}`" class="content-card__cover-link" tabindex="-1" aria-hidden="true">
-      <div class="content-card__cover" :class="`content-card__cover--${item.type}`">
+      <div class="content-card__cover" :class="{ [`content-card__cover--${item.type}`]: !item.coverImageUrl }">
         <img
           v-if="item.coverImageUrl"
           :src="item.coverImageUrl"
@@ -9,7 +9,7 @@
           class="content-card__cover-img"
         />
         <div class="content-card__cover-glow" />
-        <span class="content-card__cover-initial" aria-hidden="true">{{ coverInitial }}</span>
+        <span v-if="!item.coverImageUrl" class="content-card__cover-initial" aria-hidden="true">{{ coverInitial }}</span>
         <span class="content-card__type-pill">{{ typeLabel }}</span>
       </div>
     </NuxtLink>
@@ -22,9 +22,15 @@
       </h2>
       <p v-if="item.excerpt" class="content-card__excerpt">{{ item.excerpt }}</p>
       <div class="content-card__footer">
-        <time v-if="item.publishedAt" class="content-card__date" :datetime="item.publishedAt">
-          {{ formatDate(item.publishedAt) }}
-        </time>
+        <div class="content-card__meta">
+          <time v-if="item.publishedAt" class="content-card__date" :datetime="item.publishedAt">
+            {{ formatDate(item.publishedAt) }}
+          </time>
+          <template v-if="item.authorName">
+            <span class="content-card__meta-sep" aria-hidden="true">·</span>
+            <span class="content-card__author">{{ item.authorName }}</span>
+          </template>
+        </div>
         <svg
           class="content-card__arrow"
           width="14"
@@ -136,7 +142,7 @@ function formatDate(iso: string): string {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: fill;
   opacity: 0.45;
   z-index: 0;
 }
@@ -237,10 +243,34 @@ function formatDate(iso: string): string {
   border-top: 1px solid var(--border-subtle);
 }
 
+.content-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
 .content-card__date {
   font-size: var(--text-caption-size);
   color: var(--text-muted);
   font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+.content-card__meta-sep {
+  font-size: var(--text-caption-size);
+  color: var(--text-disabled);
+  line-height: 1;
+}
+
+.content-card__author {
+  font-size: var(--text-caption-size);
+  color: var(--text-muted);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
 }
 
 .content-card__arrow {

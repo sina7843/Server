@@ -1019,6 +1019,37 @@ export class Phase1DevSeedService {
 
   private async seedGames(): Promise<GameSeedMap> {
     const output = {} as GameSeedMap;
+
+    const gameCovers: Partial<Record<string, SeedDocument>> = {};
+    for (const [slug, fileName] of [
+      ['valorant', 'game-valorant-cover.jpg'],
+      ['dota-2', 'game-dota2-cover.jpg'],
+      ['counter-strike-2', 'game-cs2-cover.jpg'],
+    ] as const) {
+      const checksum = `${DEV_SEED_REQUEST_ID_PREFIX}media-game-cover-${slug}`;
+      gameCovers[slug] = await this.upsert(
+        this.mediaAssetModel,
+        { checksum },
+        {
+          originalName: fileName,
+          fileName,
+          mimeType: 'image/jpeg',
+          extension: 'jpg',
+          sizeBytes: 92000,
+          storageProvider: 'local',
+          bucket: 'dragon-local',
+          objectKey: `${DEV_SEED_REQUEST_ID_PREFIX}media/${fileName}`,
+          visibility: 'public',
+          variants: [],
+          width: 1280,
+          height: 720,
+          alt: `${slug} game cover`,
+          status: 'ready',
+          checksum,
+        },
+      );
+    }
+
     const games = [
       ['valorant', 'Valorant', 'Tactical FPS tournaments and local bracket testing.', 'active'],
       ['ea-fc', 'EA FC', 'Football esports cups and manual tournament demos.', 'active'],
@@ -1029,10 +1060,18 @@ export class Phase1DevSeedService {
     ] as const;
 
     for (const [slug, name, description, status] of games) {
+      const coverDoc = gameCovers[slug];
       output[slug] = await this.upsert(
         this.gameModel,
         { slugNormalized: slug },
-        { name, slug, slugNormalized: slug, description, status },
+        {
+          name,
+          slug,
+          slugNormalized: slug,
+          description,
+          status,
+          ...(coverDoc !== undefined ? { coverMediaId: idOf(coverDoc) } : {}),
+        },
       );
     }
 
@@ -1175,8 +1214,33 @@ export class Phase1DevSeedService {
       },
     ];
 
+    const posterChecksum = `${DEV_SEED_REQUEST_ID_PREFIX}media-tournament-poster-valorant-open`;
+    const tournamentPoster = await this.upsert(
+      this.mediaAssetModel,
+      { checksum: posterChecksum },
+      {
+        originalName: 'tournament-valorant-open-poster.jpg',
+        fileName: 'tournament-valorant-open-poster.jpg',
+        mimeType: 'image/jpeg',
+        extension: 'jpg',
+        sizeBytes: 140000,
+        storageProvider: 'local',
+        bucket: 'dragon-local',
+        objectKey: `${DEV_SEED_REQUEST_ID_PREFIX}media/tournament-valorant-open-poster.jpg`,
+        visibility: 'public',
+        variants: [],
+        width: 1200,
+        height: 630,
+        alt: 'Valorant Open Registration poster',
+        status: 'ready',
+        checksum: posterChecksum,
+      },
+    );
+
     for (const tournament of inputs) {
       const game = games[tournament.game];
+      const coverMediaId =
+        tournament.slug === 'valorant-open-registration-local' ? idOf(tournamentPoster) : undefined;
       output[tournament.slug] = await this.upsert(
         this.tournamentModel,
         { slugNormalized: tournament.slug },
@@ -1198,6 +1262,7 @@ export class Phase1DevSeedService {
           ...(tournament.publishedAt !== undefined ? { publishedAt: tournament.publishedAt } : {}),
           ...(tournament.cancelledAt !== undefined ? { cancelledAt: tournament.cancelledAt } : {}),
           ...(tournament.archivedAt !== undefined ? { archivedAt: tournament.archivedAt } : {}),
+          ...(coverMediaId !== undefined ? { coverMediaId } : {}),
         },
       );
     }

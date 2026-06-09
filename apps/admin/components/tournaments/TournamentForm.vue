@@ -170,6 +170,36 @@
       />
     </div>
 
+    <div class="field">
+      <label class="field-label">
+        پوستر تورنمنت
+        <span class="field-hint">(اختیاری)</span>
+      </label>
+      <div class="cover-row">
+        <img v-if="coverAssetUrl" :src="coverAssetUrl" alt="پوستر تورنمنت" class="cover-thumb" />
+        <span v-else-if="form.coverMediaId" class="cover-id">شناسه: {{ form.coverMediaId }}</span>
+        <span v-else class="cover-empty">انتخاب نشده</span>
+        <div class="cover-btns">
+          <button type="button" class="cover-btn" @click="coverPickerOpen = true">
+            {{ form.coverMediaId ? 'تغییر' : 'انتخاب' }}
+          </button>
+          <button
+            v-if="form.coverMediaId"
+            type="button"
+            class="cover-btn cover-btn--clear"
+            @click="form.coverMediaId = null; coverAssetUrl = null;"
+          >
+            حذف
+          </button>
+        </div>
+      </div>
+      <MediaPickerDialog
+        :open="coverPickerOpen"
+        @select="(a) => { form.coverMediaId = a.id; coverAssetUrl = a.url ?? null; coverPickerOpen = false; }"
+        @cancel="coverPickerOpen = false"
+      />
+    </div>
+
     <div v-if="actionError" class="form-error" role="alert">{{ actionError }}</div>
 
     <div class="form-actions">
@@ -233,7 +263,11 @@ const form = reactive({
   registrationCloseAt: isoToLocal(props.initial?.registrationCloseAt),
   startsAt: isoToLocal(props.initial?.startsAt),
   endsAt: isoToLocal(props.initial?.endsAt),
+  coverMediaId: (props.initial?.coverMediaId ?? null) as string | null,
 });
+
+const coverPickerOpen = ref(false);
+const coverAssetUrl = ref<string | null>(props.initial?.coverImageUrl ?? null);
 
 const errors = reactive({ gameId: '', title: '', slug: '', format: '', capacity: '' });
 
@@ -250,6 +284,7 @@ type TournamentFormPayload = {
   registrationCloseAt?: string;
   startsAt?: string;
   endsAt?: string;
+  coverMediaId?: string | null;
 };
 
 const emit = defineEmits<{
@@ -317,6 +352,7 @@ function onSubmit() {
       : {}),
     ...(form.startsAt ? { startsAt: localToIso(form.startsAt) } : {}),
     ...(form.endsAt ? { endsAt: localToIso(form.endsAt) } : {}),
+    coverMediaId: form.coverMediaId,
   };
 
   emit('submit', payload);
@@ -454,5 +490,54 @@ function onSubmit() {
   to {
     transform: rotate(360deg);
   }
+}
+
+.cover-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.cover-thumb {
+  width: 120px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 0.375rem;
+  border: 1px solid #e5e7eb;
+}
+
+.cover-empty,
+.cover-id {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.cover-btns {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.cover-btn {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background: #fff;
+  color: #374151;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.cover-btn:hover {
+  background: #f3f4f6;
+}
+
+.cover-btn--clear {
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+.cover-btn--clear:hover {
+  background: #fee2e2;
 }
 </style>

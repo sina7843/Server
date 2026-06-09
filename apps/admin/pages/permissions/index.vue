@@ -97,13 +97,13 @@ onMounted(reload);
   margin: 0 0 0.25rem;
   font-size: 1.4rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .page-subtitle {
   margin: 0;
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .filters {
@@ -116,22 +116,26 @@ onMounted(reload);
 .filter-input {
   flex: 1;
   min-width: 160px;
-  padding: 0.5rem 0.85rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
+  height: 34px;
+  padding: 0 0.85rem;
+  background: var(--input-bg);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
+  color: var(--text-primary);
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color var(--motion-fast);
 }
 
 .filter-input:focus {
-  border-color: #3b82f6;
+  border-color: var(--purple-400);
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.15);
 }
 
 .table-wrap {
   overflow-x: auto;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
 }
 
 .table {
@@ -144,9 +148,11 @@ onMounted(reload);
   text-align: start;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #64748b;
-  background: #f8fafc;
-  border-block-end: 1px solid #e2e8f0;
+  color: var(--text-muted);
+  background: var(--hover-overlay);
+  border-block-end: 1px solid var(--border-default);
   white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
-  <section class="esports-news" aria-label="آخرین اخبار">
-    <div class="esports-news__header">
+  <section ref="containerRef" class="esports-news" aria-label="آخرین اخبار">
+    <div class="esports-news__header" data-sr>
       <div class="esports-news__title-group">
         <span class="dr-label">Latest</span>
         <h2 class="esports-news__heading">آخرین اخبار</h2>
@@ -17,12 +17,12 @@
     <template v-if="posts.length > 0">
       <div class="esports-news__grid">
         <!-- Featured: large card on the dominant side -->
-        <div class="esports-news__featured">
+        <div class="esports-news__featured" data-sr>
           <ContentCard :item="posts[0]" base-path="/news" />
         </div>
 
         <!-- Side: compact editorial list items -->
-        <div class="esports-news__side">
+        <div class="esports-news__side" data-sr>
           <NuxtLink
             v-for="post in posts.slice(1, 5)"
             :key="post.id"
@@ -64,6 +64,8 @@ import type { PublicPostDto } from '@dragon/types';
 defineProps<{
   posts: readonly PublicPostDto[];
 }>();
+
+const { containerRef } = useScrollReveal({ staggerMs: 100 });
 
 const TYPE_LABELS: Record<string, string> = {
   news: 'خبر',
@@ -195,7 +197,7 @@ function formatDate(iso: string): string {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: fill;
   opacity: 0.55;
 }
 

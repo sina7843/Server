@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 
+import * as path from 'node:path';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
@@ -29,6 +30,12 @@ async function bootstrap(): Promise<void> {
   });
 
   app.useGlobalInterceptors(new LoggingInterceptor());
+
+  // Serve local storage files when STORAGE_PROVIDER=local
+  if (process.env['STORAGE_PROVIDER'] === 'local') {
+    const localRoot = process.env['STORAGE_LOCAL_ROOT']?.trim() || '/tmp/dragon-storage';
+    app.useStaticAssets(path.resolve(localRoot), { prefix: '/storage' });
+  }
 
   const port = process.env['PORT'] ? Number(process.env['PORT']) : 4000;
 

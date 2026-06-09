@@ -52,6 +52,8 @@ async function onSubmit(data: {
   slug: string;
   status: GameStatus;
   description?: string;
+  coverMediaId?: string | null;
+  iconMediaId?: string | null;
 }) {
   const updated = await updateGame(gameId, data);
   if (updated) {
@@ -77,7 +79,7 @@ onMounted(() => {
 
 .back-link {
   font-size: 0.85rem;
-  color: #3b82f6;
+  color: var(--purple-400);
   text-decoration: none;
   display: inline-block;
   margin-block-end: 0.4rem;
@@ -91,6 +93,6 @@ onMounted(() => {
   margin: 0;
   font-size: 1.4rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 </style>

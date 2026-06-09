@@ -51,5 +51,6 @@ useHead({
   max-width: var(--layout-content-max);
   margin: 0 auto;
   padding: 40px 24px 80px;
+  animation: dr-fade-up 0.7s var(--ease-out) both;
 }
 </style>

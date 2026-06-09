@@ -102,7 +102,7 @@
           </div>
         </div>
 
-        <div v-if="isEdit && hasPermission(Permissions.MEDIA_ASSET_READ)" class="field">
+        <div v-if="hasPermission(Permissions.MEDIA_ASSET_READ)" class="field">
           <label class="field-label">
             تصویر کاور
             <span class="field-hint">(اختیاری)</span>
@@ -424,6 +424,7 @@ async function onSubmit() {
       categoryIds: form.categoryIds,
       tagIds: form.tagIds,
       seo,
+      ...(form.coverMediaId !== null ? { coverMediaId: form.coverMediaId } : {}),
     });
 
     if (created) {

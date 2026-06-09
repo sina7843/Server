@@ -1,18 +1,23 @@
 <template>
-  <section v-if="posts.length > 0" class="esports-top" aria-label="محتوای برتر">
-    <div class="esports-top__header">
+  <section v-if="posts.length > 0" ref="containerRef" class="esports-top" aria-label="محتوای برتر">
+    <div class="esports-top__header" data-sr>
       <div class="esports-top__title-group">
         <span class="dr-label">Top</span>
         <h2 class="esports-top__heading">محتوای برتر</h2>
       </div>
     </div>
     <div class="esports-top__grid">
-      <ContentCard
+      <div
         v-for="post in posts"
         :key="post.id"
-        :item="post"
-        :base-path="getBasePath(post.type)"
-      />
+        data-sr
+        class="esports-top__card-wrap"
+      >
+        <ContentCard
+          :item="post"
+          :base-path="getBasePath(post.type)"
+        />
+      </div>
     </div>
   </section>
 </template>
@@ -23,6 +28,8 @@ import type { PublicPostDto } from '@dragon/types';
 defineProps<{
   posts: readonly PublicPostDto[];
 }>();
+
+const { containerRef } = useScrollReveal({ staggerMs: 90 });
 
 const TYPE_PATHS: Record<string, string> = {
   news: '/news',
@@ -67,6 +74,11 @@ function getBasePath(type: string): string {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-4);
+}
+
+.esports-top__card-wrap {
+  display: flex;
+  flex-direction: column;
 }
 
 @media (min-width: 640px) {

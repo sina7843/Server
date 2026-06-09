@@ -8,6 +8,7 @@ import type {
 } from '@dragon/types';
 import { AnalyticsService } from '../analytics/analytics.service';
 import { TournamentService } from '../tournaments/tournament.service';
+import { TournamentEnrichmentService } from '../tournaments/tournament-enrichment.service';
 import {
   isPubliclyVisible,
   toPublicTournamentDetail,
@@ -53,6 +54,7 @@ const VALID_FORMATS = new Set<string>(['single_elimination', 'round_robin', 'man
 export class PublicTournamentsController {
   constructor(
     private readonly tournamentService: TournamentService,
+    private readonly enrichmentService: TournamentEnrichmentService,
     @Optional() private readonly analyticsService?: AnalyticsService,
   ) {}
 
@@ -103,7 +105,8 @@ export class PublicTournamentsController {
       limit,
     );
 
-    return toPublicTournamentListResponse(items, total, page, limit);
+    const enrichmentMap = await this.enrichmentService.enrichMany(items);
+    return toPublicTournamentListResponse(items, total, page, limit, enrichmentMap);
   }
 
   // GET /api/v1/tournaments/:slug
@@ -125,6 +128,7 @@ export class PublicTournamentsController {
       metadata: { slug: tournament.slug },
     });
 
-    return toPublicTournamentDetail(tournament);
+    const enrichment = await this.enrichmentService.enrichOne(tournament);
+    return toPublicTournamentDetail(tournament, enrichment);
   }
 }

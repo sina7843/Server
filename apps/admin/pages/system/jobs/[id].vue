@@ -161,7 +161,7 @@ onMounted(reload);
 
 <style scoped>
 .page {
-  padding: 1.5rem;
+  max-width: 860px;
 }
 
 .page-header {
@@ -173,24 +173,24 @@ onMounted(reload);
 
 .back-link {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--purple-400);
   text-decoration: none;
 }
 
 .back-link:hover {
-  color: #4f46e5;
+  text-decoration: underline;
 }
 
 .page-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .detail-card {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
   padding: 1.25rem;
   margin-bottom: 1.5rem;
 }
@@ -212,24 +212,24 @@ onMounted(reload);
 .detail-key {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #6b7280;
-  font-family: monospace;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
 }
 
 .detail-value {
   font-size: 0.875rem;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .detail-value--mono {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.8125rem;
   word-break: break-all;
 }
 
 .detail-value--error {
-  color: #b91c1c;
-  font-family: monospace;
+  color: var(--danger-400);
+  font-family: var(--font-mono);
   font-size: 0.8125rem;
   word-break: break-all;
 }
@@ -243,28 +243,33 @@ onMounted(reload);
 }
 
 .badge--queued {
-  background-color: #f3f4f6;
-  color: #374151;
+  background: var(--hover-overlay-strong);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
 }
 
 .badge--processing {
-  background-color: #eff6ff;
-  color: #1d4ed8;
+  background: rgba(109, 40, 217, 0.12);
+  color: var(--purple-300);
+  border: 1px solid rgba(109, 40, 217, 0.25);
 }
 
 .badge--completed {
-  background-color: #f0fdf4;
-  color: #15803d;
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success-400);
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .badge--failed {
-  background-color: #fef2f2;
-  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger-400);
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 .badge--retrying {
-  background-color: #fffbeb;
-  color: #b45309;
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning-400);
+  border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
 .section {
@@ -274,18 +279,18 @@ onMounted(reload);
 .section-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-secondary);
   margin-bottom: 0.75rem;
 }
 
 .payload-pre {
-  background-color: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.375rem;
+  background: var(--hover-overlay);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xs);
   padding: 0.875rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.8125rem;
-  color: #374151;
+  color: var(--text-secondary);
   overflow-x: auto;
   white-space: pre-wrap;
   word-break: break-word;
@@ -294,14 +299,15 @@ onMounted(reload);
 .retry-section {
   margin-top: 1.5rem;
   padding: 1rem;
-  background-color: #fff7ed;
-  border: 1px solid #fed7aa;
-  border-radius: 0.5rem;
+  background: var(--surface-elevated);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
 }
 
 .retry-confirm-msg {
   font-size: 0.875rem;
-  color: #92400e;
+  color: var(--text-secondary);
   margin-bottom: 0.75rem;
 }
 
@@ -312,28 +318,42 @@ onMounted(reload);
 
 .retry-btn {
   padding: 0.375rem 0.875rem;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-sm);
   font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
   border: 1px solid transparent;
+  transition: all var(--motion-fast);
 }
 
 .retry-btn:not(.retry-btn--confirm):not(.retry-btn--cancel) {
-  background-color: #ea580c;
-  color: #ffffff;
-  border-color: #ea580c;
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning-400);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+.retry-btn:not(.retry-btn--confirm):not(.retry-btn--cancel):hover {
+  background: rgba(245, 158, 11, 0.18);
 }
 
 .retry-btn--confirm {
-  background-color: #dc2626;
-  color: #ffffff;
-  border-color: #dc2626;
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger-400);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.retry-btn--confirm:hover {
+  background: rgba(239, 68, 68, 0.25);
 }
 
 .retry-btn--cancel {
-  background-color: #ffffff;
-  color: #374151;
-  border-color: #d1d5db;
+  background: var(--hover-overlay);
+  color: var(--text-secondary);
+  border-color: var(--border-default);
+}
+
+.retry-btn--cancel:hover {
+  background: var(--hover-overlay-strong);
 }
 
 .retry-btn:disabled {
@@ -344,12 +364,12 @@ onMounted(reload);
 .retry-success {
   margin-top: 0.5rem;
   font-size: 0.875rem;
-  color: #15803d;
+  color: var(--success-400);
 }
 
 .retry-error {
   margin-top: 0.5rem;
   font-size: 0.875rem;
-  color: #b91c1c;
+  color: var(--danger-400);
 }
 </style>

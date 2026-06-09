@@ -128,6 +128,8 @@ export class TournamentRepository {
     if (input.startsAt !== undefined) doc.startsAt = input.startsAt;
     if (input.endsAt !== undefined) doc.endsAt = input.endsAt;
     if (input.rules !== undefined) doc.rules = input.rules;
+    if (input.coverMediaId !== undefined && input.coverMediaId !== null)
+      doc.coverMediaId = input.coverMediaId;
 
     const created = await this.tournamentModel.create(doc);
     return created as TournamentDocument;
@@ -154,6 +156,19 @@ export class TournamentRepository {
     if (patch.publishedAt !== undefined) set.publishedAt = patch.publishedAt;
     if (patch.cancelledAt !== undefined) set.cancelledAt = patch.cancelledAt;
     if (patch.archivedAt !== undefined) set.archivedAt = patch.archivedAt;
+    if (patch.coverMediaId !== undefined) {
+      if (patch.coverMediaId === null) {
+        // Use $unset to remove the field
+        return this.tournamentModel
+          .findOneAndUpdate(
+            { _id: id, deletedAt: { $exists: false } },
+            { $set: set, $unset: { coverMediaId: '' } },
+            { new: true },
+          )
+          .exec();
+      }
+      set.coverMediaId = patch.coverMediaId;
+    }
 
     return this.tournamentModel
       .findOneAndUpdate({ _id: id, deletedAt: { $exists: false } }, { $set: set }, { new: true })

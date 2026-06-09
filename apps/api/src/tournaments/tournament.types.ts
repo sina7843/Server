@@ -29,6 +29,7 @@ export interface CreateTournamentInput {
   readonly startsAt?: Date;
   readonly endsAt?: Date;
   readonly rules?: string;
+  readonly coverMediaId?: string | null;
 }
 
 // Public service interface — no lifecycle-managed fields.
@@ -46,6 +47,7 @@ export interface UpdateTournamentInput {
   readonly startsAt?: Date;
   readonly endsAt?: Date;
   readonly rules?: string;
+  readonly coverMediaId?: string | null;
 }
 
 // Internal repository patch — extends the public input with fields that only

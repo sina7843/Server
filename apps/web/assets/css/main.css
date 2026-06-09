@@ -688,6 +688,63 @@ body {
   }
 }
 
+@keyframes dr-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dr-hero-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+  }
+}
+
+@keyframes dr-img-scale {
+  from {
+    transform: scale(1.07);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes dr-shine {
+  from {
+    transform: translateX(150%) skewX(-20deg);
+  }
+  to {
+    transform: translateX(-150%) skewX(-20deg);
+  }
+}
+
+/* ── Scroll reveal ─────────────────────────────────────────────────────────── */
+[data-sr] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.65s var(--ease-out),
+    transform 0.65s var(--ease-out);
+  transition-delay: var(--sr-delay, 0ms);
+}
+
+[data-sr].sr-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* ── Reduced motion ──────────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,

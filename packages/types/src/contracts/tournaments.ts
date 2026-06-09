@@ -33,6 +33,8 @@ export interface PublicTournamentDto {
   readonly publishedAt?: string;
   readonly createdAt: string;
   readonly updatedAt: string;
+  readonly coverImageUrl?: string;
+  readonly gameCoverImageUrl?: string;
 }
 
 export interface TournamentListItemDto {
@@ -45,6 +47,8 @@ export interface TournamentListItemDto {
   readonly capacity: number;
   readonly startsAt?: string;
   readonly publishedAt?: string;
+  readonly coverImageUrl?: string;
+  readonly gameCoverImageUrl?: string;
 }
 
 // ─── Admin response DTOs ─────────────────────────────────────────────────────
@@ -69,6 +73,9 @@ export interface TournamentDto {
   readonly archivedAt?: string;
   readonly createdAt: string;
   readonly updatedAt: string;
+  readonly coverMediaId?: string;
+  readonly coverImageUrl?: string;
+  readonly gameCoverImageUrl?: string;
 }
 
 export type AdminTournamentDto = TournamentDto;
@@ -126,6 +133,7 @@ export type AdminTournamentCreateInput = {
   readonly startsAt?: string;
   readonly endsAt?: string;
   readonly rules?: string;
+  readonly coverMediaId?: string | null;
 };
 
 export type AdminTournamentUpdateInput = {
@@ -141,4 +149,5 @@ export type AdminTournamentUpdateInput = {
   readonly startsAt?: string;
   readonly endsAt?: string;
   readonly rules?: string;
+  readonly coverMediaId?: string | null;
 };

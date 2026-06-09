@@ -11,6 +11,8 @@ export interface PublicGameDto {
   readonly description?: string;
   readonly coverMediaId?: string;
   readonly iconMediaId?: string;
+  readonly coverImageUrl?: string;
+  readonly iconImageUrl?: string;
 }
 
 // ─── Admin / internal response DTOs ─────────────────────────────────────────
@@ -23,6 +25,8 @@ export interface GameDto {
   readonly status: GameStatus;
   readonly coverMediaId?: string;
   readonly iconMediaId?: string;
+  readonly coverImageUrl?: string;
+  readonly iconImageUrl?: string;
   readonly createdAt: string;
   readonly updatedAt: string;
 }

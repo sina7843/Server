@@ -15,17 +15,22 @@
           placeholder="جستجو بر اساس نام کاربری…"
           @input="onSearchInput"
         />
-        <select
-          v-if="!searchMode"
-          v-model="statusFilter"
-          class="status-select"
-          @change="onFilterChange"
-        >
-          <option value="">همه وضعیت‌ها</option>
-          <option v-for="s in ADMIN_USER_STATUSES" :key="s" :value="s">
-            {{ STATUS_LABELS[s] }}
-          </option>
-        </select>
+        <div v-if="!searchMode" class="filter-pills">
+          <button
+            class="pill"
+            :class="{ 'pill--active': statusFilter === '' }"
+            type="button"
+            @click="setStatus('')"
+          >همه</button>
+          <button
+            v-for="s in ADMIN_USER_STATUSES"
+            :key="s"
+            class="pill"
+            :class="{ 'pill--active': statusFilter === s }"
+            type="button"
+            @click="setStatus(s)"
+          >{{ STATUS_LABELS[s] }}</button>
+        </div>
       </div>
 
       <!-- Search mode: results from admin search API -->
@@ -193,6 +198,11 @@ async function onFilterChange() {
   await reload(1);
 }
 
+async function setStatus(val: AdminUserStatus | '') {
+  statusFilter.value = val;
+  await onFilterChange();
+}
+
 async function goToPage(page: number) {
   currentPage.value = page;
   await reload(page);
@@ -265,24 +275,37 @@ onMounted(reload);
   box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.18);
 }
 
-.status-select {
-  height: 36px;
-  padding: 0 12px;
-  background: var(--input-bg);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  font-family: inherit;
-  font-size: 13px;
-  outline: none;
-  cursor: pointer;
-  appearance: none;
-  transition: border-color var(--motion-fast);
+.filter-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
-.status-select:focus {
-  border-color: var(--purple-400);
-  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.18);
+.pill {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--motion-fast);
+}
+
+.pill:hover {
+  background: var(--hover-overlay);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.pill--active {
+  background: rgba(109, 40, 217, 0.15);
+  color: var(--purple-300);
+  border-color: rgba(109, 40, 217, 0.4);
+  font-weight: 600;
 }
 
 .table-wrap {

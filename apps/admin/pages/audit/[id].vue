@@ -117,7 +117,7 @@ onMounted(reload);
 
 <style scoped>
 .page {
-  padding: 1.5rem;
+  max-width: 860px;
 }
 
 .page-header {
@@ -129,24 +129,24 @@ onMounted(reload);
 
 .back-link {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--purple-400);
   text-decoration: none;
 }
 
 .back-link:hover {
-  color: #4f46e5;
+  text-decoration: underline;
 }
 
 .page-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .detail-card {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
   padding: 1.25rem;
   margin-bottom: 1.5rem;
 }
@@ -168,17 +168,17 @@ onMounted(reload);
 .detail-key {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #6b7280;
-  font-family: monospace;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
 }
 
 .detail-value {
   font-size: 0.875rem;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .detail-value--mono {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.8125rem;
   word-break: break-all;
 }
@@ -198,18 +198,21 @@ onMounted(reload);
 }
 
 .badge--info {
-  background-color: #eff6ff;
-  color: #1d4ed8;
+  background: rgba(109, 40, 217, 0.12);
+  color: var(--purple-300);
+  border: 1px solid rgba(109, 40, 217, 0.25);
 }
 
 .badge--warning {
-  background-color: #fffbeb;
-  color: #b45309;
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning-400);
+  border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
 .badge--critical {
-  background-color: #fef2f2;
-  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger-400);
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 .diff-section {
@@ -219,7 +222,7 @@ onMounted(reload);
 .section-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-secondary);
   margin-bottom: 0.75rem;
 }
 </style>

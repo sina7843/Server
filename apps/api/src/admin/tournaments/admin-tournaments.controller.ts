@@ -30,6 +30,7 @@ import { Permissions } from '../../rbac/registry/permission-keys';
 import { validateObjectId } from '../../rbac/dto/rbac-validation';
 import { TournamentRegistrationService } from '../../tournament-registrations/tournament-registration.service';
 import { TournamentService } from '../../tournaments/tournament.service';
+import { TournamentEnrichmentService } from '../../tournaments/tournament-enrichment.service';
 import {
   parseAdminCreateTournamentBody,
   parseAdminUpdateTournamentBody,
@@ -69,6 +70,7 @@ const VALID_TOURNAMENT_FORMATS = new Set<string>(['single_elimination', 'round_r
 export class AdminTournamentsController {
   constructor(
     private readonly tournamentService: TournamentService,
+    private readonly enrichmentService: TournamentEnrichmentService,
     @Optional() private readonly auditService?: AuditService,
     @Optional() private readonly registrationService?: TournamentRegistrationService,
     @Optional() private readonly tournamentNotificationService?: TournamentNotificationService,
@@ -116,7 +118,8 @@ export class AdminTournamentsController {
       limit,
     );
 
-    return toAdminTournamentListResponse(items, total, page, limit);
+    const enrichmentMap = await this.enrichmentService.enrichMany(items);
+    return toAdminTournamentListResponse(items, total, page, limit, enrichmentMap);
   }
 
   @Get(':id')
@@ -125,7 +128,8 @@ export class AdminTournamentsController {
     const id = validateObjectId(rawId, 'id');
     const tournament = await this.tournamentService.findById(id);
     if (!tournament) throw new NotFoundException('Tournament not found.');
-    return toAdminTournamentResponse(tournament);
+    const enrichment = await this.enrichmentService.enrichOne(tournament);
+    return toAdminTournamentResponse(tournament, enrichment);
   }
 
   @Post()
@@ -150,7 +154,8 @@ export class AdminTournamentsController {
       },
       severity: 'info',
     });
-    return toAdminTournamentResponse(tournament);
+    const enrichment = await this.enrichmentService.enrichOne(tournament);
+    return toAdminTournamentResponse(tournament, enrichment);
   }
 
   @Patch(':id')
@@ -177,7 +182,8 @@ export class AdminTournamentsController {
       },
       severity: 'info',
     });
-    return toAdminTournamentResponse(tournament);
+    const enrichment = await this.enrichmentService.enrichOne(tournament);
+    return toAdminTournamentResponse(tournament, enrichment);
   }
 
   @Delete(':id')

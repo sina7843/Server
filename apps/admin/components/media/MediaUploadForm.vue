@@ -31,6 +31,61 @@
 
     <div v-if="fileError" class="field-error">{{ fileError }}</div>
 
+    <div v-if="selectedFile && originalDimensions" class="resize-section">
+      <div class="resize-header">
+        <label class="resize-toggle-label">
+          <input v-model="enableResize" type="checkbox" class="resize-toggle-check" />
+          تغییر اندازه
+        </label>
+        <span class="orig-dims">اصلی: {{ originalDimensions.width }} × {{ originalDimensions.height }} px</span>
+      </div>
+
+      <div v-if="enableResize" class="resize-body">
+        <div class="resize-presets">
+          <button
+            v-for="p in RESIZE_PRESETS"
+            :key="p.label"
+            type="button"
+            class="preset-btn"
+            :class="{ 'preset-btn--active': resizeWidth === p.w && resizeHeight === p.h }"
+            @click="applyPreset(p)"
+          >{{ p.label }}</button>
+        </div>
+
+        <div class="resize-inputs">
+          <div class="dim-field">
+            <label class="dim-label">عرض (px)</label>
+            <input
+              v-model.number="resizeWidth"
+              type="number"
+              min="1"
+              max="8000"
+              class="dim-input"
+              @change="onWidthChange"
+            />
+          </div>
+
+          <button type="button" class="lock-btn" :class="{ 'lock-btn--on': lockAspectRatio }" @click="lockAspectRatio = !lockAspectRatio" :title="lockAspectRatio ? 'قفل نسبت: فعال' : 'قفل نسبت: غیرفعال'">
+            {{ lockAspectRatio ? '🔒' : '🔓' }}
+          </button>
+
+          <div class="dim-field">
+            <label class="dim-label">ارتفاع (px)</label>
+            <input
+              v-model.number="resizeHeight"
+              type="number"
+              min="1"
+              max="8000"
+              class="dim-input"
+              @change="onHeightChange"
+            />
+          </div>
+        </div>
+
+        <p v-if="selectedFile?.type === 'image/gif'" class="resize-warn">⚠️ GIF متحرک پس از تغییر اندازه فقط فریم اول باقی می‌ماند.</p>
+      </div>
+    </div>
+
     <div class="field-group">
       <div class="field">
         <label class="field-label">نمایش</label>
@@ -92,6 +147,20 @@ const previewUrl = ref<string | null>(null);
 const fileError = ref<string | null>(null);
 const isDragging = ref(false);
 
+const originalDimensions = ref<{ width: number; height: number } | null>(null);
+const resizeWidth = ref<number | null>(null);
+const resizeHeight = ref<number | null>(null);
+const lockAspectRatio = ref(true);
+const enableResize = ref(false);
+
+const RESIZE_PRESETS = [
+  { label: 'اصلی', w: 0, h: 0 },
+  { label: '1920px', w: 1920, h: 0 },
+  { label: '1280px', w: 1280, h: 0 },
+  { label: '800px', w: 800, h: 0 },
+  { label: '400px', w: 400, h: 0 },
+];
+
 const form = reactive({
   visibility: 'public' as 'public' | 'private',
   alt: '',
@@ -108,6 +177,68 @@ const formattedSize = computed(() => {
   return `${(b / (1024 * 1024)).toFixed(1)} MB`;
 });
 
+function detectDimensions(file: File) {
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    originalDimensions.value = { width: img.naturalWidth, height: img.naturalHeight };
+    resizeWidth.value = img.naturalWidth;
+    resizeHeight.value = img.naturalHeight;
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+}
+
+function applyPreset(preset: { label: string; w: number; h: number }) {
+  if (!originalDimensions.value) return;
+  if (preset.w === 0) {
+    resizeWidth.value = originalDimensions.value.width;
+    resizeHeight.value = originalDimensions.value.height;
+  } else {
+    resizeWidth.value = preset.w;
+    const ratio = originalDimensions.value.height / originalDimensions.value.width;
+    resizeHeight.value = Math.round(preset.w * ratio);
+  }
+}
+
+function onWidthChange() {
+  if (lockAspectRatio.value && originalDimensions.value && resizeWidth.value) {
+    const ratio = originalDimensions.value.height / originalDimensions.value.width;
+    resizeHeight.value = Math.round(resizeWidth.value * ratio);
+  }
+}
+
+function onHeightChange() {
+  if (lockAspectRatio.value && originalDimensions.value && resizeHeight.value) {
+    const ratio = originalDimensions.value.width / originalDimensions.value.height;
+    resizeWidth.value = Math.round(resizeHeight.value * ratio);
+  }
+}
+
+async function resizeImage(file: File, width: number, height: number): Promise<File> {
+  return new Promise((resolve) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d')!;
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      const mimeType = file.type === 'image/gif' ? 'image/png' : file.type;
+      const ext = mimeType.split('/')[1];
+      const name = file.name.replace(/\.[^.]+$/, `.${ext}`);
+      canvas.toBlob(
+        (blob) => resolve(blob ? new File([blob], name, { type: mimeType }) : file),
+        mimeType,
+        0.92,
+      );
+    };
+    img.src = url;
+  });
+}
+
 function validateAndSet(file: File): boolean {
   fileError.value = null;
   if (!ALLOWED_TYPES.has(file.type)) {
@@ -120,6 +251,9 @@ function validateAndSet(file: File): boolean {
   }
   selectedFile.value = file;
   previewUrl.value = URL.createObjectURL(file);
+  enableResize.value = false;
+  originalDimensions.value = null;
+  detectDimensions(file);
   return true;
 }
 
@@ -140,6 +274,10 @@ function clearFile() {
   if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);
   previewUrl.value = null;
   fileError.value = null;
+  originalDimensions.value = null;
+  resizeWidth.value = null;
+  resizeHeight.value = null;
+  enableResize.value = false;
   if (fileInputRef.value) fileInputRef.value.value = '';
 }
 
@@ -147,10 +285,22 @@ async function onSubmit() {
   if (!selectedFile.value) return;
   clearActionState();
 
+  let fileToUpload = selectedFile.value;
+  if (
+    enableResize.value &&
+    resizeWidth.value &&
+    resizeHeight.value &&
+    originalDimensions.value &&
+    (resizeWidth.value !== originalDimensions.value.width ||
+      resizeHeight.value !== originalDimensions.value.height)
+  ) {
+    fileToUpload = await resizeImage(selectedFile.value, resizeWidth.value, resizeHeight.value);
+  }
+
   const asset = await uploadMedia({
-    file: selectedFile.value,
-    filename: selectedFile.value.name,
-    mimeType: selectedFile.value.type,
+    file: fileToUpload,
+    filename: fileToUpload.name,
+    mimeType: fileToUpload.type,
     visibility: form.visibility,
     ...(form.alt.trim() ? { alt: form.alt.trim() } : {}),
     ...(form.caption.trim() ? { caption: form.caption.trim() } : {}),
@@ -270,6 +420,140 @@ onUnmounted(() => {
 
 .remove-btn:hover {
   background: #fee2e2;
+}
+
+.resize-section {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.resize-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.resize-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  user-select: none;
+}
+
+.resize-toggle-check {
+  accent-color: #3b82f6;
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+.orig-dims {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-right: auto;
+}
+
+.resize-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.resize-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.preset-btn {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
+  background: #fff;
+  font-size: 0.75rem;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.preset-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.preset-btn--active {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.resize-inputs {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.dim-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.dim-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.dim-input {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: #111827;
+  width: 100%;
+}
+
+.dim-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px #bfdbfe;
+}
+
+.lock-btn {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background: #fff;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  transition: all 0.1s;
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+
+.lock-btn--on {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.resize-warn {
+  font-size: 0.75rem;
+  color: #92400e;
+  background: #fef3c7;
+  border-radius: 0.25rem;
+  padding: 0.35rem 0.5rem;
+  margin: 0;
 }
 
 .field-group {

@@ -201,7 +201,7 @@ export class Phase1DevSeedService {
 
     const content = await this.seedContent(accounts['editor@dragon.local']);
     const games = await this.seedGames();
-    const tournaments = await this.seedTournaments(games);
+    const tournaments = await this.seedTournaments(games, accounts['editor@dragon.local']);
     const registrations = await this.seedRegistrations(accounts, tournaments);
     await this.seedMatches(tournaments, registrations);
     await this.seedNotifications(accounts);
@@ -1078,7 +1078,7 @@ export class Phase1DevSeedService {
     return output;
   }
 
-  private async seedTournaments(games: GameSeedMap): Promise<TournamentSeedMap> {
+  private async seedTournaments(games: GameSeedMap, editor: SeedDocument): Promise<TournamentSeedMap> {
     const output = {} as TournamentSeedMap;
     const inputs: readonly TournamentSeedInput[] = [
       {
@@ -1214,33 +1214,47 @@ export class Phase1DevSeedService {
       },
     ];
 
-    const posterChecksum = `${DEV_SEED_REQUEST_ID_PREFIX}media-tournament-poster-valorant-open`;
-    const tournamentPoster = await this.upsert(
-      this.mediaAssetModel,
-      { checksum: posterChecksum },
-      {
-        originalName: 'tournament-valorant-open-poster.jpg',
-        fileName: 'tournament-valorant-open-poster.jpg',
-        mimeType: 'image/jpeg',
-        extension: 'jpg',
-        sizeBytes: 140000,
-        storageProvider: 'local',
-        bucket: 'dragon-local',
-        objectKey: `${DEV_SEED_REQUEST_ID_PREFIX}media/tournament-valorant-open-poster.jpg`,
-        visibility: 'public',
-        variants: [],
-        width: 1200,
-        height: 630,
-        alt: 'Valorant Open Registration poster',
-        status: 'ready',
-        checksum: posterChecksum,
-      },
-    );
+    const TOURNAMENT_COVER_SLUGS: ReadonlySet<string> = new Set([
+      'valorant-open-registration-local',
+      'valorant-full-capacity-local',
+      'dota-round-robin-live-local',
+      'league-completed-finals-local',
+      'cs2-registration-closed-local',
+      'valorant-upcoming-registration-local',
+    ]);
+
+    const tournamentCoverMap = new Map<string, SeedDocument>();
+    for (const slug of TOURNAMENT_COVER_SLUGS) {
+      const checksum = `${DEV_SEED_REQUEST_ID_PREFIX}media-tournament-cover-${slug}`;
+      const cover = await this.upsert(
+        this.mediaAssetModel,
+        { checksum },
+        {
+          originalName: `tournament-${slug}-cover.jpg`,
+          fileName: `tournament-${slug}-cover.jpg`,
+          mimeType: 'image/jpeg',
+          extension: 'jpg',
+          sizeBytes: 140000,
+          storageProvider: 'local',
+          bucket: 'dragon-local',
+          objectKey: `${DEV_SEED_REQUEST_ID_PREFIX}media/tournament-${slug}-cover.jpg`,
+          visibility: 'public',
+          variants: [],
+          width: 1200,
+          height: 630,
+          alt: `${slug} tournament cover`,
+          uploadedBy: editor._id,
+          status: 'ready',
+          checksum,
+        },
+      );
+      tournamentCoverMap.set(slug, cover);
+    }
 
     for (const tournament of inputs) {
       const game = games[tournament.game];
-      const coverMediaId =
-        tournament.slug === 'valorant-open-registration-local' ? idOf(tournamentPoster) : undefined;
+      const coverDoc = tournamentCoverMap.get(tournament.slug);
+      const coverMediaId = coverDoc !== undefined ? idOf(coverDoc) : undefined;
       output[tournament.slug] = await this.upsert(
         this.tournamentModel,
         { slugNormalized: tournament.slug },

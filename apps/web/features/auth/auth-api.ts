@@ -1,5 +1,6 @@
 import { createApiClient, createAdminAuthClient, ApiClientError } from '@dragon/sdk';
 import type { TokenResponse } from '@dragon/sdk';
+import type { AuthGenericResponse } from '@dragon/types';
 
 export interface WebLoginResult {
   readonly accessToken: string;
@@ -40,6 +41,51 @@ export async function webLogin(
   }
 
   return { accessToken: tokenResponse.accessToken, isAdmin };
+}
+
+export async function webRegister(
+  phone: string,
+  password: string,
+  apiBaseUrl: string,
+): Promise<void> {
+  const client = createApiClient({ baseUrl: apiBaseUrl });
+  try {
+    await client.request<AuthGenericResponse>({
+      method: 'POST',
+      path: '/api/v1/auth/register',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ phone, password }),
+    });
+  } catch (error) {
+    if (error instanceof ApiClientError && error.status === 409) {
+      throw new Error('این شماره موبایل قبلاً ثبت‌نام کرده است.');
+    }
+    if (error instanceof ApiClientError && error.status === 400) {
+      throw new Error('اطلاعات وارد شده معتبر نیست.');
+    }
+    throw new Error('خطا در ثبت‌نام. لطفاً دوباره تلاش کنید.');
+  }
+}
+
+export async function webVerifyPhone(
+  phone: string,
+  code: string,
+  apiBaseUrl: string,
+): Promise<void> {
+  const client = createApiClient({ baseUrl: apiBaseUrl });
+  try {
+    await client.request<AuthGenericResponse>({
+      method: 'POST',
+      path: '/api/v1/auth/verify-phone',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ phone, code }),
+    });
+  } catch (error) {
+    if (error instanceof ApiClientError && error.status === 400) {
+      throw new Error('کد تأیید اشتباه یا منقضی شده است.');
+    }
+    throw new Error('خطا در تأیید شماره. لطفاً دوباره تلاش کنید.');
+  }
 }
 
 export async function webLogout(accessToken: string, apiBaseUrl: string): Promise<void> {

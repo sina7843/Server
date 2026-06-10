@@ -58,6 +58,11 @@
         </button>
       </form>
 
+      <p class="login-register-hint">
+        حساب ندارید؟
+        <NuxtLink to="/register" class="login-register-link">ثبت‌نام</NuxtLink>
+      </p>
+
       <NuxtLink to="/" class="login-back">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 19 19 12 12 5" />
@@ -284,6 +289,24 @@ async function handleSubmit() {
   border-top-color: #fff;
   animation: dr-spin 0.8s linear infinite;
   flex-shrink: 0;
+}
+
+.login-register-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  margin: 0;
+}
+
+.login-register-link {
+  color: var(--purple-300);
+  text-decoration: none;
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+.login-register-link:hover {
+  color: var(--purple-200);
 }
 
 /* Back link */

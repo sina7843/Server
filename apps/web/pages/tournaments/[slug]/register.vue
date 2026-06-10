@@ -15,7 +15,7 @@
     </div>
 
     <!-- States -->
-    <AuthRequiredState v-if="state.status === 'auth_required'" />
+    <AuthRequiredState v-if="state.status === 'auth_required'" :redirect-to="`/tournaments/${slug}/register`" />
 
     <div v-else-if="state.status === 'loading'" class="reg-page__loading" role="status">
       <span class="reg-page__spinner" aria-hidden="true" />

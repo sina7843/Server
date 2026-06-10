@@ -688,6 +688,11 @@ body {
   }
 }
 
+@keyframes dr-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 @keyframes dr-fade-up {
   from {
     opacity: 0;
@@ -733,16 +738,17 @@ body {
 /* ── Scroll reveal ─────────────────────────────────────────────────────────── */
 [data-sr] {
   opacity: 0;
-  transform: translateY(24px);
+  transform: translateY(22px) scale(0.98);
   transition:
-    opacity 0.65s var(--ease-out),
-    transform 0.65s var(--ease-out);
+    opacity 0.6s var(--ease-out),
+    transform 0.6s var(--ease-out);
   transition-delay: var(--sr-delay, 0ms);
+  will-change: transform, opacity;
 }
 
 [data-sr].sr-visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: none;
 }
 
 /* ── Reduced motion ──────────────────────────────────────────────────────────── */

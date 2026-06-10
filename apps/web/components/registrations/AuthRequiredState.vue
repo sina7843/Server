@@ -9,7 +9,7 @@
       <h3 class="auth-state__title">ورود الزامی است</h3>
       <p class="auth-state__desc">برای ثبت‌نام در تورنمنت باید وارد حساب کاربری خود شوید.</p>
     </div>
-    <NuxtLink to="/login" class="auth-state__btn">
+    <NuxtLink :to="loginUrl" class="auth-state__btn">
       ورود به حساب
       <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
         <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
@@ -17,6 +17,13 @@
     </NuxtLink>
   </div>
 </template>
+
+<script setup lang="ts">
+const props = withDefaults(defineProps<{ redirectTo?: string }>(), { redirectTo: '' });
+const loginUrl = computed(() =>
+  props.redirectTo ? `/login?redirect=${encodeURIComponent(props.redirectTo)}` : '/login',
+);
+</script>
 
 <style scoped>
 .auth-state {

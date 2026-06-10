@@ -79,11 +79,11 @@ export class EsportsService {
     const coverMap = await this.resolveCoverUrls(allPosts);
 
     return {
-      featuredPosts: featuredResult.items.map((p) => toPublicPostDto(p, { coverImageUrl: coverMap.get(String(p._id)) })),
-      latestNews: latestNewsResult.items.map((p) => toPublicPostDto(p, { coverImageUrl: coverMap.get(String(p._id)) })),
+      featuredPosts: featuredResult.items.map((p) => { const url = coverMap.get(String(p._id)); return toPublicPostDto(p, url ? { coverImageUrl: url } : {}); }),
+      latestNews: latestNewsResult.items.map((p) => { const url = coverMap.get(String(p._id)); return toPublicPostDto(p, url ? { coverImageUrl: url } : {}); }),
       activeTournaments: activeTournamentsResult.items.map(toTournamentListItemDto),
       upcomingTournaments: upcomingTournamentsResult.items.map(toTournamentListItemDto),
-      topContent: topPostDocs.map((p) => toPublicPostDto(p, { coverImageUrl: coverMap.get(String(p._id)) })),
+      topContent: topPostDocs.map((p) => { const url = coverMap.get(String(p._id)); return toPublicPostDto(p, url ? { coverImageUrl: url } : {}); }),
     };
   }
 

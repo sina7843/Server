@@ -1,114 +1,89 @@
 <template>
-  <main class="standings-page">
-    <div v-if="pending" class="standings-page__state" role="status">
-      <span class="standings-page__state-text">در حال بارگذاری...</span>
+  <div class="sp">
+
+    <!-- Loading skeleton -->
+    <div v-if="pending" class="sp-loading" aria-busy="true">
+      <div class="sp-skel-header"></div>
+      <div class="sp-table-wrap">
+        <div v-for="i in 5" :key="i" class="sp-skel-row">
+          <div class="sp-skel sp-skel--rank"></div>
+          <div class="sp-skel sp-skel--name"></div>
+          <div class="sp-skel sp-skel--num"></div>
+          <div class="sp-skel sp-skel--num"></div>
+          <div class="sp-skel sp-skel--num"></div>
+        </div>
+      </div>
     </div>
 
-    <div
-      v-else-if="fetchError"
-      class="standings-page__state standings-page__state--error"
-      role="alert"
-    >
-      <p class="standings-page__state-text">خطا در بارگذاری جدول رده‌بندی.</p>
+    <!-- Error -->
+    <div v-else-if="fetchError" class="sp-state sp-state--error" role="alert">
+      <p class="sp-state__text">خطا در بارگذاری جدول رده‌بندی.</p>
     </div>
 
-    <div
-      v-else-if="notFound"
-      class="standings-page__state standings-page__state--not-found"
-      role="alert"
-    >
-      <h1 class="standings-page__not-found-title">تورنمنت یافت نشد.</h1>
-      <p class="standings-page__not-found-body">این تورنمنت وجود ندارد یا در دسترس عمومی نیست.</p>
+    <!-- Not found -->
+    <div v-else-if="notFound" class="sp-state" role="alert">
+      <p class="sp-state__text">تورنمنت یافت نشد.</p>
       <NuxtLink to="/tournaments" class="dr-btn dr-btn-secondary">بازگشت به تورنمنت‌ها</NuxtLink>
     </div>
 
+    <!-- Content -->
     <template v-else-if="tournament">
-      <!-- Compact tournament context -->
-      <div class="standings-page__context">
-        <NuxtLink :to="`/tournaments/${tournament.slug}`" class="standings-page__back-link">
-          ← {{ tournament.title }}
-        </NuxtLink>
-        <span class="standings-page__context-status" :class="statusBadgeClass">
-          {{ statusLabel }}
-        </span>
-        <nav class="standings-page__nav" aria-label="صفحات تورنمنت">
-          <NuxtLink
-            :to="`/tournaments/${tournament.slug}/participants`"
-            class="standings-page__nav-link"
-          >
-            شرکت‌کنندگان
-          </NuxtLink>
-          <NuxtLink
-            :to="`/tournaments/${tournament.slug}/matches`"
-            class="standings-page__nav-link"
-          >
-            مسابقات
-          </NuxtLink>
-          <NuxtLink
-            :to="`/tournaments/${tournament.slug}/results`"
-            class="standings-page__nav-link"
-          >
-            نتایج
-          </NuxtLink>
-          <NuxtLink
-            :to="`/tournaments/${tournament.slug}/standings`"
-            class="standings-page__nav-link standings-page__nav-link--active"
-          >
-            جدول رده‌بندی
-          </NuxtLink>
-          <NuxtLink
-            :to="`/tournaments/${tournament.slug}/bracket`"
-            class="standings-page__nav-link"
-          >
-            براکت
-          </NuxtLink>
-        </nav>
+      <!-- Header -->
+      <div class="sp-header">
+        <h2 class="sp-title">جدول رده‌بندی</h2>
       </div>
 
-      <h1 class="standings-page__title">جدول رده‌بندی</h1>
-
-      <!-- Unavailable for manual format or empty standings -->
-      <div v-if="standingsUnavailable" class="standings-page__unavailable" role="status">
-        <p class="standings-page__unavailable-text">
-          جدول رده‌بندی برای این فرمت تورنمنت در دسترس نیست.
-        </p>
+      <!-- Unavailable for manual format -->
+      <div v-if="standingsUnavailable" class="sp-unavail" role="status">
+        <p class="sp-unavail__text">جدول رده‌بندی برای این فرمت تورنمنت در دسترس نیست.</p>
       </div>
 
-      <!-- Empty state: format supports standings but none recorded yet -->
-      <div v-else-if="!standingRows.length" class="standings-page__empty" role="status">
-        <p class="standings-page__empty-text">هنوز رده‌بندی ثبت نشده است.</p>
+      <!-- Empty -->
+      <div v-else-if="!standingRows.length" class="sp-empty" role="status">
+        <div class="sp-empty__icon" aria-hidden="true">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 20V10M12 20V4M6 20v-6" />
+          </svg>
+        </div>
+        <p class="sp-empty__text">هنوز رده‌بندی ثبت نشده است.</p>
       </div>
 
       <!-- Standings table -->
-      <div v-else class="standings-page__table-wrapper">
-        <table class="standings-page__table" aria-label="جدول رده‌بندی">
+      <div v-else class="sp-table-wrap">
+        <table class="sp-table" aria-label="جدول رده‌بندی">
           <thead>
-            <tr>
-              <th class="standings-page__th standings-page__th--rank">رتبه</th>
-              <th class="standings-page__th standings-page__th--name">بازیکن / تیم</th>
-              <th class="standings-page__th standings-page__th--wins">برد</th>
-              <th class="standings-page__th standings-page__th--losses">باخت</th>
-              <th class="standings-page__th standings-page__th--points">امتیاز</th>
+            <tr class="sp-thead-row">
+              <th class="sp-th sp-th--rank">رتبه</th>
+              <th class="sp-th sp-th--name">بازیکن / تیم</th>
+              <th class="sp-th sp-th--num">برد</th>
+              <th class="sp-th sp-th--num">باخت</th>
+              <th class="sp-th sp-th--pts">امتیاز</th>
             </tr>
           </thead>
           <tbody>
             <tr
               v-for="row in standingRows"
               :key="row.participantId"
-              class="standings-page__tr"
-              :class="{ 'standings-page__tr--top': row.rank <= 3 }"
+              class="sp-tr"
+              :class="{
+                'sp-tr--gold': row.rank === 1,
+                'sp-tr--silver': row.rank === 2,
+                'sp-tr--bronze': row.rank === 3,
+              }"
             >
-              <td class="standings-page__td standings-page__td--rank">{{ row.rank }}</td>
-              <td class="standings-page__td standings-page__td--name">{{ row.displayName }}</td>
-              <td class="standings-page__td standings-page__td--wins">{{ row.wins }}</td>
-              <td class="standings-page__td standings-page__td--losses">{{ row.losses }}</td>
-              <td class="standings-page__td standings-page__td--points">{{ row.points }}</td>
+              <td class="sp-td sp-td--rank">
+                <span class="sp-rank-badge">{{ row.rank }}</span>
+              </td>
+              <td class="sp-td sp-td--name">{{ row.displayName }}</td>
+              <td class="sp-td sp-td--num sp-td--wins">{{ row.wins }}</td>
+              <td class="sp-td sp-td--num sp-td--losses">{{ row.losses }}</td>
+              <td class="sp-td sp-td--pts">{{ row.points }}</td>
             </tr>
           </tbody>
         </table>
       </div>
     </template>
-  </main>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -216,13 +191,12 @@ useHead(
 </script>
 
 <style scoped>
-.standings-page {
-  max-width: var(--layout-content-max);
-  margin: 0 auto;
-  padding: 40px 24px 80px;
+.sp {
+  padding: var(--space-6) 0 var(--space-16);
 }
 
-.standings-page__state {
+/* ── States ──────────────────────────────────────────────────────────────── */
+.sp-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -231,136 +205,212 @@ useHead(
   text-align: center;
 }
 
-.standings-page__state-text {
-  font-size: var(--text-body-size);
-  color: var(--text-muted);
-}
+.sp-state--error .sp-state__text { color: var(--danger-400); }
+.sp-state__text { font-size: var(--text-body-size); color: var(--text-muted); margin: 0; }
 
-.standings-page__not-found-title {
-  font-size: var(--text-h2-size);
-  font-weight: var(--weight-bold);
-  margin: 0;
-  color: var(--text-primary);
-}
-
-.standings-page__not-found-body {
-  font-size: var(--text-body-size);
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.standings-page__context {
+/* ── Loading skeleton ────────────────────────────────────────────────────── */
+.sp-loading {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+}
+
+.sp-skel-header {
+  height: 28px;
+  width: 160px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: sp-shimmer 1.6s ease-in-out infinite;
+}
+
+.sp-skel-row {
+  display: flex;
   align-items: center;
   gap: var(--space-3);
-  margin-bottom: var(--space-6);
-}
-
-.standings-page__back-link {
-  font-size: var(--text-body-size);
-  color: var(--text-link);
-  text-decoration: none;
-}
-
-.standings-page__back-link:hover {
-  text-decoration: underline;
-}
-
-.standings-page__nav {
-  display: flex;
-  gap: var(--space-2);
-  margin-right: auto;
-}
-
-.standings-page__nav-link {
-  font-size: var(--text-caption-size);
-  color: var(--text-muted);
-  text-decoration: none;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-default);
-}
-
-.standings-page__nav-link:hover {
-  color: var(--text-primary);
-}
-
-.standings-page__nav-link--active {
-  color: var(--text-primary);
+  padding: 12px var(--space-4);
   background: var(--surface-card);
-  font-weight: var(--weight-semibold);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
 }
 
-.standings-page__title {
-  font-size: var(--text-h2-size);
+.sp-skel {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: sp-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes sp-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.sp-skel--rank { height: 26px; width: 26px; border-radius: 50%; flex-shrink: 0; }
+.sp-skel--name { flex: 1; height: 14px; }
+.sp-skel--num  { height: 14px; width: 28px; flex-shrink: 0; }
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.sp-header {
+  margin-bottom: var(--space-5);
+}
+
+.sp-title {
+  font-family: var(--font-display);
+  font-size: var(--text-h3-size);
   font-weight: var(--weight-bold);
-  margin: 0 0 var(--space-6) 0;
   color: var(--text-primary);
+  margin: 0;
+  letter-spacing: var(--text-h3-tracking);
 }
 
-.standings-page__unavailable {
-  padding: var(--space-12) 0;
+/* ── Unavailable / Empty ─────────────────────────────────────────────────── */
+.sp-unavail,
+.sp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-16) 0;
   text-align: center;
+  color: var(--text-disabled);
 }
 
-.standings-page__unavailable-text {
+.sp-unavail__text,
+.sp-empty__text {
   font-size: var(--text-body-size);
   color: var(--text-muted);
   margin: 0;
 }
 
-.standings-page__empty {
-  padding: var(--space-12) 0;
-  text-align: center;
-}
-
-.standings-page__empty-text {
-  font-size: var(--text-body-size);
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.standings-page__table-wrapper {
+/* ── Table wrapper ───────────────────────────────────────────────────────── */
+.sp-table-wrap {
+  background: var(--surface-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
   overflow-x: auto;
 }
 
-.standings-page__table {
+/* ── Table ───────────────────────────────────────────────────────────────── */
+.sp-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--text-body-size);
 }
 
-.standings-page__th {
-  text-align: right;
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--text-caption-size);
+.sp-thead-row {
+  border-bottom: 1px solid var(--glass-hairline);
+}
+
+.sp-th {
+  padding: 12px 16px;
+  font-size: 11px;
   font-weight: var(--weight-semibold);
   color: var(--text-muted);
-  border-bottom: 2px solid var(--border-default);
+  text-align: right;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
 }
 
-.standings-page__tr {
-  border-bottom: 1px solid var(--border-default);
+.sp-th--num,
+.sp-th--pts {
+  text-align: center;
 }
 
-.standings-page__tr--top .standings-page__td--rank {
-  font-weight: var(--weight-bold);
-  color: var(--text-primary);
+.sp-tr {
+  border-bottom: 1px solid var(--glass-hairline);
+  transition: background var(--motion-fast) var(--ease-out);
 }
 
-.standings-page__td {
-  padding: var(--space-3) var(--space-4);
+.sp-tr:last-child {
+  border-bottom: none;
+}
+
+.sp-tr:hover {
+  background: var(--hover-overlay);
+}
+
+/* Top 3 row highlights */
+.sp-tr--gold   { background: rgba(245, 158, 11, 0.05); }
+.sp-tr--silver { background: rgba(156, 163, 175, 0.05); }
+.sp-tr--bronze { background: rgba(180, 83, 9, 0.05); }
+
+.sp-tr--gold:hover   { background: rgba(245, 158, 11, 0.09); }
+.sp-tr--silver:hover { background: rgba(156, 163, 175, 0.09); }
+.sp-tr--bronze:hover { background: rgba(180, 83, 9, 0.09); }
+
+.sp-td {
+  padding: 14px 16px;
+  font-size: var(--text-body-sm-size);
   color: var(--text-secondary);
 }
 
-.standings-page__td--name {
+.sp-td--name {
   color: var(--text-primary);
   font-weight: var(--weight-medium);
 }
 
-.standings-page__td--points {
-  font-weight: var(--weight-semibold);
+.sp-td--num {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.sp-td--wins { color: #4ADE80; }
+.sp-td--losses { color: var(--text-muted); }
+
+.sp-td--pts {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
   color: var(--text-primary);
+}
+
+/* Rank badge */
+.sp-rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sp-tr--gold .sp-rank-badge {
+  background: rgba(245, 158, 11, 0.15);
+  color: #F59E0B;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.sp-tr--silver .sp-rank-badge {
+  background: rgba(156, 163, 175, 0.12);
+  color: #9CA3AF;
+  border: 1px solid rgba(156, 163, 175, 0.25);
+}
+
+.sp-tr--bronze .sp-rank-badge {
+  background: rgba(180, 83, 9, 0.12);
+  color: #CD7C3A;
+  border: 1px solid rgba(180, 83, 9, 0.25);
+}
+
+.sp-tr:not(.sp-tr--gold):not(.sp-tr--silver):not(.sp-tr--bronze) .sp-rank-badge {
+  color: var(--text-muted);
 }
 </style>

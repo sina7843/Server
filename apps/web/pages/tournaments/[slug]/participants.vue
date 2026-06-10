@@ -1,110 +1,82 @@
 <template>
-  <main class="participants-page">
-    <div v-if="pending" class="participants-page__state" role="status">
-      <span class="participants-page__state-text">در حال بارگذاری...</span>
+  <div class="pp">
+
+    <!-- Loading skeleton -->
+    <div v-if="pending" class="pp-loading" aria-busy="true">
+      <div v-for="i in 5" :key="i" class="pp-skel-row">
+        <div class="pp-skel pp-skel--avatar"></div>
+        <div class="pp-skel-text">
+          <div class="pp-skel pp-skel--name"></div>
+          <div class="pp-skel pp-skel--team"></div>
+        </div>
+        <div class="pp-skel pp-skel--badge"></div>
+      </div>
     </div>
 
-    <div
-      v-else-if="fetchError"
-      class="participants-page__state participants-page__state--error"
-      role="alert"
-    >
-      <p class="participants-page__state-text">خطا در بارگذاری شرکت‌کنندگان.</p>
+    <!-- Error -->
+    <div v-else-if="fetchError" class="pp-state pp-state--error" role="alert">
+      <p class="pp-state__text">خطا در بارگذاری شرکت‌کنندگان.</p>
     </div>
 
-    <div
-      v-else-if="notFound"
-      class="participants-page__state participants-page__state--not-found"
-      role="alert"
-    >
-      <h1 class="participants-page__not-found-title">تورنمنت یافت نشد.</h1>
-      <p class="participants-page__not-found-body">
-        این تورنمنت وجود ندارد یا در دسترس عمومی نیست.
-      </p>
+    <!-- Not found -->
+    <div v-else-if="notFound" class="pp-state" role="alert">
+      <p class="pp-state__text">تورنمنت یافت نشد.</p>
       <NuxtLink to="/tournaments" class="dr-btn dr-btn-secondary">بازگشت به تورنمنت‌ها</NuxtLink>
     </div>
 
+    <!-- Content -->
     <template v-else-if="tournament">
-      <!-- Compact tournament context -->
-      <div class="participants-page__context">
-        <NuxtLink :to="`/tournaments/${tournament.slug}`" class="participants-page__back-link">
-          ← {{ tournament.title }}
-        </NuxtLink>
-        <span class="participants-page__context-status" :class="statusBadgeClass">
-          {{ statusLabel }}
-        </span>
-        <nav class="participants-page__nav" aria-label="صفحات تورنمنت">
-          <NuxtLink
-            :to="`/tournaments/${tournament.slug}/participants`"
-            class="participants-page__nav-link participants-page__nav-link--active"
-          >
-            شرکت‌کنندگان
-          </NuxtLink>
-          <NuxtLink
-            :to="`/tournaments/${tournament.slug}/matches`"
-            class="participants-page__nav-link"
-          >
-            مسابقات
-          </NuxtLink>
-          <NuxtLink
-            :to="`/tournaments/${tournament.slug}/results`"
-            class="participants-page__nav-link"
-          >
-            نتایج
-          </NuxtLink>
-          <NuxtLink
-            :to="`/tournaments/${tournament.slug}/standings`"
-            class="participants-page__nav-link"
-          >
-            جدول رده‌بندی
-          </NuxtLink>
-          <NuxtLink
-            :to="`/tournaments/${tournament.slug}/bracket`"
-            class="participants-page__nav-link"
-          >
-            براکت
-          </NuxtLink>
-        </nav>
+      <!-- Header -->
+      <div class="pp-header">
+        <h2 class="pp-title">شرکت‌کنندگان</h2>
+        <span v-if="total" class="pp-count">{{ total }} نفر</span>
       </div>
 
-      <h1 class="participants-page__title">شرکت‌کنندگان</h1>
-
-      <!-- Empty state -->
-      <div v-if="!participants.length" class="participants-page__empty" role="status">
-        <p class="participants-page__empty-text">هنوز شرکت‌کننده‌ای ثبت نشده است.</p>
+      <!-- Empty -->
+      <div v-if="!participants.length" class="pp-empty" role="status">
+        <div class="pp-empty__icon" aria-hidden="true">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+          </svg>
+        </div>
+        <p class="pp-empty__text">هنوز شرکت‌کننده‌ای ثبت نشده است.</p>
       </div>
 
-      <!-- Participants list -->
-      <section v-else class="participants-page__list" aria-label="لیست شرکت‌کنندگان">
-        <p class="participants-page__count">{{ total }} شرکت‌کننده</p>
-        <ul class="participants-page__items">
-          <li
-            v-for="participant in participants"
-            :key="participant.id"
-            class="participants-page__item"
-          >
-            <div class="participants-page__item-info">
-              <span class="participants-page__item-name">{{ participant.displayName }}</span>
-              <span v-if="participant.teamName" class="participants-page__item-team">
-                {{ participant.teamName }}
-              </span>
-            </div>
-            <div class="participants-page__item-meta">
-              <span v-if="participant.seed != null" class="participants-page__item-seed">
-                #{{ participant.seed }}
-              </span>
-              <span
-                class="participants-page__item-status dr-badge"
-                :class="participantStatusClass(participant.status)"
-              >
-                {{ participantStatusLabel(participant.status) }}
-              </span>
-            </div>
-          </li>
-        </ul>
-      </section>
+      <!-- List -->
+      <ul v-else class="pp-list" aria-label="لیست شرکت‌کنندگان">
+        <li
+          v-for="(participant, index) in participants"
+          :key="participant.id"
+          class="pp-item"
+        >
+          <!-- Rank -->
+          <span class="pp-item__rank">{{ index + 1 }}</span>
+
+          <!-- Avatar -->
+          <div class="pp-item__avatar" aria-hidden="true">
+            {{ participant.displayName.charAt(0) }}
+          </div>
+
+          <!-- Info -->
+          <div class="pp-item__info">
+            <span class="pp-item__name">{{ participant.displayName }}</span>
+            <span v-if="participant.teamName" class="pp-item__team">{{ participant.teamName }}</span>
+          </div>
+
+          <!-- Meta -->
+          <div class="pp-item__meta">
+            <span v-if="participant.seed != null" class="pp-item__seed">#{{ participant.seed }}</span>
+            <span
+              class="dr-badge"
+              :class="participantStatusClass(participant.status)"
+            >
+              {{ participantStatusLabel(participant.status) }}
+            </span>
+          </div>
+        </li>
+      </ul>
     </template>
-  </main>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -223,13 +195,12 @@ useHead(
 </script>
 
 <style scoped>
-.participants-page {
-  max-width: var(--layout-content-max);
-  margin: 0 auto;
-  padding: 40px 24px 80px;
+.pp {
+  padding: var(--space-6) 0 var(--space-16);
 }
 
-.participants-page__state {
+/* ── States ──────────────────────────────────────────────────────────────── */
+.pp-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -238,92 +209,115 @@ useHead(
   text-align: center;
 }
 
-.participants-page__state-text {
+.pp-state--error .pp-state__text {
+  color: var(--danger-400);
+}
+
+.pp-state__text {
   font-size: var(--text-body-size);
   color: var(--text-muted);
-}
-
-.participants-page__not-found-title {
-  font-size: var(--text-h2-size);
-  font-weight: var(--weight-bold);
-  margin: 0;
-  color: var(--text-primary);
-}
-
-.participants-page__not-found-body {
-  font-size: var(--text-body-size);
-  color: var(--text-secondary);
   margin: 0;
 }
 
-.participants-page__context {
+/* ── Loading skeleton ────────────────────────────────────────────────────── */
+.pp-loading {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+}
+
+.pp-skel-row {
+  display: flex;
   align-items: center;
   gap: var(--space-3);
-  margin-bottom: var(--space-6);
-}
-
-.participants-page__back-link {
-  font-size: var(--text-body-size);
-  color: var(--text-link);
-  text-decoration: none;
-}
-
-.participants-page__back-link:hover {
-  text-decoration: underline;
-}
-
-.participants-page__nav {
-  display: flex;
-  gap: var(--space-2);
-  margin-right: auto;
-}
-
-.participants-page__nav-link {
-  font-size: var(--text-caption-size);
-  color: var(--text-muted);
-  text-decoration: none;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-default);
-}
-
-.participants-page__nav-link:hover {
-  color: var(--text-primary);
-}
-
-.participants-page__nav-link--active {
-  color: var(--text-primary);
+  padding: var(--space-3) var(--space-4);
   background: var(--surface-card);
-  font-weight: var(--weight-semibold);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
 }
 
-.participants-page__title {
-  font-size: var(--text-h2-size);
+.pp-skel-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pp-skel {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: pp-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes pp-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.pp-skel--avatar { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; }
+.pp-skel--name  { height: 14px; width: 55%; }
+.pp-skel--team  { height: 11px; width: 35%; }
+.pp-skel--badge { height: 22px; width: 52px; border-radius: var(--radius-pill); flex-shrink: 0; }
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.pp-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.pp-title {
+  font-family: var(--font-display);
+  font-size: var(--text-h3-size);
   font-weight: var(--weight-bold);
-  margin: 0 0 var(--space-6) 0;
   color: var(--text-primary);
+  margin: 0;
+  letter-spacing: var(--text-h3-tracking);
 }
 
-.participants-page__empty {
-  padding: var(--space-12) 0;
+.pp-count {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: var(--weight-semibold);
+  color: var(--purple-300);
+  background: rgba(124, 58, 237, 0.12);
+  border: 1px solid rgba(124, 58, 237, 0.25);
+}
+
+/* ── Empty ───────────────────────────────────────────────────────────────── */
+.pp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-16) 0;
   text-align: center;
 }
 
-.participants-page__empty-text {
+.pp-empty__icon {
+  color: var(--text-disabled);
+}
+
+.pp-empty__text {
   font-size: var(--text-body-size);
   color: var(--text-muted);
   margin: 0;
 }
 
-.participants-page__count {
-  font-size: var(--text-caption-size);
-  color: var(--text-muted);
-  margin: 0 0 var(--space-4) 0;
-}
-
-.participants-page__items {
+/* ── List ────────────────────────────────────────────────────────────────── */
+.pp-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -332,46 +326,78 @@ useHead(
   gap: var(--space-2);
 }
 
-.participants-page__item {
+.pp-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   background: var(--surface-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--motion-fast) var(--ease-out);
 }
 
-.participants-page__item-info {
+.pp-item:hover {
+  border-color: rgba(124, 58, 237, 0.3);
+}
+
+.pp-item__rank {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-disabled);
+  min-width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.pp-item__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--brand-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(109, 40, 217, 0.25);
+}
+
+.pp-item__info {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 3px;
+  min-width: 0;
 }
 
-.participants-page__item-name {
-  font-size: var(--text-body-size);
+.pp-item__name {
+  font-size: var(--text-body-sm-size);
   font-weight: var(--weight-semibold);
   color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.participants-page__item-team {
+.pp-item__team {
   font-size: var(--text-caption-size);
   color: var(--text-muted);
 }
 
-.participants-page__item-meta {
+.pp-item__meta {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  flex-shrink: 0;
 }
 
-.participants-page__item-seed {
+.pp-item__seed {
+  font-family: var(--font-mono);
   font-size: var(--text-caption-size);
   color: var(--text-muted);
-  font-family: var(--font-sans-en);
-}
-
-.participants-page__item-status {
-  font-size: var(--text-caption-size);
 }
 </style>

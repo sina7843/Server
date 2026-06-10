@@ -1,125 +1,106 @@
 <template>
-  <main class="matches-page">
-    <div v-if="pending" class="matches-page__state" role="status">
-      <span class="matches-page__state-text">در حال بارگذاری...</span>
+  <div class="mp">
+
+    <!-- Loading skeleton -->
+    <div v-if="pending" class="mp-loading" aria-busy="true">
+      <div v-for="i in 3" :key="i" class="mp-skel-card">
+        <div class="mp-skel-card__header">
+          <div class="mp-skel mp-skel--label"></div>
+          <div class="mp-skel mp-skel--badge"></div>
+        </div>
+        <div class="mp-skel-card__body">
+          <div class="mp-skel mp-skel--name"></div>
+          <div class="mp-skel mp-skel--vs"></div>
+          <div class="mp-skel mp-skel--name"></div>
+        </div>
+      </div>
     </div>
 
-    <div v-else-if="fetchError" class="matches-page__state matches-page__state--error" role="alert">
-      <p class="matches-page__state-text">خطا در بارگذاری مسابقات.</p>
+    <!-- Error -->
+    <div v-else-if="fetchError" class="mp-state mp-state--error" role="alert">
+      <p class="mp-state__text">خطا در بارگذاری مسابقات.</p>
     </div>
 
-    <div
-      v-else-if="notFound"
-      class="matches-page__state matches-page__state--not-found"
-      role="alert"
-    >
-      <h1 class="matches-page__not-found-title">تورنمنت یافت نشد.</h1>
-      <p class="matches-page__not-found-body">این تورنمنت وجود ندارد یا در دسترس عمومی نیست.</p>
+    <!-- Not found -->
+    <div v-else-if="notFound" class="mp-state" role="alert">
+      <p class="mp-state__text">تورنمنت یافت نشد.</p>
       <NuxtLink to="/tournaments" class="dr-btn dr-btn-secondary">بازگشت به تورنمنت‌ها</NuxtLink>
     </div>
 
+    <!-- Content -->
     <template v-else-if="tournament">
-      <!-- Compact tournament context -->
-      <div class="matches-page__context">
-        <NuxtLink :to="`/tournaments/${tournament.slug}`" class="matches-page__back-link">
-          ← {{ tournament.title }}
-        </NuxtLink>
-        <span class="matches-page__context-status" :class="statusBadgeClass">
-          {{ statusLabel }}
-        </span>
-        <nav class="matches-page__nav" aria-label="صفحات تورنمنت">
-          <NuxtLink
-            :to="`/tournaments/${tournament.slug}/participants`"
-            class="matches-page__nav-link"
-          >
-            شرکت‌کنندگان
-          </NuxtLink>
-          <NuxtLink
-            :to="`/tournaments/${tournament.slug}/matches`"
-            class="matches-page__nav-link matches-page__nav-link--active"
-          >
-            مسابقات
-          </NuxtLink>
-          <NuxtLink :to="`/tournaments/${tournament.slug}/results`" class="matches-page__nav-link">
-            نتایج
-          </NuxtLink>
-          <NuxtLink
-            :to="`/tournaments/${tournament.slug}/standings`"
-            class="matches-page__nav-link"
-          >
-            جدول رده‌بندی
-          </NuxtLink>
-          <NuxtLink :to="`/tournaments/${tournament.slug}/bracket`" class="matches-page__nav-link">
-            براکت
-          </NuxtLink>
-        </nav>
+      <!-- Header -->
+      <div class="mp-header">
+        <h2 class="mp-title">مسابقات</h2>
       </div>
 
-      <h1 class="matches-page__title">مسابقات</h1>
-
-      <!-- Empty state -->
-      <div v-if="!matches.length" class="matches-page__empty" role="status">
-        <p class="matches-page__empty-text">هنوز مسابقه‌ای تولید نشده است.</p>
+      <!-- Empty -->
+      <div v-if="!matches.length" class="mp-empty" role="status">
+        <div class="mp-empty__icon" aria-hidden="true">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M12 8v4m0 4h.01" />
+          </svg>
+        </div>
+        <p class="mp-empty__text">هنوز مسابقه‌ای تولید نشده است.</p>
       </div>
 
-      <!-- Matches grouped by round -->
-      <div v-else class="matches-page__rounds">
+      <!-- Rounds -->
+      <div v-else class="mp-rounds">
         <section
           v-for="round in rounds"
           :key="round.number"
-          class="matches-page__round"
+          class="mp-round"
           :aria-label="`دور ${round.number}`"
         >
-          <h2 class="matches-page__round-title">دور {{ round.number }}</h2>
-          <ul class="matches-page__match-list">
-            <li v-for="match in round.matches" :key="match.id" class="matches-page__match">
-              <div class="matches-page__match-header">
-                <span class="matches-page__match-number">مسابقه {{ match.matchNumber }}</span>
-                <span
-                  class="matches-page__match-status dr-badge"
-                  :class="matchStatusClass(match.status)"
-                >
+          <!-- Round heading -->
+          <div class="mp-round__heading">
+            <span class="mp-round__label">دور {{ round.number }}</span>
+            <div class="mp-round__line" aria-hidden="true"></div>
+          </div>
+
+          <!-- Matches grid -->
+          <ul class="mp-grid">
+            <li v-for="match in round.matches" :key="match.id" class="mp-card"
+                :class="{ 'mp-card--live': match.status === 'in_progress' }">
+
+              <!-- Card header: match # + status -->
+              <div class="mp-card__top">
+                <span class="mp-card__num">مسابقه {{ match.matchNumber }}</span>
+                <span class="dr-badge" :class="matchStatusClass(match.status)">
                   {{ matchStatusLabel(match.status) }}
                 </span>
               </div>
-              <div class="matches-page__match-body">
-                <div
-                  class="matches-page__match-participant"
-                  :class="{
-                    'matches-page__match-participant--winner':
-                      match.winnerId && match.winnerId === match.participant1Id,
-                  }"
-                >
-                  <span class="matches-page__match-participant-name">
-                    {{ resolveParticipantName(match.participant1Id) }}
-                  </span>
-                  <span
-                    v-if="match.winnerId && match.winnerId === match.participant1Id"
-                    class="matches-page__match-winner-badge"
-                  >
-                    برنده
+
+              <!-- VS row -->
+              <div class="mp-card__vs-row">
+                <!-- P1 -->
+                <div class="mp-participant"
+                     :class="{ 'mp-participant--winner': match.winnerId && match.winnerId === match.participant1Id }">
+                  <span class="mp-participant__name">{{ resolveParticipantName(match.participant1Id) }}</span>
+                  <span v-if="match.winnerId && match.winnerId === match.participant1Id" class="mp-participant__crown" aria-label="برنده">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M3 20h18l-3-12-4.5 6L12 8l-1.5 6L6 8 3 20z" />
+                    </svg>
                   </span>
                 </div>
-                <span class="matches-page__match-vs">vs</span>
-                <div
-                  class="matches-page__match-participant"
-                  :class="{
-                    'matches-page__match-participant--winner':
-                      match.winnerId && match.winnerId === match.participant2Id,
-                  }"
-                >
-                  <span class="matches-page__match-participant-name">
-                    {{ resolveParticipantName(match.participant2Id) }}
+
+                <!-- VS divider -->
+                <span class="mp-vs" aria-hidden="true">vs</span>
+
+                <!-- P2 -->
+                <div class="mp-participant mp-participant--p2"
+                     :class="{ 'mp-participant--winner': match.winnerId && match.winnerId === match.participant2Id }">
+                  <span v-if="match.winnerId && match.winnerId === match.participant2Id" class="mp-participant__crown" aria-label="برنده">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M3 20h18l-3-12-4.5 6L12 8l-1.5 6L6 8 3 20z" />
+                    </svg>
                   </span>
-                  <span
-                    v-if="match.winnerId && match.winnerId === match.participant2Id"
-                    class="matches-page__match-winner-badge"
-                  >
-                    برنده
-                  </span>
+                  <span class="mp-participant__name">{{ resolveParticipantName(match.participant2Id) }}</span>
                 </div>
               </div>
-              <div v-if="match.scheduledAt" class="matches-page__match-time">
+
+              <!-- Scheduled time -->
+              <div v-if="match.scheduledAt" class="mp-card__time">
                 {{ formatDate(match.scheduledAt) }}
               </div>
             </li>
@@ -127,7 +108,7 @@
         </section>
       </div>
     </template>
-  </main>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -295,13 +276,12 @@ useHead(
 </script>
 
 <style scoped>
-.matches-page {
-  max-width: var(--layout-content-max);
-  margin: 0 auto;
-  padding: 40px 24px 80px;
+.mp {
+  padding: var(--space-6) 0 var(--space-16);
 }
 
-.matches-page__state {
+/* ── States ──────────────────────────────────────────────────────────────── */
+.mp-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -310,169 +290,227 @@ useHead(
   text-align: center;
 }
 
-.matches-page__state-text {
-  font-size: var(--text-body-size);
-  color: var(--text-muted);
-}
+.mp-state--error .mp-state__text { color: var(--danger-400); }
+.mp-state__text { font-size: var(--text-body-size); color: var(--text-muted); margin: 0; }
 
-.matches-page__not-found-title {
-  font-size: var(--text-h2-size);
-  font-weight: var(--weight-bold);
-  margin: 0;
-  color: var(--text-primary);
-}
-
-.matches-page__not-found-body {
-  font-size: var(--text-body-size);
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.matches-page__context {
+/* ── Loading skeleton ────────────────────────────────────────────────────── */
+.mp-loading {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+}
+
+.mp-skel-card {
+  background: var(--surface-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.mp-skel-card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.mp-skel-card__body {
+  display: flex;
   align-items: center;
   gap: var(--space-3);
+}
+
+.mp-skel {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: mp-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes mp-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.mp-skel--label { height: 12px; width: 80px; }
+.mp-skel--badge { height: 22px; width: 60px; border-radius: var(--radius-pill); }
+.mp-skel--name  { flex: 1; height: 16px; }
+.mp-skel--vs    { height: 14px; width: 24px; flex-shrink: 0; }
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.mp-header {
   margin-bottom: var(--space-6);
 }
 
-.matches-page__back-link {
-  font-size: var(--text-body-size);
-  color: var(--text-link);
-  text-decoration: none;
-}
-
-.matches-page__back-link:hover {
-  text-decoration: underline;
-}
-
-.matches-page__nav {
-  display: flex;
-  gap: var(--space-2);
-  margin-right: auto;
-}
-
-.matches-page__nav-link {
-  font-size: var(--text-caption-size);
-  color: var(--text-muted);
-  text-decoration: none;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-default);
-}
-
-.matches-page__nav-link:hover {
-  color: var(--text-primary);
-}
-
-.matches-page__nav-link--active {
-  color: var(--text-primary);
-  background: var(--surface-card);
-  font-weight: var(--weight-semibold);
-}
-
-.matches-page__title {
-  font-size: var(--text-h2-size);
+.mp-title {
+  font-family: var(--font-display);
+  font-size: var(--text-h3-size);
   font-weight: var(--weight-bold);
-  margin: 0 0 var(--space-6) 0;
   color: var(--text-primary);
+  margin: 0;
+  letter-spacing: var(--text-h3-tracking);
 }
 
-.matches-page__empty {
-  padding: var(--space-12) 0;
+/* ── Empty ───────────────────────────────────────────────────────────────── */
+.mp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-16) 0;
   text-align: center;
+  color: var(--text-disabled);
 }
 
-.matches-page__empty-text {
+.mp-empty__text {
   font-size: var(--text-body-size);
   color: var(--text-muted);
   margin: 0;
 }
 
-.matches-page__rounds {
+/* ── Rounds ──────────────────────────────────────────────────────────────── */
+.mp-rounds {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: var(--space-10);
 }
 
-.matches-page__round-title {
-  font-size: var(--text-h3-size);
+.mp-round__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.mp-round__label {
+  font-size: var(--text-caption-size);
   font-weight: var(--weight-semibold);
-  margin: 0 0 var(--space-4) 0;
-  color: var(--text-primary);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 
-.matches-page__match-list {
+.mp-round__line {
+  flex: 1;
+  height: 1px;
+  background: var(--glass-hairline);
+}
+
+/* ── Match grid ──────────────────────────────────────────────────────────── */
+.mp-grid {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-3);
+}
+
+/* ── Match card ──────────────────────────────────────────────────────────── */
+.mp-card {
+  background: var(--surface-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  transition: border-color var(--motion-fast) var(--ease-out);
 }
 
-.matches-page__match {
-  background: var(--surface-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
+.mp-card:hover {
+  border-color: rgba(124, 58, 237, 0.3);
 }
 
-.matches-page__match-header {
+.mp-card--live {
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.mp-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.mp-card__num {
+  font-size: 11px;
+  color: var(--text-disabled);
+  font-family: var(--font-mono);
+}
+
+/* ── VS row ──────────────────────────────────────────────────────────────── */
+.mp-card__vs-row {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin-bottom: var(--space-3);
+  min-height: 36px;
 }
 
-.matches-page__match-number {
-  font-size: var(--text-caption-size);
-  color: var(--text-muted);
-}
-
-.matches-page__match-status {
-  font-size: var(--text-caption-size);
-}
-
-.matches-page__match-body {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.matches-page__match-participant {
+.mp-participant {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 6px;
+  min-width: 0;
 }
 
-.matches-page__match-participant--winner .matches-page__match-participant-name {
-  font-weight: var(--weight-bold);
-  color: var(--text-primary);
+.mp-participant--p2 {
+  justify-content: flex-end;
 }
 
-.matches-page__match-participant-name {
-  font-size: var(--text-body-size);
+.mp-participant__name {
+  font-size: var(--text-body-sm-size);
   color: var(--text-secondary);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.matches-page__match-winner-badge {
-  font-size: var(--text-caption-size);
-  color: var(--color-success, #22c55e);
-  font-weight: var(--weight-semibold);
+.mp-participant--winner .mp-participant__name {
+  color: var(--text-primary);
+  font-weight: var(--weight-bold);
 }
 
-.matches-page__match-vs {
-  font-size: var(--text-caption-size);
-  color: var(--text-muted);
-  font-family: var(--font-sans-en);
+.mp-participant__crown {
+  color: #F59E0B;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
-.matches-page__match-time {
-  margin-top: var(--space-2);
-  font-size: var(--text-caption-size);
-  color: var(--text-muted);
+.mp-vs {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-disabled);
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+
+.mp-card__time {
+  font-size: 11px;
+  color: var(--text-disabled);
+  font-family: var(--font-mono);
+  border-top: 1px solid var(--glass-hairline);
+  padding-top: var(--space-2);
+}
+
+@media (max-width: 600px) {
+  .mp-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

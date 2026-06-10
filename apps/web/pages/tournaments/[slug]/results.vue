@@ -1,91 +1,74 @@
 <template>
-  <main class="results-page">
-    <div v-if="pending" class="results-page__state" role="status">
-      <span class="results-page__state-text">در حال بارگذاری...</span>
+  <div class="rp">
+
+    <!-- Loading skeleton -->
+    <div v-if="pending" class="rp-loading" aria-busy="true">
+      <div v-for="i in 4" :key="i" class="rp-skel-card">
+        <div class="rp-skel rp-skel--winner"></div>
+        <div class="rp-skel rp-skel--score"></div>
+        <div class="rp-skel rp-skel--date"></div>
+      </div>
     </div>
 
-    <div v-else-if="fetchError" class="results-page__state results-page__state--error" role="alert">
-      <p class="results-page__state-text">خطا در بارگذاری نتایج.</p>
+    <!-- Error -->
+    <div v-else-if="fetchError" class="rp-state rp-state--error" role="alert">
+      <p class="rp-state__text">خطا در بارگذاری نتایج.</p>
     </div>
 
-    <div
-      v-else-if="notFound"
-      class="results-page__state results-page__state--not-found"
-      role="alert"
-    >
-      <h1 class="results-page__not-found-title">تورنمنت یافت نشد.</h1>
-      <p class="results-page__not-found-body">این تورنمنت وجود ندارد یا در دسترس عمومی نیست.</p>
+    <!-- Not found -->
+    <div v-else-if="notFound" class="rp-state" role="alert">
+      <p class="rp-state__text">تورنمنت یافت نشد.</p>
       <NuxtLink to="/tournaments" class="dr-btn dr-btn-secondary">بازگشت به تورنمنت‌ها</NuxtLink>
     </div>
 
+    <!-- Content -->
     <template v-else-if="tournament">
-      <!-- Compact tournament context -->
-      <div class="results-page__context">
-        <NuxtLink :to="`/tournaments/${tournament.slug}`" class="results-page__back-link">
-          ← {{ tournament.title }}
-        </NuxtLink>
-        <span class="results-page__context-status" :class="statusBadgeClass">
-          {{ statusLabel }}
-        </span>
-        <nav class="results-page__nav" aria-label="صفحات تورنمنت">
-          <NuxtLink
-            :to="`/tournaments/${tournament.slug}/participants`"
-            class="results-page__nav-link"
-          >
-            شرکت‌کنندگان
-          </NuxtLink>
-          <NuxtLink :to="`/tournaments/${tournament.slug}/matches`" class="results-page__nav-link">
-            مسابقات
-          </NuxtLink>
-          <NuxtLink
-            :to="`/tournaments/${tournament.slug}/results`"
-            class="results-page__nav-link results-page__nav-link--active"
-          >
-            نتایج
-          </NuxtLink>
-          <NuxtLink
-            :to="`/tournaments/${tournament.slug}/standings`"
-            class="results-page__nav-link"
-          >
-            جدول رده‌بندی
-          </NuxtLink>
-          <NuxtLink :to="`/tournaments/${tournament.slug}/bracket`" class="results-page__nav-link">
-            براکت
-          </NuxtLink>
-        </nav>
+      <!-- Header -->
+      <div class="rp-header">
+        <h2 class="rp-title">نتایج مسابقات</h2>
+        <span v-if="results.length" class="rp-count">{{ results.length }} نتیجه</span>
       </div>
 
-      <h1 class="results-page__title">نتایج مسابقات</h1>
-
-      <!-- Empty state -->
-      <div v-if="!results.length" class="results-page__empty" role="status">
-        <p class="results-page__empty-text">هنوز نتیجه‌ای ثبت نشده است.</p>
+      <!-- Empty -->
+      <div v-if="!results.length" class="rp-empty" role="status">
+        <div class="rp-empty__icon" aria-hidden="true">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="10" />
+          </svg>
+        </div>
+        <p class="rp-empty__text">هنوز نتیجه‌ای ثبت نشده است.</p>
       </div>
 
       <!-- Results list -->
-      <ul v-else class="results-page__list">
-        <li v-for="result in results" :key="result.matchId" class="results-page__item">
-          <div class="results-page__item-winner">
-            <span class="results-page__item-label">برنده:</span>
-            <span class="results-page__item-winner-name">
-              {{ resolveParticipantName(result.winnerId) }}
-            </span>
+      <ul v-else class="rp-list">
+        <li v-for="result in results" :key="result.matchId" class="rp-card">
+          <!-- Winner -->
+          <div class="rp-card__winner">
+            <div class="rp-card__winner-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M3 20h18l-3-12-4.5 6L12 8l-1.5 6L6 8 3 20z" />
+              </svg>
+              <span>برنده</span>
+            </div>
+            <span class="rp-card__winner-name">{{ resolveParticipantName(result.winnerId) }}</span>
           </div>
+
+          <!-- Score -->
           <div
             v-if="result.participant1Score !== undefined || result.participant2Score !== undefined"
-            class="results-page__item-score"
+            class="rp-card__score"
           >
-            <span class="results-page__item-score-value">
+            <span class="rp-card__score-value" dir="ltr">
               {{ result.participant1Score ?? '—' }} : {{ result.participant2Score ?? '—' }}
             </span>
           </div>
-          <div class="results-page__item-date">
-            {{ formatDate(result.recordedAt) }}
-          </div>
+
+          <!-- Date -->
+          <div class="rp-card__date">{{ formatDate(result.recordedAt) }}</div>
         </li>
       </ul>
     </template>
-  </main>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -212,13 +195,12 @@ useHead(
 </script>
 
 <style scoped>
-.results-page {
-  max-width: var(--layout-content-max);
-  margin: 0 auto;
-  padding: 40px 24px 80px;
+.rp {
+  padding: var(--space-6) 0 var(--space-16);
 }
 
-.results-page__state {
+/* ── States ──────────────────────────────────────────────────────────────── */
+.rp-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -227,86 +209,97 @@ useHead(
   text-align: center;
 }
 
-.results-page__state-text {
-  font-size: var(--text-body-size);
-  color: var(--text-muted);
-}
+.rp-state--error .rp-state__text { color: var(--danger-400); }
+.rp-state__text { font-size: var(--text-body-size); color: var(--text-muted); margin: 0; }
 
-.results-page__not-found-title {
-  font-size: var(--text-h2-size);
-  font-weight: var(--weight-bold);
-  margin: 0;
-  color: var(--text-primary);
-}
-
-.results-page__not-found-body {
-  font-size: var(--text-body-size);
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.results-page__context {
+/* ── Loading skeleton ────────────────────────────────────────────────────── */
+.rp-loading {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+}
+
+.rp-skel-card {
+  background: var(--surface-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.rp-skel {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: rp-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes rp-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.rp-skel--winner { flex: 1; height: 18px; }
+.rp-skel--score  { height: 22px; width: 64px; flex-shrink: 0; }
+.rp-skel--date   { height: 12px; width: 96px; flex-shrink: 0; }
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.rp-header {
+  display: flex;
   align-items: center;
   gap: var(--space-3);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-5);
 }
 
-.results-page__back-link {
-  font-size: var(--text-body-size);
-  color: var(--text-link);
-  text-decoration: none;
-}
-
-.results-page__back-link:hover {
-  text-decoration: underline;
-}
-
-.results-page__nav {
-  display: flex;
-  gap: var(--space-2);
-  margin-right: auto;
-}
-
-.results-page__nav-link {
-  font-size: var(--text-caption-size);
-  color: var(--text-muted);
-  text-decoration: none;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-default);
-}
-
-.results-page__nav-link:hover {
-  color: var(--text-primary);
-}
-
-.results-page__nav-link--active {
-  color: var(--text-primary);
-  background: var(--surface-card);
-  font-weight: var(--weight-semibold);
-}
-
-.results-page__title {
-  font-size: var(--text-h2-size);
+.rp-title {
+  font-family: var(--font-display);
+  font-size: var(--text-h3-size);
   font-weight: var(--weight-bold);
-  margin: 0 0 var(--space-6) 0;
   color: var(--text-primary);
+  margin: 0;
+  letter-spacing: var(--text-h3-tracking);
 }
 
-.results-page__empty {
-  padding: var(--space-12) 0;
+.rp-count {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: var(--weight-semibold);
+  color: var(--purple-300);
+  background: rgba(124, 58, 237, 0.12);
+  border: 1px solid rgba(124, 58, 237, 0.25);
+}
+
+/* ── Empty ───────────────────────────────────────────────────────────────── */
+.rp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-16) 0;
   text-align: center;
+  color: var(--text-disabled);
 }
 
-.results-page__empty-text {
+.rp-empty__text {
   font-size: var(--text-body-size);
   color: var(--text-muted);
   margin: 0;
 }
 
-.results-page__list {
+/* ── Results list ────────────────────────────────────────────────────────── */
+.rp-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -315,47 +308,87 @@ useHead(
   gap: var(--space-3);
 }
 
-.results-page__item {
-  background: var(--surface-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
+.rp-card {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  transition: border-color var(--motion-fast) var(--ease-out);
 }
 
-.results-page__item-winner {
+.rp-card:hover {
+  border-color: rgba(124, 58, 237, 0.3);
+}
+
+.rp-card__winner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.rp-card__winner-label {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  flex: 1;
-}
-
-.results-page__item-label {
-  font-size: var(--text-caption-size);
-  color: var(--text-muted);
-}
-
-.results-page__item-winner-name {
-  font-size: var(--text-body-size);
+  gap: 5px;
+  font-size: 11px;
   font-weight: var(--weight-semibold);
+  color: #F59E0B;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.rp-card__winner-name {
+  font-size: var(--text-body-size);
+  font-weight: var(--weight-bold);
   color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.results-page__item-score {
-  font-size: var(--text-body-size);
-  color: var(--text-secondary);
-  font-family: var(--font-sans-en);
+.rp-card__score {
+  flex-shrink: 0;
 }
 
-.results-page__item-score-value {
-  font-weight: var(--weight-semibold);
+.rp-card__score-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  background: rgba(124, 58, 237, 0.1);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--purple-300);
+  letter-spacing: 0.04em;
 }
 
-.results-page__item-date {
-  font-size: var(--text-caption-size);
-  color: var(--text-muted);
+.rp-card__date {
+  font-size: 11px;
+  color: var(--text-disabled);
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+  text-align: left;
+  direction: ltr;
+}
+
+@media (max-width: 600px) {
+  .rp-card {
+    flex-wrap: wrap;
+  }
+
+  .rp-card__date {
+    width: 100%;
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--glass-hairline);
+  }
 }
 </style>

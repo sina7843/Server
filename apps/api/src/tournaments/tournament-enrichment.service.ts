@@ -71,7 +71,7 @@ export class TournamentEnrichmentService {
 
         for (const game of games) {
           if (game.coverMediaId) {
-            const objectKey = gameMediaMap.get(game.coverMediaId);
+            const objectKey = gameMediaMap.get(String(game.coverMediaId));
             if (objectKey) {
               gameCoverMap.set(String(game._id), this.storageService.getPublicUrl(objectKey));
             }
@@ -85,7 +85,7 @@ export class TournamentEnrichmentService {
       let gameCoverImageUrl: string | undefined;
 
       if (doc.coverMediaId) {
-        const objectKey = mediaCoverMap.get(doc.coverMediaId);
+        const objectKey = mediaCoverMap.get(String(doc.coverMediaId));
         if (objectKey) {
           coverImageUrl = this.storageService.getPublicUrl(objectKey);
         }

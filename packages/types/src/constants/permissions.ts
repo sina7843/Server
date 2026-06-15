@@ -43,6 +43,11 @@ export const DragonPermissions = {
   CONTENT_TAG_UPDATE: 'content.tag.update',
   CONTENT_TAG_DELETE: 'content.tag.delete',
 
+  SITE_SETTINGS_READ: 'site.settings.read',
+  SITE_SETTINGS_UPDATE: 'site.settings.update',
+  SITE_MESSAGE_READ: 'site.message.read',
+  SITE_MESSAGE_MANAGE: 'site.message.manage',
+
   MEDIA_ASSET_READ: 'media.asset.read',
   MEDIA_ASSET_UPLOAD: 'media.asset.upload',
   MEDIA_ASSET_UPDATE: 'media.asset.update',

@@ -170,6 +170,23 @@ export const PermissionRegistry = [
   permission(Permissions.CONTENT_TAG_UPDATE, 'content', 'tag', 'update', 'Update content tags'),
   permission(Permissions.CONTENT_TAG_DELETE, 'content', 'tag', 'delete', 'Delete content tags'),
 
+  permission(Permissions.SITE_SETTINGS_READ, 'site', 'settings', 'read', 'Read site settings'),
+  permission(
+    Permissions.SITE_SETTINGS_UPDATE,
+    'site',
+    'settings',
+    'update',
+    'Update site settings (about/contact)',
+  ),
+  permission(Permissions.SITE_MESSAGE_READ, 'site', 'message', 'read', 'Read contact messages'),
+  permission(
+    Permissions.SITE_MESSAGE_MANAGE,
+    'site',
+    'message',
+    'manage',
+    'Delete contact messages',
+  ),
+
   permission(Permissions.MEDIA_ASSET_READ, 'media', 'asset', 'read', 'Read media asset metadata'),
   permission(Permissions.MEDIA_ASSET_UPLOAD, 'media', 'asset', 'upload', 'Upload media assets'),
   permission(

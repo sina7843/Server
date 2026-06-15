@@ -13,6 +13,7 @@ import { AdminUsersModule } from './admin/users/admin-users.module';
 import { AuthModule } from './auth/auth.module';
 import { AppConfigModule } from './config/app-config.module';
 import { ContentModule } from './content/content.module';
+import { SiteModule } from './site/site.module';
 import { DatabaseModule } from './database/database.module';
 import { EventsModule } from './events/events.module';
 import { HealthController } from './health.controller';
@@ -50,6 +51,7 @@ import { SecurityHeadersMiddleware } from './common/middleware/security-headers.
     RbacModule,
     ProfileModule,
     ContentModule,
+    SiteModule,
     EsportsModule,
     GamesModule,
     HealthModule,

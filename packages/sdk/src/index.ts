@@ -52,4 +52,5 @@ export * from './admin-tournament-standings';
 export * from './admin-tournament-results-types';
 export * from './admin-tournament-results';
 export * from './site';
+export * from './admin-site-types';
 export * from './admin-site';

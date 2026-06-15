@@ -100,7 +100,7 @@ Granted to the `super_admin` role in the RBAC seed.
 
 - `pages/about.vue` — fetch `/v1/site/settings`; render `about.title` + `ContentHtmlRenderer` for `bodyHtml` (same as [pages/pages/[slug].vue](../../../apps/web/pages/pages/%5Bslug%5D.vue)).
 - `pages/contact.vue` — render contact fields (email, phone, address, socials, map) + a submit form (name, email, subject, message, hidden honeypot). Loading / success / error states.
-- `components/AppFooter.vue` — add links to `/about` and `/contact`.
+- Navigation links to `/about` and `/contact` in both `components/AppFooter.vue` and `components/AppHeader.vue` (top nav).
 - SEO head via existing `buildContentSeoHead`.
 
 ## Error Handling

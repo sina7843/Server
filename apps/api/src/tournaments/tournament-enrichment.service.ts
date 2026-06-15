@@ -1,6 +1,6 @@
 import { Inject, Injectable, Optional } from '@nestjs/common';
 import { Types } from 'mongoose';
-import type { MediaAssetRepository } from '../media/media-asset.repository';
+import { MediaAssetRepository } from '../media/media-asset.repository';
 import { STORAGE_SERVICE, type StorageService } from '../storage/storage.service';
 import { GameRepository } from '../games/game.repository';
 import type { TournamentDocument } from './tournament.schema';

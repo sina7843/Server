@@ -12,6 +12,8 @@ const ALLOWED_KEYS = [
   'permissions',
   'content',
   'media',
+  'site-settings',
+  'site-messages',
   'system-health',
   'backups',
   'audit',
@@ -53,6 +55,20 @@ describe('ADMIN_NAV_ITEMS', () => {
     expect(mediaItem).toBeDefined();
     expect(mediaItem!.permission).toBe(DragonPermissions.MEDIA_ASSET_READ);
     expect(mediaItem!.path).toBe('/media');
+  });
+
+  it('site-settings nav item points to /site/settings with site.settings.update gate', () => {
+    const item = ADMIN_NAV_ITEMS.find((i) => i.key === 'site-settings');
+    expect(item).toBeDefined();
+    expect(item!.path).toBe('/site/settings');
+    expect(item!.permission).toBe(DragonPermissions.SITE_SETTINGS_UPDATE);
+  });
+
+  it('site-messages nav item points to /site/messages with site.message.read gate', () => {
+    const item = ADMIN_NAV_ITEMS.find((i) => i.key === 'site-messages');
+    expect(item).toBeDefined();
+    expect(item!.path).toBe('/site/messages');
+    expect(item!.permission).toBe(DragonPermissions.SITE_MESSAGE_READ);
   });
 
   it('contains audit nav item added in Task 0.8.2', () => {

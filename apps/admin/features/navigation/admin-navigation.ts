@@ -52,6 +52,20 @@ export const ADMIN_NAV_ITEMS: readonly AdminNavItem[] = [
     permission: DragonPermissions.MEDIA_ASSET_READ,
   },
   {
+    key: 'site-settings',
+    label: 'تنظیمات سایت',
+    labelEn: 'Site Settings',
+    path: '/site/settings',
+    permission: DragonPermissions.SITE_SETTINGS_UPDATE,
+  },
+  {
+    key: 'site-messages',
+    label: 'پیام‌های تماس',
+    labelEn: 'Contact Messages',
+    path: '/site/messages',
+    permission: DragonPermissions.SITE_MESSAGE_READ,
+  },
+  {
     key: 'system-health',
     label: 'سلامت سیستم',
     labelEn: 'System Health',

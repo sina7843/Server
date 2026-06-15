@@ -135,6 +135,7 @@ const FALLBACK_GRADIENTS = [
 
 const coverStyle = computed(() => {
   const imageUrl = props.tournament.coverImageUrl ?? props.tournament.gameCoverImageUrl;
+  console.log("hi",imageUrl)
   if (imageUrl) {
     return {
       backgroundImage: `url(${imageUrl})`,

@@ -26,6 +26,8 @@
         <NuxtLink to="/guides" class="nav-link" active-class="nav-link--active">راهنما</NuxtLink>
         <NuxtLink to="/announcements" class="nav-link" active-class="nav-link--active">اطلاعیه‌ها</NuxtLink>
         <NuxtLink to="/categories" class="nav-link" active-class="nav-link--active">دسته‌بندی‌ها</NuxtLink>
+        <NuxtLink to="/about" class="nav-link" active-class="nav-link--active">درباره ما</NuxtLink>
+        <NuxtLink to="/contact" class="nav-link" active-class="nav-link--active">تماس با ما</NuxtLink>
         <NuxtLink to="/search" class="nav-link nav-link--search" active-class="nav-link--active">
           <svg
             width="15"
@@ -164,6 +166,8 @@
         <NuxtLink to="/announcements" class="mobile-nav__link" @click="mobileMenuOpen = false">اطلاعیه‌ها</NuxtLink>
         <NuxtLink to="/categories" class="mobile-nav__link" @click="mobileMenuOpen = false">دسته‌بندی‌ها</NuxtLink>
         <NuxtLink to="/search" class="mobile-nav__link" @click="mobileMenuOpen = false">جستجو</NuxtLink>
+        <NuxtLink to="/about" class="mobile-nav__link" @click="mobileMenuOpen = false">درباره ما</NuxtLink>
+        <NuxtLink to="/contact" class="mobile-nav__link" @click="mobileMenuOpen = false">تماس با ما</NuxtLink>
         <div class="mobile-nav__divider" />
         <template v-if="hasToken">
           <a v-if="adminUrl" :href="adminUrl" class="mobile-nav__link mobile-nav__link--admin" target="_blank" rel="noopener" @click="mobileMenuOpen = false">پنل مدیریت</a>

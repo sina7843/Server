@@ -59,6 +59,15 @@
           </ul>
         </div>
 
+        <!-- About / Contact links -->
+        <div class="footer-col">
+          <div class="col-title">ما</div>
+          <ul class="col-links">
+            <li><NuxtLink to="/about" class="col-link">درباره ما</NuxtLink></li>
+            <li><NuxtLink to="/contact" class="col-link">تماس با ما</NuxtLink></li>
+          </ul>
+        </div>
+
         <!-- Account links -->
         <div class="footer-col">
           <div class="col-title">حساب کاربری</div>
@@ -116,7 +125,7 @@
 
 .footer-cols {
   display: grid;
-  grid-template-columns: 1.5fr 0.8fr 1fr 1fr 1fr;
+  grid-template-columns: 1.5fr 0.8fr 1fr 1fr 1fr 1fr;
   gap: 32px;
   margin-bottom: 48px;
 }

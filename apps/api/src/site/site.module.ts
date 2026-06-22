@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { AuthModule } from '../auth/auth.module';
+import { RbacModule } from '../rbac/rbac.module';
 import { ContentModule } from '../content/content.module';
 import { SiteSettings, SiteSettingsSchema } from './site-settings.schema';
 import { ContactMessage, ContactMessageSchema } from './contact-message.schema';
@@ -13,6 +15,8 @@ import { AdminSiteController } from './admin/admin-site.controller';
 
 @Module({
   imports: [
+    AuthModule,
+    RbacModule,
     ContentModule,
     MongooseModule.forFeature([
       { name: SiteSettings.name, schema: SiteSettingsSchema },
